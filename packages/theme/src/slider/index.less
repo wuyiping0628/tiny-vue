@@ -62,6 +62,9 @@
   &.disabled .@{slider-prefix-cls}__handle {
     cursor: not-allowed;
   }
+  &.disabled .@{slider-prefix-cls}__range {
+    background: var(--ti-slider-range-disabled-bg-color);
+  }
 
   &__vertical {
     width: var(--ti-slider-height);
@@ -193,7 +196,7 @@
     display: inline-block;
     line-height: var(--ti-slider-input-height);
     vertical-align: top;
-    margin-left: 12px;
+    margin-left: var(--ti-slider-input-margin-left);
     font-size: var(--ti-common-font-size-base);
 
     input {
