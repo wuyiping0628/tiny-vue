@@ -81,7 +81,7 @@
             @blur="handleSlotInputBlur"
             @input="handleSlotInput"
             :disabled="state.disabled"
-          /><span>%</span>
+          /><span>{{ unit }}</span>
         </slot>
       </div>
     </template>
@@ -109,7 +109,8 @@ export default defineComponent({
     'showInput',
     'height',
     'range',
-    'formatTooltip'
+    'formatTooltip',
+    'unit'
   ],
   setup(props, context) {
     return setup({ props, context, renderless, api }) as unknown as ISliderApi

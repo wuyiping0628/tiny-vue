@@ -50,8 +50,10 @@ export default {
       'demoId': 'show-iput',
       'name': { 'zh-CN': '输入框模式', 'en-US': 'Text box mode' },
       'desc': {
-        'zh-CN': '<p>通过配置<code>show-input</code>，开启滑块输入框模式。</p>',
-        'en-US': '<p>Enable the slider text box mode by configuring <code>show-input</code>。</p>'
+        'zh-CN':
+          '<p>通过<code>show-input</code>设置滑块是否是输入框模式，<code>unit</code>设置输入框后面显示的单位，默认为 <code>%</code> 。</p>',
+        'en-US':
+          '<p>Set whether the slider is in input box mode through<code>show input</code>,<code>unit</code> Set the unit displayed after the input box, which defaults to <code>%</code> .</p>'
       },
       'codeFiles': ['show-iput.vue']
     },
@@ -164,6 +166,16 @@ export default {
           'desc': {
             'zh-CN': '是否显示输入框，仅在非范围选择时有效',
             'en-US': 'Indicates whether to display the text box. This parameter is valid only for non-range selection'
+          },
+          'demoId': 'show-iput'
+        },
+        {
+          'name': 'unit',
+          'type': 'boolean',
+          'defaultValue': '%',
+          'desc': {
+            'zh-CN': '显示自定义单位',
+            'en-US': 'display custom units'
           },
           'demoId': 'show-iput'
         },

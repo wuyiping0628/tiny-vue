@@ -1,5 +1,5 @@
 <template>
-  <tiny-slider v-model="value2" :show-input="true"></tiny-slider>
+  <tiny-slider v-model="value2" :max="2000" :unit="unit" :show-input="true"></tiny-slider>
 </template>
 
 <script>
@@ -11,7 +11,8 @@ export default {
   },
   data() {
     return {
-      value2: 40
+      value2: 40,
+      unit: '%'
     }
   }
 }
