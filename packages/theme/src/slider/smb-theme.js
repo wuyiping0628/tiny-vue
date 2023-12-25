@@ -12,6 +12,8 @@ export const tinySliderSmbTheme = {
   'ti-slider-range-disabled-bg-color': 'var(--ti-base-color-brand-5)',
   'ti-slider-range-margin-top': 'var(--ti-common-space-0)',
   'ti-slider-tips-text-color': 'var(--ti-base-color-common)',
-  'ti-slider-input-margin-left': '16px',
+  'ti-slider-input-margin-left': 'var(--ti-common-line-height-2)',
+  'ti-slider-unit-padding-left': 'var(--ti-common-space-base)',
+  'ti-slider-unit-color': 'var(--ti-mobile-color-text-primary)',
   'ti-slider-handle-height': 'var(--ti-common-size-height-small)'
 }
