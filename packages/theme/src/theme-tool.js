@@ -72,8 +72,37 @@ export default class TinyThemeTool {
       }
     }
     this.contentElement.textContent = this.formatCSSVariables(currentTheme.data)
-
     this.contentElement.setAttribute('tiny-theme', this.currentTheme.id)
+  }
+
+  /**
+   * 获取需要设置主题变量的选择器，支持多个选择器（在 theme.config.js 中配置，多个选择器之间通过逗号分隔）
+   * @param {theme.config 配置文件中的 key} key
+   * @returns 需要设置主题变量的选择器
+   * @example
+   * 示例1：输入：checkbox-button，输出：.tiny-checkbox-button[class*=tiny]
+   * 示例2：输入：month-table，输出：.tiny-month-table[class*=tiny],.tiny-year-table[class*=tiny]
+   */
+  getSelectorByKey(compNameList) {
+    const threeKey = `${compNameList[1]}-${compNameList[2]}-${compNameList[3]}`
+    const twoKey = `${compNameList[1]}-${compNameList[2]}`
+    let key = compNameList[1]
+    let value = definedComponents[key] || key
+    if (definedComponents[threeKey]) {
+      key = threeKey
+      value = definedComponents[threeKey]
+    } else if (definedComponents[twoKey]) {
+      key = twoKey
+      value = definedComponents[twoKey]
+    }
+
+    let selector = ''
+    const keyItems = value.split(',')
+    keyItems.forEach((componentName, index) => {
+      // 加上 [class*=tiny] 是为了提高权重，促使主题变换成功
+      selector += '.tiny-' + componentName + '[class*=tiny]' + (index < keyItems.length - 1 ? ',' : '')
+    })
+    return selector
   }
 
   // 通过 `组件css变量`，来推导出组件名： 从 ti-checkbox-button-bg-color， 推导出 checkbox-button
@@ -82,23 +111,9 @@ export default class TinyThemeTool {
     if (compNameList.length < 2) {
       return false
     }
-    const compLength = definedComponents.length
-    let compName = ''
-    for (let i = 0; i < compLength; i++) {
-      // 先试试是不是双段式的组件名： 比如dialog-box 这种
-      if (definedComponents[i] === `${compNameList[1]}-${compNameList[2]}`) {
-        compName = `tiny-${definedComponents[i]}`
-        break
-      }
-    }
-    // 不是双段的组件，则取第一位为组件名
-    if (!compName) {
-      compName = `tiny-${compNameList[1]}`
-    }
 
-    // 提高权重，促使主题变换成功
-    compName = `${compName}[class*=tiny]`
-    return compName
+    // 优先三段式命名的组件名，优先级从高到低为三段-二段-一段
+    return this.getSelectorByKey(compNameList)
   }
 
   formatCSSVariables(themeData) {
@@ -123,7 +138,7 @@ export default class TinyThemeTool {
     })
 
     Object.keys(componentsMap).forEach((item) => {
-      componentsCssVar += `.${item}{${componentsMap[item].join('')}}`
+      componentsCssVar += `${item}{${componentsMap[item].join('')}}`
     })
 
     return `${rootCssVar}}${componentsCssVar}`

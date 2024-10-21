@@ -29,16 +29,17 @@ export const $constants = {
     LARGE: 160
   },
   PROGRESS_STATUS: {
+    DEFAULT: 'default',
     SUCCESS: 'success',
     EXCEPTION: 'exception',
     WARNING: 'warning'
   },
   STATUS_TO_COLOR: {
-    success: '#13ce66',
-    exception: '#ff4949',
-    warning: '#e6a23c'
+    success: '#00a874',
+    exception: '#eb171f',
+    warning: '#fdc000'
   },
-  STATUS_DEFAULT_COLOR: '#20a0ff',
+  STATUS_DEFAULT_COLOR: '#0067d1',
   ICON_CIRCLE_WARNING: 'icon-warning',
   ICON_CIRCLE_SUCCESS: 'icon-success',
   ICON_CIRCLE_EXCEPTION: 'icon-error',

@@ -1,13 +1,34 @@
-.component-css-vars-colorpicker() {
-  --ti-color-picker-background: var(--ti-common-color-transparent);
-  --ti-color-picker-border-color: var(--ti-base-color-common-2);
-  --ti-color-picker-border-weight: var(--ti-common-border-weight-normal);
-  --ti-color-picker-border-radius-xs: var(--ti-common-border-radius-normal);
-  --ti-color-picker-border-radius-sm: var(--ti-common-border-radius-1);
-  --ti-color-picker-border-radius: var(--ti-common-border-radius-2);
-  --ti-color-picker-spacing: var(--ti-common-space-base);
-  --ti-color-picker-spacing-2x: var(--ti-common-space-2x);
-  --ti-color-picker-shadow: var(--ti-common-shadow-2-down);
-  --ti-color-picker__wrapper-zindex: 1000;
-  --ti-color-picker__wrapper-bg: var(--ti-common-color-bg-white-emphasize);
+.inject-ColorPicker-vars() {
+  // 按钮边框色
+  --tv-ColorPicker-border-color: var(--tv-color-border-ghost);
+  // 按钮边框圆角
+  --tv-ColorPicker-border-radius-md: var(--tv-border-radius-md);
+  // 按钮边框小圆角
+  --tv-ColorPicker-border-radius-xs: var(--tv-border-radius-xs);
+  // 按钮垂直内边距
+  --tv-ColorPicker-padding-y: var(--tv-space-sm);
+  // 按钮水平内边距
+  --tv-ColorPicker-padding-x: var(--tv-space-sm);
+  // 没用(hide)
+  --tv-ColorPicker-spacing-2x: var(--tv-space-md);
+
+  // 超大尺寸高度
+  --tv-ColorPicker-size-large-height: var(--tv-size-height-xl);
+  // 超大尺寸宽度
+  --tv-ColorPicker-size-large-width: var(--tv-size-height-xl);
+
+  // 中等尺寸高度
+  --tv-ColorPicker-size-medium-height: var(--tv-size-height-lg);
+  // 中等尺寸最小宽度
+  --tv-ColorPicker-size-medium-width: var(--tv-size-height-lg);
+
+  // 小型高度
+  --tv-ColorPicker-size-small-height: var(--tv-size-height-sm);
+  // 小尺寸宽度
+  --tv-ColorPicker-size-small-width: var(--tv-size-height-sm);
+
+  // 迷你尺寸按钮高度
+  --tv-ColorPicker-size-mini-height: var(--tv-size-height-xs);
+  // 迷你尺寸宽度
+  --tv-ColorPicker-size-mini-width: var(--tv-size-height-xs);
 }

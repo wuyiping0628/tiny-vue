@@ -13,6 +13,7 @@
 import { on, off } from '../common/deps/dom'
 import { KEY_CODE } from '../common'
 import PopupManager from '../common/deps/popup-manager'
+import { xss } from '../common/xss'
 
 const isFirefox = () => !!window.navigator.userAgent.match(/firefox/i)
 
@@ -36,15 +37,52 @@ export const rafThrottle = (fn) => {
 }
 
 export const hide =
-  ({ props, api }) =>
+  ({ props, api, state }) =>
   () => {
     api.deviceSupportUninstall()
     props.onClose()
+    state.showImageViewer = false
   }
 
 export const deviceSupportInstall =
-  ({ state, api }) =>
+  ({ state, api, mode }) =>
   () => {
+    on(window, 'resize', api.initPage)
+
+    state.urlList = state.urlList.map((subItem) => {
+      let subItemObj = {}
+      let lastSlashIndex = ''
+
+      if (typeof subItem === 'string') {
+        subItem = api.filterImageUrl(subItem)
+
+        if (state.isThumbnail || state.isMenuView) {
+          lastSlashIndex = subItem.lastIndexOf('/')
+          state.fileName = subItem.substring(lastSlashIndex + 1)
+          subItemObj.url = subItem
+          subItemObj.name = state.fileName
+
+          return subItemObj
+        } else {
+          lastSlashIndex = subItem.lastIndexOf('/')
+          state.fileName = subItem.substring(lastSlashIndex + 1)
+
+          return { url: subItem, name: state.fileName }
+        }
+      } else if (typeof subItem === 'object' && subItem !== null) {
+        subItem.url = api.filterImageUrl(subItem.url)
+
+        if (!subItem.name) {
+          lastSlashIndex = subItem.url.lastIndexOf('/')
+          state.fileName = subItem.url.substring(lastSlashIndex + 1)
+          subItem.name = state.fileName
+        }
+        return subItem
+      } else {
+        return null
+      }
+    })
+
     state._keyDownHandler = rafThrottle((event) => {
       const keyCode = event.keyCode
 
@@ -89,16 +127,18 @@ export const deviceSupportInstall =
     })
 
     on(document, 'keydown', state._keyDownHandler)
-    on(document, mousewheelEventName, state._mouseWheelHandler)
+    mode !== 'mobile-first' && on(document, mousewheelEventName, state._mouseWheelHandler)
   }
 
-export const deviceSupportUninstall = (state) => () => {
-  off(document, 'keydown', state._keyDownHandler)
-  off(document, mousewheelEventName, state._mouseWheelHandler)
+export const deviceSupportUninstall =
+  ({ state, mode }) =>
+  () => {
+    off(document, 'keydown', state._keyDownHandler)
+    mode !== 'mobile-first' && off(document, mousewheelEventName, state._mouseWheelHandler)
 
-  state._keyDownHandler = null
-  state._mouseWheelHandler = null
-}
+    state._keyDownHandler = null
+    state._mouseWheelHandler = null
+  }
 
 export const handleImgLoad = (state) => () => (state.loading = false)
 
@@ -124,7 +164,21 @@ export const handleMouseDown = (state) => (event) => {
   })
 
   on(document, 'mousemove', state._dragHandler)
-  on(document, 'mouseup', () => off(document, 'mousemove', state._dragHandler))
+
+  state._removeDrag = () => off(document, 'mousemove', state._dragHandler)
+
+  if (state._clearMouse) {
+    state._clearMouse()
+    state._clearMouse = undefined
+  }
+
+  on(document, 'mouseup', state._removeDrag)
+  on(document, 'mouseleave', state._removeDrag)
+
+  state._clearMouse = () => {
+    off(document, 'mouseup', state._removeDrag)
+    off(document, 'mouseleave', state._removeDrag)
+  }
 
   event.preventDefault()
 }
@@ -169,36 +223,127 @@ export const toggleMode =
   }
 
 export const prev =
-  ({ state, props }) =>
+  ({ state, api, vm }) =>
   () => {
     if (state.isFirst && !state.infinite) {
       return
     }
 
-    const len = props.urlList.length
+    const len = state.urlList.length
+    let prevElement = ''
 
     state.index = (state.index - 1 + len) % len
+
+    api.activeItems(state.index)
+    if (state.isThumbnail) {
+      prevElement = vm.$refs[`isThumbnail_${state.index}`][0] || vm.$refs[`isThumbnail_${state.index}`]
+    } else if (state.isMenuView) {
+      prevElement = vm.$refs[`isMenuView_${state.index}`][0] || vm.$refs[`isMenuView_${state.index}`]
+    }
+
+    if (state.index === 1) {
+      state.isThumbnail && vm.$refs.isThumbnailContent && (vm.$refs.isThumbnailContent.scrollTop = 0)
+      state.isMenuView && vm.$refs.isMenuViewContent && (vm.$refs.isMenuViewContent.scrollTop = 0)
+      state.scrollTop = 0
+    } else if (state.index === state.urlList.length - 1) {
+      api.getLastPrev(prevElement)
+    } else if (state.index === state.urlList.length - 2) {
+      // empty
+      // 判断逻辑需要return，提交代码eslint阻止提交，因此使用注释留空。
+    } else if (state.index === state.urlList.length - 3) {
+      state.scrollTop = prevElement.offsetHeight
+    } else {
+      api.getDefaultPrev(prevElement)
+    }
+  }
+
+export const getLastPrev =
+  ({ state, vm }) =>
+  (prevElement) => {
+    state.isThumbnail && vm.$refs.isThumbnailContent && (vm.$refs.isThumbnailContent.scrollTop = prevElement.offsetTop)
+    state.isMenuView && vm.$refs.isMenuViewContent && (vm.$refs.isMenuViewContent.scrollTop = prevElement.offsetTop)
+    state.scrollTop = prevElement.offsetTop
+  }
+
+export const getDefaultPrev =
+  ({ state, vm }) =>
+  (prevElement) => {
+    if (state.scrollTop <= prevElement.offsetHeight) {
+      state.scrollTop =
+        prevElement.offsetTop - state.scrollTop - (state.isThumbnail ? state.thumbnailTop : state.menuTop)
+    } else {
+      state.scrollTop =
+        state.scrollTop - prevElement.offsetHeight - (state.isThumbnail ? state.thumbnailTop : state.menuTop)
+    }
+    state.isThumbnail && vm.$refs.isThumbnailContent && (vm.$refs.isThumbnailContent.scrollTop = state.scrollTop)
+    state.isMenuView && vm.$refs.isMenuViewContent.scrollTop && (vm.$refs.isMenuViewContent.scrollTop = state.scrollTop)
   }
 
 export const next =
-  ({ state, props }) =>
+  ({ state, api, vm }) =>
   () => {
     if (state.isLast && !state.infinite) {
       return
     }
 
-    const len = props.urlList.length
+    const len = state.urlList.length
+    let element = ''
 
     state.index = (state.index + 1) % len
-  }
 
-export const handleActions =
-  (state) =>
-  (action, options = {}) => {
-    if (state.loading) {
-      return
+    api.activeItems(state.index)
+    if (state.isThumbnail) {
+      element = vm.$refs[`isThumbnail_${state.index}`][0] || vm.$refs[`isThumbnail_${state.index}`]
+    } else if (state.isMenuView) {
+      element = vm.$refs[`isMenuView_${state.index}`][0] || vm.$refs[`isMenuView_${state.index}`]
     }
 
+    state.centerIndex = api.getCenterPosition(element) - 1
+    let slientIndex = -1
+
+    if (state.centerIndex > state.index) {
+      slientIndex = state.index
+    }
+
+    if (state.index === 0) {
+      state.isThumbnail && vm.$refs.isThumbnailContent && (vm.$refs.isThumbnailContent.scrollTop = 0)
+      state.isMenuView && vm.$refs.isMenuViewContent && (vm.$refs.isMenuViewContent.scrollTop = 0)
+      state.scrollTop = 0
+    } else if (state.index === slientIndex) {
+      // empty
+      // 判断逻辑需要return，提交代码eslint阻止提交，因此使用注释留空。
+    } else {
+      if (state.isThumbnail) {
+        vm.$refs.isThumbnailContent && (vm.$refs.isThumbnailContent.scrollTop = state.scrollTop)
+        state.scrollTop = state.scrollTop + element.offsetHeight + state.thumbnailTop
+      } else if (state.isMenuView) {
+        vm.$refs.isMenuViewContent && (vm.$refs.isMenuViewContent.scrollTop = state.scrollTop)
+        state.scrollTop = state.scrollTop + element.offsetHeight + state.menuTop
+      }
+    }
+  }
+
+export const getCenterPosition =
+  ({ state, vm }) =>
+  (element) => {
+    let contentHeight = 0
+    let eleHeight = 0
+
+    if (state.isThumbnail && vm.$refs.isThumbnailContent) {
+      contentHeight = vm.$refs.isThumbnailContent.getBoundingClientRect().height
+      eleHeight = element.getBoundingClientRect().height + parseFloat(getComputedStyle(element).marginBottom) - 0
+
+      return Math.ceil(contentHeight / eleHeight) / 2
+    } else if (vm.$refs.isMenuViewContent && vm.$refs.isMenuViewContent) {
+      contentHeight = vm.$refs.isMenuViewContent.getBoundingClientRect().height
+      eleHeight = element.getBoundingClientRect().height + parseFloat(getComputedStyle(element).marginTop) - 0
+
+      return Math.ceil(contentHeight / eleHeight) / 2
+    }
+  }
+export const handleActions =
+  (state, props, emit) =>
+  (action, options = {}) => {
     const { zoomRate, rotateDeg, enableTransition } = {
       zoomRate: 0.2,
       rotateDeg: 90,
@@ -206,6 +351,40 @@ export const handleActions =
       ...options
     }
     const { transform } = state
+    let lastSlashIndex = ''
+    let imageUrl = []
+
+    lastSlashIndex = state.currentImg.lastIndexOf('/')
+    let cutName = state.currentImg.substring(lastSlashIndex + 1)
+
+    if (action === 'delImage') {
+      if (typeof state.urlList[0] === 'string') {
+        imageUrl = state.urlList
+      } else if (typeof state.urlList[0] === 'object' && state.urlList[0] !== null) {
+        cutName = state.urlList[state.index].name
+
+        state.urlList.forEach((item) => {
+          imageUrl.push(item.url)
+        })
+      }
+
+      if (imageUrl.includes(state.currentImg)) {
+        if (state.index === state.urlList.length - 1) {
+          state.urlList.splice(state.index, 1)
+          state.index = state.urlList.length - 1
+        } else {
+          state.urlList.splice(state.index, 1)
+        }
+      }
+
+      state.imageName = cutName
+
+      emit('delete', state.imageName)
+    }
+
+    if (state.loading) {
+      return
+    }
 
     if (action === 'zoomOut') {
       if (transform.scale > 0.2) {
@@ -232,9 +411,14 @@ export const computedIsLast =
     state.index === props.urlList.length - 1
 
 export const computedCurrentImg =
-  ({ state, props }) =>
-  () =>
-    props.urlList[state.index]
+  ({ state, api }) =>
+  () => {
+    if (typeof state.urlList[0] === 'string') {
+      return api.filterImageUrl(state.urlList[state.index])
+    } else if (typeof state.urlList[0] === 'object' && state.urlList[0] !== null) {
+      return api.filterImageUrl(state.urlList[state.index].url)
+    }
+  }
 
 export const computedImgStyle =
   ({ state, constants }) =>
@@ -265,7 +449,7 @@ export const handleVisible =
     state.transform.deg = 0
 
     setTimeout(() => {
-      if (props.startPosition !== 0) {
+      if (props.startPosition > 0) {
         state.index = (props.startPosition - 1 + state.urlList.length) % state.urlList.length
         state.imageTransform = state.index * state.imageItemWidth
         state.imageTransformSize = -state.index * state.imageItemWidth
@@ -281,35 +465,51 @@ export const handleVisible =
   }
 
 export const getImageWidth =
-  ({ state, parent, props }) =>
+  ({ state, parent, props, vm, mode }) =>
   () => {
     let imageW = 0
     const len = state.urlList.length
 
-    imageW = parent.$el.querySelector('.tiny-mobile-image-viewer__canvas').offsetWidth
+    if (mode === 'mobile-first') {
+      if (state.isThumbnail && state.isImagePreview) {
+        imageW = vm.$refs.thumbnailCanvasBox.offsetWidth
+      } else {
+        imageW = vm.$refs.canvasBox && vm.$refs.canvasBox.offsetWidth
+      }
 
-    state.imageList = parent.$el.querySelectorAll('.tiny-mobile-image-viewer__item')
+      state.imageList = vm.$refs.viewerItem
+    } else if (mode === 'mobile') {
+      imageW = parent.$el.querySelector('.tiny-mobile-image-viewer__canvas').offsetWidth
 
-    state.imageItemWidth = imageW
-    state.iamgeAllWidth = state.urlList.length * imageW
+      state.imageList = parent.$el.querySelectorAll('.tiny-mobile-image-viewer__item')
+    } else {
+      imageW = parent.$el.querySelector('.tiny-image-viewer__canvas').offsetWidth
 
-    if (props.startPosition !== 0) {
-      state.index = props.startPosition
-      state.imageTransition = 0
-
-      const transformX = state.index * state.imageItemWidth
-
-      state.imageTransform = transformX
-      state.imageTransformSize = -transformX
+      state.imageList = parent.$el.querySelectorAll('.tiny-image-viewer__img')
     }
 
-    if (state.index === 0 && props.deleteButton && state.delete) {
-      state.imageTransition = 0
+    state.imageItemWidth = imageW
+    state.imageAllWidth = state.urlList.length * imageW
 
-      const transformX = state.index * state.imageItemWidth
+    if (mode === 'mobile') {
+      if (props.startPosition > 0) {
+        state.index = props.startPosition
+        state.imageTransition = 0
 
-      state.imageTransform = transformX
-      state.imageTransformSize = -transformX
+        const transformX = state.index * state.imageItemWidth
+
+        state.imageTransform = transformX
+        state.imageTransformSize = -transformX
+      }
+
+      if (state.index === 0 && props.deleteButton && state.delete) {
+        state.imageTransition = 0
+
+        const transformX = state.index * state.imageItemWidth
+
+        state.imageTransform = transformX
+        state.imageTransformSize = -transformX
+      }
     }
 
     setTimeout(() => {
@@ -340,14 +540,17 @@ export const swipeLeft =
       state.arrowStyle = null
     }
 
-    if (state.imageTransform === state.iamgeAllWidth) {
+    if (state.imageTransform === state.imageAllWidth) {
       state.imageTransformSize = state.imageTransform = 0
       state.imageList[0].style.transform = null
 
       return
     }
 
-    if (state.imageTransform == state.iamgeAllWidth - state.imageItemWidth && state.index == state.urlList.length - 1) {
+    if (
+      state.imageTransform === state.imageAllWidth - state.imageItemWidth &&
+      state.index === state.urlList.length - 1
+    ) {
       return
     }
 
@@ -376,7 +579,7 @@ export const swipeRight =
       state.arrowStyle = null
     }
 
-    if (state.imageTransform == 0 && state.index == 0) {
+    if (state.imageTransform === 0 && state.index === 0) {
       return
     }
 
@@ -412,6 +615,61 @@ export const handleDelete =
     emit('newImageList', state.urlList, currenIndex)
   }
 
+export const langClick = (state) => () => {
+  if (window.navigator.msSaveOrOpenBlob) {
+    let bstr = atob(state.currentImg.split(',')[1])
+    let n = bstr.length
+    let u8arr = new Uint8Array(n)
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+    let blob = new Blob([u8arr])
+    window.navigator.msSaveOrOpenBlob(blob, 'img' + '.' + 'png')
+  } else {
+    const a = document.createElement('a')
+    a.style = 'dispaly:none'
+    a.href = state.currentImg + '?response-content-type=application/octet-stream'
+    a.setAttribute('download', 'img')
+    a.setAttribute('target', 'downloadFile')
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+}
+
+export const touchstart =
+  ({ state, mode, api }) =>
+  (e) => {
+    state.firstX = e.targetTouches[0].clientX
+
+    if (mode === 'mobile-first') {
+      state.time = setTimeout(() => {
+        if (!state.isImagePreview) {
+          api.langClick()
+        } else {
+          state.boxVisibility = true
+        }
+      }, 1000)
+    }
+
+    const touches = e.touches
+    const events = touches[0]
+    const events2 = touches[1]
+
+    preventDefault(e)
+
+    state.pageX = events.pageX
+    state.pageY = events.pageY
+    state.moveable = true
+
+    if (events2) {
+      state.pageX2 = events2.pageX
+      state.pageY2 = events2.pageY
+    }
+
+    state.originScale = state.scale || 1
+  }
+
 const preventDefault = (event, isStopPropagation) => {
   if (typeof event.cancelable !== 'boolean' || event.cancelable) {
     event.preventDefault()
@@ -420,25 +678,6 @@ const preventDefault = (event, isStopPropagation) => {
   if (isStopPropagation) {
     event.stopPropagation()
   }
-}
-
-export const touchstart = (state) => (e) => {
-  const touches = e.touches
-  const events = touches[0]
-  const events2 = touches[1]
-
-  preventDefault(e)
-
-  state.pageX = events.pageX
-  state.pageY = events.pageY
-  state.moveable = true
-
-  if (events2) {
-    state.pageX2 = events2.pageX
-    state.pageY2 = events2.pageY
-  }
-
-  state.originScale = state.scale || 1
 }
 
 export const touchmove = (state) => (event) => {
@@ -494,15 +733,142 @@ export const touchmove = (state) => (event) => {
     state.scale = newScale
     state.transform.scale = newScale
   }
+
+  clearTimeout(state.time)
 }
 
-export const touchend = (state) => () => {
+export const touchend = (state) => (e) => {
+  let moveX = 0
+  state.endX = e.changedTouches[0].clientX
+  moveX = state.endX - state.firstX
+
+  if (!state.boxVisibility) {
+    if (moveX === 0) {
+      state.isImagePreview = false
+      state.hiddenThumbnail = false
+    }
+  }
+
   state.moveable = false
   state.pageX2 = 0
   state.pageY2 = 0
+
+  clearTimeout(state.time)
 }
 
 export const computeZIndex =
   ({ constants, props }) =>
   () =>
     props.zIndex === constants.DEFAULT_POPPER_ZINDEX || props.zIndex < 1 ? PopupManager.nextZIndex() : props.zIndex
+
+export const activeItems = (state) => (i) => {
+  state.index = i
+  state.currentIndex = i
+}
+
+export const imagePreview = (state) => (i) => {
+  state.index = i
+
+  state.mobileCurrentIndex && (state.isImagePreview = true)
+}
+
+export const initPage =
+  ({ state, nextTick, api }) =>
+  () => {
+    state.isImagePreview = false
+    state.hiddenThumbnail = false
+    nextTick(() => {
+      api.getImageWidth()
+    })
+  }
+
+export const beforeDestroy =
+  ({ api, state }) =>
+  () => {
+    off(window, 'resize', api.initPage)
+
+    if (state._clearMouse) {
+      state._clearMouse()
+      state._clearMouse = undefined
+    }
+
+    if (state._dragHandler) {
+      state._dragHandler = undefined
+    }
+
+    if (state._removeDrag) {
+      state._removeDrag = undefined
+    }
+  }
+
+export const itemClick =
+  ({ state, vm, nextTick }) =>
+  (itemData) => {
+    if (state.isThumbnail) {
+      state.showFlag = 1
+    } else if (state.isMenuView) {
+      state.showFlag = 2
+    }
+
+    switch (itemData) {
+      case '1':
+        state.isThumbnail = false
+        state.isMenuView = false
+        break
+      case '2':
+        state.isThumbnail = true
+        state.isMenuView = false
+        nextTick(() => {
+          state.currentIndex = 0
+          state.index = 0
+          vm.$refs.isThumbnailContent.scrollTop = 0
+        })
+
+        break
+      case '3':
+        state.isThumbnail = false
+        state.isMenuView = true
+        nextTick(() => {
+          state.currentIndex = 0
+          state.index = 0
+          vm.$refs.isMenuViewContent.scrollTop = 0
+        })
+
+        break
+      case '4':
+        if (state.showFlag === 1) {
+          state.isThumbnail = true
+        } else if (state.showFlag === 2) {
+          state.isMenuView = true
+        }
+        break
+      default:
+        break
+    }
+  }
+
+export const selectOption =
+  ({ state, api }) =>
+  (item, index) => {
+    switch (index) {
+      case 0:
+        api.langClick()
+        break
+      case 1:
+        state.isThumbnail = true
+        state.isImagePreview = false
+        break
+      case 2:
+        api.handleActions('delImage')
+        api.getImageWidth()
+        break
+      default:
+        break
+    }
+  }
+
+export const filterImageUrl = () => (imageUrl) => {
+  const isBase64 = /^data:image\/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})/
+
+  return isBase64.test(imageUrl) ? imageUrl : xss.filterUrl(imageUrl)
+}

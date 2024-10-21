@@ -10,6 +10,14 @@
  *
  */
 
+import type {
+  ICheckboxApi,
+  ICheckboxProps,
+  ICheckboxState,
+  ISharedRenderlessParamHooks,
+  ICheckboxRenderlessParams,
+  ICheckboxRenderlessParamUtils
+} from '@/types'
 import {
   addToStore,
   removeFromStore,
@@ -35,12 +43,15 @@ import {
 export const api = ['state', 'handleChange', 'computedStore']
 
 const initState = ({ reactive, computed, parent, api, inject, props }) => {
-  const state = reactive({
-    size: props.size || inject('size', null),
+  const state: ICheckboxState = reactive({
+    size: computed(() => props.size || inject('size', null) || (parent.tinyForm || {}).size),
     vertical: inject('vertical', null),
+    iconPosition: props.iconPosition || inject('iconPosition', 'center'),
     focus: false,
     selfModel: false,
+    showLabel: false,
     isLimitExceeded: false,
+    checkboxGroup: null,
     store: computed(() => api.computedStore()),
     isGroup: computed(() => api.computedIsGroup()),
     isChecked: computed(() => api.computedIsChecked()),
@@ -58,13 +69,29 @@ const initState = ({ reactive, computed, parent, api, inject, props }) => {
       set: (value) => api.computedGetModelSet(value)
     }),
     showText: computed(() => api.computedShowText()),
-    isShowText: computed(() => api.computedIsShowText())
+    isShowText: computed(() => api.computedIsShowText()),
+    shape: inject('shape', null) || props.shape
   })
 
   return state
 }
 
-const initApi = ({ api, state, dispatch, props, parent, constants, formItemSize, emit, nextTick, t }) => {
+const initApi = ({
+  api,
+  state,
+  dispatch,
+  props,
+  parent,
+  constants,
+  formItemSize,
+  emit,
+  nextTick,
+  t,
+  vm
+}: Pick<
+  ICheckboxRenderlessParams & ICheckboxRenderlessParamUtils & ISharedRenderlessParamHooks,
+  'api' | 'state' | 'dispatch' | 'props' | 'parent' | 'constants' | 'formItemSize' | 'emit' | 'nextTick' | 't' | 'vm'
+>) => {
   Object.assign(api, {
     state,
     addToStore: addToStore({ state, props }),
@@ -84,22 +111,22 @@ const initApi = ({ api, state, dispatch, props, parent, constants, formItemSize,
     handleChange: handleChange({ state, props, emit, nextTick, dispatch, constants }),
     computedDisplayLabel: computedDisplayLabel({ state, props, t }),
     computedIsShowText: computedIsShowText({ props }),
-    computedShowText: computedShowText({ props }),
-  })
+    computedShowText: computedShowText({ props })
+  } as Partial<ICheckboxApi>)
 }
 
 export const renderless = (
-  props,
-  { computed, onMounted, onBeforeUnmount, reactive, watch, inject },
-  { vm, parent, emit, constants, nextTick, dispatch, t }
-) => {
-  const api = { dispatch }
+  props: ICheckboxProps,
+  { computed, onMounted, onBeforeUnmount, reactive, watch, inject }: ISharedRenderlessParamHooks,
+  { vm, parent, emit, constants, nextTick, dispatch, t }: ICheckboxRenderlessParamUtils
+): ICheckboxApi => {
+  const api = { dispatch } as ICheckboxApi
   const formItemSize = computed(() => api.computedFormItemSize())
-  const state = initState({ reactive, computed, parent, api, inject, props })
+  const state: ICheckboxState = initState({ reactive, computed, parent, api, inject, props })
 
   parent.tinyForm = parent.tinyForm || inject('form', null)
 
-  initApi({ api, state, dispatch, props, parent, constants, formItemSize, emit, nextTick, t })
+  initApi({ api, state, dispatch, props, parent, constants, formItemSize, emit, nextTick, t, vm })
 
   watch(
     () => props.modelValue,

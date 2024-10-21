@@ -10,6 +10,13 @@
  *
  */
 
+import type {
+  IRadioApi,
+  IRadioProps,
+  IRadioState,
+  ISharedRenderlessParamHooks,
+  IRadioRenderlessParamUtils
+} from '@/types'
 import {
   handleChange,
   isGroup,
@@ -19,27 +26,25 @@ import {
   tabIndex,
   getModel,
   setModel,
-  toggleEvent,
-  dispatchDisplayedValue,
-  getDisplayedValue
+  toggleEvent
 } from './index'
 
 export const api = ['state', 'handleChange']
 
 export const renderless = (
-  props,
-  { onMounted, onBeforeUnmount, computed, reactive, inject, watch },
-  { refs, vm, parent, emit, constants, nextTick, dispatch }
-) => {
+  props: IRadioProps,
+  { onMounted, onBeforeUnmount, computed, reactive, inject }: ISharedRenderlessParamHooks,
+  { vm, parent, emit, constants, nextTick, dispatch }: IRadioRenderlessParamUtils
+): IRadioApi => {
   parent.tinyForm = parent.tinyForm || inject('form', null)
 
-  const api = {}
+  const api = {} as IRadioApi
 
-  const state = reactive({
+  const state: IRadioState = reactive({
     vertical: inject('radioVertical', false),
-    size: props.size || inject('size', null),
+    size: computed(() => props.size || inject('size', null) || (parent.tinyForm || {}).size),
     focus: false,
-    radioGroup: '',
+    radioGroup: null,
     isGroup: computed(() => api.isGroup()),
     radioSize: computed(() => api.radioSize()),
     isDisabled: computed(() => api.isDisabled()),
@@ -60,22 +65,17 @@ export const renderless = (
     tabIndex: tabIndex({ props, state }),
     isDisabled: isDisabled({ props, state }),
     isDisplayOnly: isDisplayOnly({ props }),
-    setModel: setModel({ constants, dispatch, emit, props, refs, state }),
-    handleChange: handleChange({ constants, dispatch, emit, state, nextTick }),
-    dispatchDisplayedValue: dispatchDisplayedValue({ state, api, dispatch }),
-    getDisplayedValue: getDisplayedValue({ vm, state, props })
+    setModel: setModel({ constants, dispatch, emit, props, vm, state }),
+    handleChange: handleChange({ constants, dispatch, emit, state, nextTick })
   })
 
-  watch(() => state.isDisplayOnly, api.dispatchDisplayedValue)
-
   onMounted(() => {
-    api.dispatchDisplayedValue()
     dispatch('Tooltip', 'tooltip-update')
-    toggleEvent({ props, refs, type: 'add' })
+    toggleEvent({ props, vm, type: 'add' })
   })
 
   onBeforeUnmount(() => {
-    toggleEvent({ props, refs, type: 'remove' })
+    toggleEvent({ props, vm, type: 'remove' })
   })
 
   return api

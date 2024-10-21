@@ -12,12 +12,12 @@
 
 <script lang="tsx">
 import { renderless, api } from '@opentiny/vue-renderless/dropdown/vue'
-import { setup, $prefix, directive, defineComponent, h } from '@opentiny/vue-common'
+import { setup, $prefix, directive, defineComponent, h, $props } from '@opentiny/vue-common'
 import Button from '@opentiny/vue-button'
 import ButtonGroup from '@opentiny/vue-button-group'
 import Clickoutside from '@opentiny/vue-renderless/common/deps/clickoutside'
 import DropdownMenu from '@opentiny/vue-dropdown-menu'
-import { iconDeltaDown, iconDownWard } from '@opentiny/vue-icon'
+import { iconDownWard } from '@opentiny/vue-icon'
 
 export default defineComponent({
   name: $prefix + 'Dropdown',
@@ -30,11 +30,9 @@ export default defineComponent({
   },
   directives: directive({ Clickoutside }),
   props: {
+    ...$props,
     type: String,
-    trigger: {
-      type: String,
-      default: 'hover'
-    },
+    trigger: String,
     size: {
       type: String,
       default: ''
@@ -83,28 +81,43 @@ export default defineComponent({
     },
     title: {
       type: String,
-      default: '下拉菜单'
+      default: '下拉菜单' // TINY-TODO: 国际化
     },
     inheritWidth: {
       type: Boolean,
       default: false
+    },
+    suffixIcon: Object,
+    lazyShowPopper: {
+      type: Boolean,
+      default: false
     }
   },
-  emits: ['visible-change', 'item-click', 'button-click', 'menu-item-click', 'handle-click'],
+  emits: [
+    'visible-change',
+    'item-click',
+    'button-click',
+    'menu-item-click',
+    'handle-click',
+    'is-disabled',
+    'selected-index'
+  ],
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true, h })
+    return setup({ props, context, renderless, api, h })
   },
   render() {
-    const { splitButton, type, disabled, handleMainButtonClick, menuOptions, title } = this
+    const { splitButton, type, disabled, handleMainButtonClick, menuOptions, title, suffixIcon } = this
     const { slots, size, state, border, showIcon, round, clickOutside } = this
+
     const params = { visible: state.visible }
     let triggerElm = null
     // TINY-TODO tiny-dropdown类名整改,统一tiny-组件名为前缀
     const triggerClass = 'tiny-dropdown__trigger tiny-dropdown-trigger'
     const visibleClass = state.visible ? 'tiny-dropdown--visible tiny-dropdown-visible' : ''
 
-    const IconDown = state?.designConfig?.icons?.dropdownIcon || iconDeltaDown()
-    const ButtonIconDown = state?.designConfig?.icons?.dropdownIcon || iconDownWard()
+    // 优先级：suffix-icon 插槽 > suffixIcon 属性 > 其他主题图标 > 默认主题图标
+    const IconDown = suffixIcon || state.designConfig?.icons?.dropdownIcon || iconDownWard()
+    const ButtonIconDown = state.designConfig?.icons?.dropdownIcon || iconDownWard()
     const defaultSlot = slots.default && slots.default(params)
 
     if (splitButton) {
@@ -116,7 +129,7 @@ export default defineComponent({
             onClick={handleMainButtonClick}
             disabled={disabled}
             class="tiny-dropdown__title-button">
-            {defaultSlot}
+            {defaultSlot || <span>{title}</span>}
           </tiny-button>
           <tiny-button
             ref="trigger"
@@ -141,19 +154,23 @@ export default defineComponent({
 
       // 增加一层，vue3 环境中无法使用 slots.default 的方式获取原生 DOM 元素
       const suffixInner = showIcon ? (
-        <span class="tiny-dropdown__suffix-inner">{suffixSlot || <IconDown class={visibleClass}></IconDown>}</span>
+        <span class={'tiny-dropdown__suffix-inner ' + visibleClass}>{suffixSlot || <IconDown></IconDown>}</span>
       ) : (
         ''
       )
 
-      const defaultTriggerElm = defaultSlot || <span class={'tiny-dropdown__title'}>{title}</span>
+      let defaultTriggerElm =
+        defaultSlot || title ? <span class={'tiny-dropdown__title'}>{defaultSlot || title}</span> : null
 
       triggerElm = border ? (
         <tiny-button
           ref="trigger"
           round={round}
           disabled={disabled}
-          class={`${state.visible ? 'is-expand' : ''}${showIcon ? ' is-show-icon' : ''}`}
+          type={type}
+          class={`tiny-dropdown__border ${state.visible ? 'is-expand' : ''}${
+            showIcon ? ' is-show-icon ' : ''
+          } ${triggerClass}`}
           reset-time={0}>
           {defaultTriggerElm}
           {suffixInner}

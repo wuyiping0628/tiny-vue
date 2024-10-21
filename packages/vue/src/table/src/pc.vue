@@ -66,9 +66,11 @@
             </div>
           </td>
         </tr>
-        <p v-if="data && data.length === 0" class="noData">
-          {{ t('ui.transfer.noData') }}
-        </p>
+        <tr v-if="data && data.length === 0" class="noData">
+          <td :colspan="columns.length">
+            {{ t('ui.transfer.noData') }}
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -90,7 +92,7 @@ export default defineComponent({
   },
   props: [...props, 'columns', 'data', 'width', 'defaultChecked', 'keys'],
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({ props, context, renderless, api })
   }
 })
 </script>

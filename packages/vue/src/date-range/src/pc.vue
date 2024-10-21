@@ -36,6 +36,7 @@
                 state.singleSelect && shortcut.type === state.shortcutType && shortcut.text === state.shortcutText
             }"
             @click="handleShortcutClick(shortcut)"
+            :title="shortcut.text"
           >
             {{ shortcut.text }}
           </button>
@@ -65,6 +66,7 @@
                   @focus="state.minTimePickerVisible = true"
                   @update:modelValue="(val) => handleTimeInput(val, 'min')"
                   @change="(val) => handleTimeChange(val, 'min')"
+                  :readonly="!timeEditable"
                 />
                 <time-picker
                   ref="minTimePicker"
@@ -98,7 +100,7 @@
                   :disabled="state.rangeState.selecting"
                   :placeholder="t('ui.datepicker.endTime')"
                   :modelValue="state.maxVisibleTime"
-                  :readonly="!state.minDate"
+                  :readonly="!state.minDate || !timeEditable"
                   @focus="state.minDate && (state.maxTimePickerVisible = true)"
                   @update:modelValue="(val) => handleTimeInput(val, 'max')"
                   @change="(val) => handleTimeChange(val, 'max')"
@@ -118,10 +120,10 @@
           <div class="tiny-picker-panel__content tiny-date-range-picker__content is-left">
             <div class="tiny-date-range-picker__header">
               <button type="button" @click="leftPrevYear" class="tiny-picker-panel__icon-btn tiny-icon-d-arrow-left">
-                <icon-pager-first></icon-pager-first>
+                <icon-double-left></icon-double-left>
               </button>
               <button type="button" @click="leftPrevMonth" class="tiny-picker-panel__icon-btn tiny-icon-arrow-left">
-                <icon-pager-prev></icon-pager-prev>
+                <icon-chevron-left></icon-chevron-left>
               </button>
               <button
                 type="button"
@@ -131,7 +133,7 @@
                 :class="{ 'is-disabled': !state.enableYearArrow }"
                 class="tiny-picker-panel__icon-btn tiny-icon-d-arrow-right"
               >
-                <icon-pager-last></icon-pager-last>
+                <icon-double-right></icon-double-right>
               </button>
               <button
                 type="button"
@@ -141,26 +143,28 @@
                 :class="{ 'is-disabled': !state.enableMonthArrow }"
                 class="tiny-picker-panel__icon-btn tiny-icon-arrow-right"
               >
-                <icon-pager-next></icon-pager-next>
+                <icon-chevron-right></icon-chevron-right>
               </button>
               <div>{{ state.leftLabel }}</div>
             </div>
-            <date-table
-              selection-mode="range"
-              :date="state.leftDate"
-              :default-value="state.defaultValue"
-              :min-date="state.minDate"
-              :max-date="state.maxDate"
-              :range-state="state.rangeState"
-              :disabled-date="state.disabledDate"
-              :cell-class-name="state.cellClassName"
-              @changerange="handleChangeRange"
-              :first-day-of-week="state.firstDayOfWeek"
-              :show-week-number="showWeekNumber"
-              :format-weeks="formatWeeks"
-              @pick="handleRangePick"
-            >
-            </date-table>
+            <div class="tiny-date-range-picker__table">
+              <date-table
+                selection-mode="range"
+                :date="state.leftDate"
+                :default-value="state.defaultValue"
+                :min-date="state.minDate"
+                :max-date="state.maxDate"
+                :range-state="state.rangeState"
+                :disabled-date="state.disabledDate"
+                :cell-class-name="state.cellClassName"
+                @changerange="handleChangeRange"
+                :first-day-of-week="state.firstDayOfWeek"
+                :show-week-number="showWeekNumber"
+                :format-weeks="formatWeeks"
+                @pick="handleRangePick"
+              >
+              </date-table>
+            </div>
           </div>
           <div class="tiny-picker-panel__content tiny-date-range-picker__content is-right">
             <div class="tiny-date-range-picker__header">
@@ -172,7 +176,7 @@
                 :class="{ 'is-disabled': !state.enableYearArrow }"
                 class="tiny-picker-panel__icon-btn tiny-icon-d-arrow-left"
               >
-                <icon-pager-first></icon-pager-first>
+                <icon-double-left></icon-double-left>
               </button>
               <button
                 type="button"
@@ -182,42 +186,44 @@
                 :class="{ 'is-disabled': !state.enableMonthArrow }"
                 class="tiny-picker-panel__icon-btn tiny-icon-arrow-left"
               >
-                <icon-pager-prev></icon-pager-prev>
+                <icon-chevron-left></icon-chevron-left>
               </button>
               <button type="button" @click="rightNextYear" class="tiny-picker-panel__icon-btn tiny-icon-d-arrow-right">
-                <icon-pager-last></icon-pager-last>
+                <icon-double-right></icon-double-right>
               </button>
               <button type="button" @click="rightNextMonth" class="tiny-picker-panel__icon-btn tiny-icon-arrow-right">
-                <icon-pager-next></icon-pager-next>
+                <icon-chevron-right></icon-chevron-right>
               </button>
               <div>{{ state.rightLabel }}</div>
             </div>
-            <date-table
-              selection-mode="range"
-              :date="state.rightDate"
-              :default-value="state.defaultValue"
-              :min-date="state.minDate"
-              :max-date="state.maxDate"
-              :range-state="state.rangeState"
-              :disabled-date="state.disabledDate"
-              :cell-class-name="state.cellClassName"
-              @changerange="handleChangeRange"
-              :first-day-of-week="state.firstDayOfWeek"
-              :show-week-number="showWeekNumber"
-              :format-weeks="formatWeeks"
-              @pick="handleRangePick"
-            >
-            </date-table>
+            <div class="tiny-date-range-picker__table">
+              <date-table
+                selection-mode="range"
+                :date="state.rightDate"
+                :default-value="state.defaultValue"
+                :min-date="state.minDate"
+                :max-date="state.maxDate"
+                :range-state="state.rangeState"
+                :disabled-date="state.disabledDate"
+                :cell-class-name="state.cellClassName"
+                @changerange="handleChangeRange"
+                :first-day-of-week="state.firstDayOfWeek"
+                :show-week-number="showWeekNumber"
+                :format-weeks="formatWeeks"
+                @pick="handleRangePick"
+              >
+              </date-table>
+            </div>
           </div>
         </div>
       </div>
       <div class="tiny-picker-panel__footer" v-if="state.showTime">
-        <tiny-button size="mini" type="text" class="tiny-picker-panel__link-btn" @click="handleClear">
+        <tiny-button type="text" class="tiny-picker-panel__link-btn" @click="handleClear">
           {{ t('ui.datepicker.clear') }}
         </tiny-button>
         <tiny-button
-          plain
-          size="mini"
+          :plain="state.confirmButtonProps.plain"
+          :type="state.confirmButtonProps.type"
           class="tiny-picker-panel__link-btn"
           :disabled="state.btnDisabled"
           @click="handleConfirm(false)"
@@ -231,52 +237,30 @@
 
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/date-range/vue'
-import { $prefix, setup, directive, defineComponent } from '@opentiny/vue-common'
+import { props, setup, directive, defineComponent } from '@opentiny/vue-common'
 import Clickoutside from '@opentiny/vue-renderless/common/deps/clickoutside'
 import TimePicker from '@opentiny/vue-time'
 import DateTable from '@opentiny/vue-date-table'
 import Input from '@opentiny/vue-input'
 import Button from '@opentiny/vue-button'
-import { iconPagerLast, iconPagerFirst, iconPagerPrev, iconPagerNext } from '@opentiny/vue-icon'
+import { iconDoubleRight, iconDoubleLeft, iconChevronLeft, iconChevronRight } from '@opentiny/vue-icon'
 
-const $constants = {
-  startDate: new Date('1970-01-01'),
-  endDate: new Date('2099-12-31')
-}
 export default defineComponent({
-  name: $prefix + 'DateRange',
   directives: directive({ Clickoutside }),
   components: {
     TimePicker,
     DateTable,
     TinyInput: Input,
     TinyButton: Button,
-    IconPagerLast: iconPagerLast(),
-    IconPagerFirst: iconPagerFirst(),
-    IconPagerPrev: iconPagerPrev(),
-    IconPagerNext: iconPagerNext()
+    IconDoubleRight: iconDoubleRight(),
+    IconDoubleLeft: iconDoubleLeft(),
+    IconChevronLeft: iconChevronLeft(),
+    IconChevronRight: iconChevronRight()
   },
-  props: {
-    _constants: {
-      type: Object,
-      default: () => $constants
-    },
-    emitter: Object,
-    step: {
-      type: Object,
-      default() {
-        return { hour: 1, minute: 1, second: 1 }
-      }
-    },
-    showWeekNumber: {
-      type: Boolean,
-      default: false
-    },
-    formatWeeks: Function
-  },
+  props: [...props, 'emitter', 'step', 'showWeekNumber', 'formatWeeks', 'timeEditable'],
   emits: ['dodestroy', 'pick'],
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({ props, context, renderless, api })
   }
 })
 </script>

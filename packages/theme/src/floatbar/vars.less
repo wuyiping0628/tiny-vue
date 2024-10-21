@@ -10,28 +10,18 @@
 *
 */
 
-.component-css-vars-floatbar() {
-  // 浮动块边框色
-  --ti-floatbar-border-color: var(--ti-common-color-border);
-  // 浮动块圆角
-  --ti-floatbar-border-radius: var(--ti-common-border-radius-normal);
-  // 浮动块字号
-  --ti-floatbar-font-size: var(--ti-common-font-size-1);
-  // 浮动块背景色
-  --ti-floatbar-list-bg-color: var(--ti-common-color-bg-white-normal);
-  // 浮动块阴影:
-  --ti-floatbar-box-shadow: 2px 3px 7px rgba(0, 0, 0, 0.15);
+.inject-Floatbar-vars() {
 
-  // 列表项最小高度
-  --ti-floatbar-list-item-min-height: var(--ti-common-size-10x);
-  // 列表项最小宽度
-  --ti-floatbar-list-item-min-width: var(--ti-common-size-20x);
-  // 列表项行高
-  --ti-floatbar-list-line-height: var(--ti-common-size-10x);
+  // 浮动块圆角
+  --tv-Floatbar-bar-border-radius: var(--tv-border-radius-lg);
+  // 浮动块字号
+  --tv-Floatbar-bar-font-size: var(--tv-font-size-md);
+  // 浮动块背景色
+  --tv-Floatbar-bar-list-bg-color: var(--tv-color-bg-secondary);
+  // ul,li边距
+  --tv-Floatbar-bar-li-margin-v: var(--tv-space-md);
   // 列表项文本色
-  --ti-floatbar-list-text-color: var(--ti-common-color-info-normal);
+  --tv-Floatbar-bar-list-text-color: var(--tv-color-text);
   // 列表项悬浮文本色
-  --ti-floatbar-list-hover-text-color: var(--ti-common-color-primary-normal);
-  // 列表项悬浮背景色
-  --ti-floatbar-list-hover-bg-color: rgba(24, 144, 255, 0.06);
+  --tv-Floatbar-bar-list-hover-text-color: var(--tv-color-text);
 }

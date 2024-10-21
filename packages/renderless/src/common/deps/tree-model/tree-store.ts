@@ -40,15 +40,28 @@ export default class TreeStore {
     }
   }
 
+  getMappingData(data) {
+    const props = this.props || {}
+    const mapping = {}
+
+    for (let key in props) {
+      if (hasOwn.call(props, key)) {
+        mapping[key] = data[props[key]]
+      }
+    }
+
+    return { ...data, ...mapping }
+  }
+
   filter(value) {
-    const { lazy, getMappingData, filterNodeMethod } = this
+    const { lazy, filterNodeMethod, getMappingData } = this
 
     const walkTree = (node) => {
       const childNodes = node.root ? node.root.childNodes : node.childNodes
 
       childNodes.forEach((child) => {
+        // 筛选时需要添加mapping字段，但是不能修改用户的数据
         const mappingData = getMappingData.call(this, child.data)
-
         child.visible = filterNodeMethod.call(child, value, mappingData, child)
 
         walkTree(child)
@@ -73,19 +86,6 @@ export default class TreeStore {
     }
 
     walkTree(this)
-  }
-
-  getMappingData(data) {
-    const props = this.props || {}
-    const mapping = {}
-
-    Object.keys(props).forEach((key) => {
-      if (hasOwn.call(props, key)) {
-        mapping[key] = data[props[key]]
-      }
-    })
-
-    return Object.assign(data, mapping)
   }
 
   setData(newVal) {
@@ -138,7 +138,10 @@ export default class TreeStore {
   append(data, parentData, index) {
     const parentNode = parentData ? this.getNode(parentData) : this.root
 
-    parentNode && parentNode.insertChild({ data }, index)
+    if (parentNode) {
+      const child = parentNode.insertChild({ data }, index)
+      data._isNewNode && this.registerNode(child)
+    }
   }
 
   setDefaultCheckedKey(newValue) {
@@ -401,7 +404,7 @@ export default class TreeStore {
   getAllData() {
     const children = this.props.children
     const walkTree = (nodes) => {
-      return nodes.map(node => {
+      return nodes.map((node) => {
         return { ...node.data, [children]: walkTree(node.childNodes) }
       })
     }

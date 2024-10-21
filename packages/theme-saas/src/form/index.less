@@ -24,7 +24,7 @@
     }
 
     .@{form-item-prefix-cls} {
-      margin-right: 74px;
+      @apply mr-18;
     }
 
     .@{form-item-prefix-cls}__label {
@@ -57,7 +57,19 @@
 
   &--label-top {
     .@{form-item-prefix-cls}__label {
-      @apply float-none inline-block text-left leading-5 pt-0 pr-0 pb-1 pl-0 h-5 box-content;
+      @apply float-none;
+      @apply inline-block;
+      @apply text-left;
+      @apply leading-5;
+      @apply pt-0 pr-0 pb-1 pl-0;
+      @apply h-5;
+      @apply box-content;
+      @apply w-full;
+      @apply truncate;
+    }
+
+    @{form-item-prefix-cls} {
+      @apply mb-4;
     }
   }
 
@@ -68,7 +80,7 @@
   &--inline&--label-top {
     .@{form-item-prefix-cls} {
       @apply mb-4;
-      margin-right: 74px;
+      @apply mr-18;
     }
 
     .@{form-item-prefix-cls}__label {
@@ -79,14 +91,15 @@
 
   &__valid {
     &.@{tooltip-prefix-cls}.@{tooltip-prefix-cls}__popper {
-      padding: 7px 4px;
+      @apply p-1;
+      @apply leading-normal;
 
       &.is-error[x-placement^='top'] .popper__arrow {
         @apply -bottom-1;
       }
 
       &[x-placement^='top'] {
-        @apply ~"mb-1.5";
+        @apply ~'mb-1.5';
       }
 
       &[x-placement^='bottom'] {
@@ -100,24 +113,21 @@
 
     .@{form-item-prefix-cls} {
       .@{form-item-prefix-cls}__label {
-        @apply overflow-visible;
+        @apply overflow-hidden;
         @apply relative;
-
-        &:before {
-          @apply absolute;
-          @apply ~'-left-2.5';
-        }
       }
     }
   }
+
   &.asterisk-form.is-display-only {
     .@{form-item-prefix-cls} {
       @apply pl-0;
     }
   }
+
   &.is-display-only {
     .tiny-form-item__label {
-      @apply leading-normal;
+      @apply ~"leading-5.5";
       @apply h-auto;
       vertical-align: inherit;
     }
@@ -126,6 +136,7 @@
       .@{form-item-prefix-cls}__label-wrap > .@{form-item-prefix-cls}__label:before,
       & > .@{form-item-prefix-cls}__label:before {
         @apply ~"content-['']";
+        @apply mr-0;
       }
     }
 
@@ -133,10 +144,12 @@
       .tiny-checkbox {
         @apply leading-normal;
       }
+
       .tiny-radio {
         @apply leading-none;
         @apply p-0;
       }
+
       .@{switch-prefix-cls} {
         @apply mt-0;
       }
@@ -149,6 +162,14 @@
         @apply h-0;
         @apply p-0;
         @apply border-none;
+      }
+      .@{input-prefix-cls}-display-only {
+        @apply inline-block;
+        @apply ~"leading-5.5";
+      }
+      .@{textarea-prefix-cls}-display-only {
+        @apply inline-block;
+        @apply ~"leading-5.5";
       }
     }
     .@{form-item-prefix-cls}--medium .@{form-item-prefix-cls}__content,
@@ -166,10 +187,6 @@
       }
       .@{form-item-prefix-cls}__content .@{css-prefix}tooltip {
         @apply text-sm;
-      }
-
-      .@{form-item-prefix-cls}__label {
-        @apply pb-3;
       }
     }
   }

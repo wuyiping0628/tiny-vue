@@ -16,6 +16,7 @@ import TabNav from './tab-nav/mb.vue'
 import { iconPlus } from '@opentiny/vue-icon'
 import { touchStart, touchMove } from '@opentiny/vue-renderless/common/deps/touch'
 import '@opentiny/vue-theme-mobile/tabs/index.less'
+import type { ITabsApi } from '@opentiny/vue-renderless/types/tabs.type'
 
 const MIN_SWIPE_DISTANCE = 50
 
@@ -34,14 +35,16 @@ export default defineComponent({
     'childrenTabs',
     'swipeable',
     'expandTabsTitle',
-    'expandTabsMode'
+    'expandTabsMode',
+    'stretch',
+    'size'
   ],
   components: {
     TabNav,
     IconPlus: iconPlus()
   },
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as ITabsApi
   },
   methods: {
     getCurIndex() {
@@ -85,7 +88,9 @@ export default defineComponent({
       swipeable,
       activeColor,
       expandTabsTitle,
-      expandTabsMode
+      expandTabsMode,
+      stretch,
+      size
     } = this
 
     const newButton =
@@ -113,7 +118,8 @@ export default defineComponent({
         showExpandTabs,
         expandPanesWidth: state.expandPanesWidth,
         expandTabsTitle,
-        expandTabsMode
+        expandTabsMode,
+        stretch
       },
       ref: 'nav'
     }
@@ -148,7 +154,8 @@ export default defineComponent({
       <div
         class={{
           'tiny-mobile-tabs': true,
-          [`tiny-mobile--${position}`]: true
+          [`tiny-mobile--${position}`]: true,
+          'tiny-mobile-tabs-small': size === 'small'
         }}>
         {[header, panels]}
       </div>

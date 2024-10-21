@@ -16,7 +16,8 @@
       'is-disabled': state.isDisabled,
       'is-checked': state.isChecked,
       'is-indeterminate': indeterminate,
-      'is-focus': state.focus
+      'is-focus': state.focus,
+      'icon-position-top': state.iconPosition === 'top'
     }"
     :id="id"
   >
@@ -67,7 +68,6 @@ import { props, setup, defineComponent } from '@opentiny/vue-common'
 import '@opentiny/vue-theme-mobile/checkbox/index.less'
 
 export default defineComponent({
-  inheritAttrs: false,
   props: [
     ...props,
     'modelValue',
@@ -80,8 +80,10 @@ export default defineComponent({
     'name',
     'trueLabel',
     'falseLabel',
-    'id'
+    'id',
+    'iconPosition'
   ],
+  emits: ['update:modelValue', 'change', 'complete', 'click'],
   setup(props, context) {
     return setup({ props, context, renderless, api })
   }

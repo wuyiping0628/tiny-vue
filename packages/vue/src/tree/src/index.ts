@@ -75,16 +75,13 @@ export default defineComponent({
     nodeKey: String,
     parentKey: String,
     props: {
-      default(context) {
-        const ctx = this || context
-        const { lazy } = ctx
-        const defaultProps = {
+      default() {
+        return {
           children: 'children',
           label: 'label',
-          disabled: 'disabled'
+          disabled: 'disabled',
+          isLeaf: 'isLeaf'
         }
-        lazy && Object.assign(defaultProps, { isLeaf: 'isLeaf' })
-        return defaultProps
       }
     },
     renderAfterExpand: {
@@ -133,6 +130,11 @@ export default defineComponent({
       default: 'tree',
       validator: (value) => ~['tree', 'plain'].indexOf(value)
     },
+    // 平铺视图时，是否显示下面的辅助信息
+    showAuxi: {
+      type: Boolean,
+      default: true
+    },
     pathSplit: {
       type: String,
       default: '/'
@@ -144,7 +146,29 @@ export default defineComponent({
       type: Number,
       default: 0
     },
-    showLine: Boolean
+    deleteNodeMethod: Function,
+    showCheckedMark: Boolean,
+    willChangeView: {
+      type: Boolean,
+      default: true
+    },
+    onlyCheckChildren: Boolean,
+    editConfig: {
+      type: Object,
+      default: () => ({})
+    },
+    // tiny 新增
+    showLine: Boolean,
+    // tiny 新增，是否显示树节点聚焦时的背景颜色
+    isShowFocusBg: {
+      type: Boolean,
+      default: true
+    },
+    // 是否在匹配的节点中，高亮搜索文字
+    highlightQuery: {
+      type: Boolean,
+      default: false
+    }
   },
   setup(props, context) {
     return $setup({ props, context, template })

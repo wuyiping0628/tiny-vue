@@ -9,12 +9,22 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
+import type {
+  IUploadState,
+  IUploadApi,
+  IUploadProps,
+  ISharedRenderlessParamHooks,
+  IUploadRenderlessParamUtils,
+  IFileUploadModalVm,
+  IFileUploadVm
+} from '@/types'
 
 import {
   getFormData,
   isImage,
   handleChange,
   uploadFiles,
+  handlePaste,
   upload,
   abort,
   post,
@@ -29,6 +39,7 @@ export const api = [
   'state',
   'isImage',
   'handleChange',
+  'handlePaste',
   'uploadFiles',
   'upload',
   'abort',
@@ -39,21 +50,24 @@ export const api = [
 ]
 
 export const renderless = (
-  props,
-  { computed, inject, reactive, onMounted, onBeforeUnmount },
-  { refs, service, t },
-  { Modal }
-) => {
-  const api = {}
-  const uploader = inject('uploader')
+  props: IUploadProps,
+  { computed, inject, reactive, onMounted, onBeforeUnmount }: ISharedRenderlessParamHooks,
+  { refs, service, t, useBreakpoint }: IUploadRenderlessParamUtils,
+  { Modal }: IFileUploadModalVm & { CryptoJS: object; Streamsaver: object }
+): IUploadApi => {
+  const api = {} as IUploadApi
+  const uploader = inject('uploader') as IFileUploadVm
   const constants = uploader.$constants
-  const state = reactive({
+  const { current } = useBreakpoint()
+  const state: IUploadState = reactive({
+    currentBreakpoint: current,
     mouseover: false,
     reqs: {},
     uploader,
     accecpt: '',
-    isEdm: computed(() => state.uploader.$refs[constants.FILE_UPLOAD_INNER_TEMPLATE].state.isEdm),
-    openEdmDownload: computed(() => state.uploader.$refs[constants.FILE_UPLOAD_INNER_TEMPLATE].edm.download),
+    uploadInner: computed(() => state.uploader.$refs[constants.FILE_UPLOAD_INNER_TEMPLATE]),
+    isEdm: computed(() => state.uploadInner.state.isEdm),
+    openEdmDownload: computed(() => state.uploadInner.edm.download),
 
     headers: computed(() => {
       if (state.isEdm) {
@@ -67,7 +81,8 @@ export const renderless = (
     formData: {},
     cancelToken: {},
     updateId: '',
-    updateInput: null
+    updateInput: null,
+    isStopPropagation: false
   })
 
   Object.assign(api, {
@@ -75,12 +90,13 @@ export const renderless = (
     isImage,
     abort: abort({ state, props, constants }),
     getFormData: getFormData({ state, constants, props }),
-    handleClick: handleClick({ props, refs }),
+    handleClick: handleClick({ props, refs, state }),
     onBeforeDestroy: onBeforeDestroy(state),
     handleUpdate: handleUpdate({ state, props }),
     uploadFiles: uploadFiles({ constants, Modal, props, state, t }),
     post: post({ api, constants, props, state, service }),
     handleChange: handleChange(api),
+    handlePaste: handlePaste({ api, props }),
     handleKeydown: handleKeydown(api),
     upload: upload({ api, props, refs }),
     mounted: mounted({ state, props, api })

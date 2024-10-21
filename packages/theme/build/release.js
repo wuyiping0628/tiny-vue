@@ -1,17 +1,10 @@
 /**
- * 将 dist 目录生成 TGZ 的压缩包
+ * 将 dist 目录生成 TGZ 的压缩包   fs.cp 需要node 18.0+
  */
 
-const fs = require('node:fs')
-const path = require('node:path')
-const { execSync } = require('node:child_process')
+import fs from 'node:fs'
+import path from 'node:path'
 
-const source = 'dist'
-const content = fs.readFileSync(path.join(source, 'index.css')).toString('UTF-8')
-// 提供特殊的前缀名称
-const result = content.replace(/--ti-/g, '--ti-vue-')
-const packagesPath = path.join(source, 'lowcode.css')
-
-fs.writeFileSync(packagesPath, result)
-
-fs.copyFileSync('package.json', path.join(source, 'package.json'))
+// 3、复制package.json/README.md到dist目录
+fs.copyFileSync('package.json', path.join('dist', 'package.json'))
+fs.copyFileSync('README.md', path.join('dist', 'README.md'))

@@ -10,55 +10,39 @@
  *
  */
 
-import { hasOwn, isObject, isNull } from '../type'
+import { hasOwn, isNull } from '../type'
+import globalConfig from '../global'
 
-const isServer = typeof window === 'undefined'
+export const isServer = typeof window === 'undefined'
 const SPECIAL_CHARS_REGEXP = /([:\-_]+(.))/g
 const MOZ_HACK_REGEXP = /^moz([A-Z])/
-const ieVersion = isServer ? 0 : Number(document.documentMode)
 
-const trim = (string) => (string || '').replace(/^[\s\uFEFF]+|[\s\uFEFF]+$/g, '')
-
-const camelCase = (name) =>
+/** 处理style的名字。
+ * 把 moz : - _ 等位置，转换为大写驼峰格式, 比如 ：camelCase("moz:moz_abc:def-hjk_lmnOpqRst") = MozMozAbcDefHjkLmnOpqRst
+ */
+const camelCase = (name: string) =>
   name
     .replace(SPECIAL_CHARS_REGEXP, (_, separator, letter, offset) => (offset ? letter.toUpperCase() : letter))
     .replace(MOZ_HACK_REGEXP, 'Moz$1')
 
-export const on = (() => {
-  if (!isServer) {
-    return (el, event, handler) => {
-      if (el && event && handler) {
-        el.addEventListener(event, handler, false)
-      }
-    }
-  } else {
-    return (el, event, handler) => {
-      if (el && event && handler) {
-        el.attachEvent('on' + event, handler)
-      }
-    }
+/** 绑定事件 */
+export const on = (el: EventTarget, event: any, handler: (this: HTMLElement, ev: any) => any, options = false) => {
+  if (el && event && handler) {
+    el.addEventListener(event, handler, options)
   }
-})()
-
-export const off = (() => {
-  if (!isServer) {
-    return (el, event, handler) => {
-      if (el && event) {
-        el.removeEventListener(event, handler, false)
-      }
-    }
-  } else {
-    return (el, event, handler) => {
-      if (el && event) {
-        el.detachEvent('on' + event, handler)
-      }
-    }
+}
+/** 移除事件 */
+export const off = (el: EventTarget, event: any, handler: (this: HTMLElement, ev: any) => any, options = false) => {
+  if (el && event) {
+    el.removeEventListener(event, handler, options)
   }
-})()
+}
 
-export const once = (el, event, fn) => {
+/** 执行一次就立即移除事件 */
+export const once = (el: HTMLElement, event: any, fn: (this: HTMLElement, ev: any) => any) => {
   const listener = function () {
     if (fn) {
+      // eslint-disable-next-line prefer-rest-params
       fn.apply(this, arguments)
     }
 
@@ -68,7 +52,8 @@ export const once = (el, event, fn) => {
   on(el, event, listener)
 }
 
-export const hasClass = (el, clazz) => {
+/** 判断是否有class,  只能查询单个类名， 且不能有空格 */
+export const hasClass = (el: HTMLElement, clazz: string) => {
   if (!el || !clazz) {
     return false
   }
@@ -80,61 +65,32 @@ export const hasClass = (el, clazz) => {
   if (el.classList) {
     return el.classList.contains(clazz)
   }
-
-  return (' ' + el.className + ' ').includes(' ' + clazz + ' ')
 }
 
-export const addClass = (el, clazz) => {
+/** 给el添加一组classes,  clazz 允许为用空格分隔的多个类名  */
+export const addClass = (el: HTMLElement, clazz = '') => {
   if (!el) {
     return
   }
 
-  const classes = (clazz || '').split(' ')
-  let curClass = el.className
+  const classes = clazz.split(' ').filter((name) => name)
 
-  for (let i = 0, len = classes.length; i < len; i++) {
-    const clsName = classes[i]
-
-    if (clsName) {
-      if (el.classList) {
-        el.classList.add(clsName)
-      } else if (!hasClass(el, clsName)) {
-        curClass += ' ' + clsName
-      }
-    }
-  }
-
-  if (!el.classList) {
-    el.className = curClass
-  }
+  classes.forEach((clsName) => el.classList.add(clsName))
 }
 
-export const removeClass = (el, clazz) => {
+/** 移除el上的classes， clazz 允许为用空格分隔的多个类名  */
+export const removeClass = (el: HTMLElement, clazz: string) => {
   if (!el || !clazz) {
     return
   }
 
-  const classes = clazz.split(' ')
-  let curClass = ' ' + el.className + ' '
+  const classes = clazz.split(' ').filter((name) => name)
 
-  for (let i = 0, len = classes.length; i < len; i++) {
-    const clsName = classes[i]
-
-    if (clsName) {
-      if (el.classList) {
-        el.classList.remove(clsName)
-      } else if (hasClass(el, clsName)) {
-        curClass = curClass.replace(' ' + clsName + ' ', ' ')
-      }
-    }
-  }
-
-  if (!el.classList) {
-    el.className = trim(curClass)
-  }
+  classes.forEach((clsName) => el.classList.remove(clsName))
 }
 
-export const getStyle = (el, styleName) => {
+/** 查询元素的style的值。 优先找el.style, 找不到则调用getComputedStyle(el)  */
+export const getStyle = (el: HTMLElement, styleName: string) => {
   if (isServer) {
     return
   }
@@ -149,15 +105,21 @@ export const getStyle = (el, styleName) => {
   }
 
   try {
-    const computed = document.defaultView.getComputedStyle(el, '')
+    if (el.style[styleName]) {
+      return el.style[styleName]
+    }
 
-    return el.style[styleName] || computed ? computed[styleName] : null
+    const computed = window.getComputedStyle(el)
+    return computed ? computed[styleName] : null
   } catch (e) {
     return el.style[styleName]
   }
 }
 
-export const setStyle = (el, name, value) => {
+/** 给元素赋值style。
+ * @param name  当它是对象时，遍历所有属性；当它是字符串时，需要传入第3个参数 value
+ */
+export const setStyle = (el: HTMLElement, name: string | object, value?: any) => {
   if (!el || !name) {
     return
   }
@@ -171,19 +133,22 @@ export const setStyle = (el, name, value) => {
   } else {
     name = camelCase(name)
 
-    if (name === 'opacity' && ieVersion < 9) {
-      el.style.filter = isNaN(value) ? '' : 'alpha(opacity=' + value * 100 + ')'
-    } else {
-      el.style[name] = value
-    }
+    el.style[name as string] = value
   }
 }
 
-export const isScroll = (el, vertical) => {
+/** 判断元素是否有滚动的style TINY_NO_USED
+ * @param vertical  true时，只判断overflow-y属性；  false时，只判断overflow-x属性；  不传入时，只判断overflow属性！
+ */
+export const isScroll = (el: HTMLElement, vertical?: boolean) => {
   if (isServer) {
     return
   }
 
+  /** 是否需要判断方向
+   * 它的值为false: 当vertical = null / undefinded。
+   * 它的值为 true: 当vertical =true /false
+   */
   const determinedDirection = !isNull(vertical)
   let overflow
 
@@ -196,7 +161,10 @@ export const isScroll = (el, vertical) => {
   return overflow.match(/(scroll|auto)/)
 }
 
-export const getScrollContainer = (el, vertical) => {
+/** 查找离元素最近的父级滚动元素
+ * @param vertical  true时，只判断overflow-y属性；  false时，只判断overflow-x属性；  不传入时，只判断overflow属性！
+ */
+export const getScrollContainer = (el: HTMLElement, vertical?: boolean) => {
   if (isServer) {
     return
   }
@@ -212,13 +180,14 @@ export const getScrollContainer = (el, vertical) => {
       return parent
     }
 
-    parent = parent.parentNode
+    parent = parent.parentNode as any
   }
 
   return parent
 }
 
-export const isInContainer = (el, container) => {
+/** 判断是否 el 完全在  container 中。  四个边有重合都不行，必须完全在里面。 */
+export const isInContainer = (el: HTMLElement, container: HTMLElement) => {
   if (isServer || !el || !container) {
     return false
   }
@@ -245,11 +214,16 @@ export const isInContainer = (el, container) => {
   )
 }
 
-export const isVNode = (node) => node !== null && isObject(node) && hasOwn.call(node, 'componentOptions')
-
+/** 查询页面的位置和尺寸
+ * @returns scrollTop ： document 或 body的滚动位置
+ * @returns scrollLeft ： document 或 body的滚动位置
+ * @returns visibleHeight ： 可视区高度 （不含滚动条）
+ * @returns visibleWidth ： 可视区宽度（不含滚动条）
+ */
 export const getDomNode = () => {
-  let documentElement = document.documentElement
-  let bodyElem = document.body
+  const viewportWindow = globalConfig.viewportWindow || window
+  let documentElement = viewportWindow.document.documentElement
+  let bodyElem = viewportWindow.document.body
 
   return {
     scrollTop: documentElement.scrollTop || bodyElem.scrollTop,
@@ -257,4 +231,77 @@ export const getDomNode = () => {
     visibleHeight: documentElement.clientHeight || bodyElem.clientHeight,
     visibleWidth: documentElement.clientWidth || bodyElem.clientWidth
   }
+}
+
+export const getScrollTop = (el) => {
+  const top = 'scrollTop' in el ? el.scrollTop : el.pageYOffset
+  // iOS scroll bounce cause minus scrollTop
+  return Math.max(top, 0)
+}
+
+export const stopPropagation = (event) => event.stopPropagation()
+
+export const preventDefault = (event, isStopPropagation) => {
+  /* istanbul ignore else */
+  if (typeof event.cancelable !== 'boolean' || event.cancelable) {
+    event.preventDefault()
+  }
+
+  if (isStopPropagation) {
+    stopPropagation(event)
+  }
+}
+
+const overflowScrollReg = /scroll|auto|overlay/i
+const defaultRoot = isServer ? undefined : window
+
+const isElement = (node) => node.tagName !== 'HTML' && node.tagName !== 'BODY' && node.nodeType === 1
+
+export const getScrollParent = (el, root = defaultRoot) => {
+  let node = el
+
+  while (node && node !== root && isElement(node)) {
+    const { overflowY } = window.getComputedStyle(node)
+
+    if (overflowScrollReg.test(overflowY)) {
+      return node
+    }
+
+    node = node.parentNode
+  }
+
+  return root
+}
+
+export const useScrollParent =
+  ({ onMounted, ref, watch }) =>
+  (elRef, root = defaultRoot) => {
+    const scrollParent = ref()
+    const setScrollParent = () => (scrollParent.value = getScrollParent(elRef.value, root))
+
+    watch(elRef, setScrollParent)
+    onMounted(() => elRef.value && setScrollParent())
+
+    return scrollParent
+  }
+
+// 判断body的后代元素是否是隐藏的
+export const isDisplayNone = (elm) => {
+  if (isServer) return false
+
+  if (elm) {
+    const computedStyle = getComputedStyle(elm)
+
+    if (computedStyle.getPropertyValue('position') === 'fixed') {
+      if (computedStyle.getPropertyValue('display') === 'none') {
+        return true
+      } else if (elm.parentNode !== document.body) {
+        return isDisplayNone(elm.parentNode)
+      }
+    } else {
+      return elm.offsetParent === null
+    }
+  }
+
+  return false
 }

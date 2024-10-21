@@ -10,39 +10,42 @@
  *
  */
 
+import type { IDropdownMenuRenderlessParams, IDropdownMenuPopperParams, IDropdownItemVm } from '@/types'
 import userPopper from '../common/deps/vue-popper'
 
-export const toggleItem = (state) => (active, item) => {
-  if (item.disabled) {
-    return
-  }
-
-  if (item.type == 'sort') {
-    if (!item.modelValue || item.modelValue === 'desc') {
-      item.state.sort = 'asc'
-      item.$emit('update:modelValue', 'asc')
-      item.$emit('click', 'asc')
-    } else {
-      item.state.sort = 'desc'
-      item.$emit('update:modelValue', 'desc')
-      item.$emit('click', 'desc')
+export const toggleItem =
+  (state: IDropdownMenuRenderlessParams['state']) =>
+  (active: number, item: IDropdownItemVm): void => {
+    if (item.disabled) {
+      return
     }
-  } else {
-    const singleton = state.children.length === 1 && item.state.showPopup
 
-    state.children.forEach((item, index) => {
-      if (index === active && !singleton) {
-        item.toggle(true)
-      } else if (item.state.showPopup) {
-        item.toggle(false, { immediate: true })
+    if (item.type === 'sort') {
+      if (!item.modelValue || item.modelValue === 'desc') {
+        item.state.sort = 'asc'
+        item.$emit('update:modelValue', 'asc')
+        item.$emit('click', 'asc')
+      } else {
+        item.state.sort = 'desc'
+        item.$emit('update:modelValue', 'desc')
+        item.$emit('click', 'desc')
       }
-    })
+    } else {
+      const singleton = state.children.length === 1 && item.state.showPopup
+
+      state.children.forEach((item, index) => {
+        if (index === active && !singleton) {
+          item.toggle(true)
+        } else if (item.state.showPopup) {
+          item.toggle(false, { immediate: true })
+        }
+      })
+    }
   }
-}
 
 export const updateOffset =
-  ({ props, state, vm }) =>
-  () => {
+  ({ props, state, vm }: Pick<IDropdownMenuRenderlessParams, 'props' | 'state' | 'vm'>) =>
+  (): void => {
     if (!vm.$refs.menu) {
       return
     }
@@ -57,8 +60,8 @@ export const updateOffset =
   }
 
 export const clickOutside =
-  ({ props, state }) =>
-  () => {
+  ({ props, state }: Pick<IDropdownMenuRenderlessParams, 'props' | 'state'>) =>
+  (): void => {
     if (props.closeOnClickOutside && props.closeOnClickOverlay) {
       state.children.forEach((item) => {
         item.type !== 'filter' && item.toggle(false)
@@ -66,7 +69,7 @@ export const clickOutside =
     }
   }
 
-export const getScroller = (el, root) => {
+export const getScroller = (el: HTMLElement, root?: HTMLElement): HTMLElement | null => {
   const overflowScrollReg = /scroll|auto/i
   let node = el
   let getComputedStyle = window.getComputedStyle
@@ -89,12 +92,24 @@ export const getScroller = (el, root) => {
     node = node.parentNode
   }
 
-  return root
+  return root || null
 }
 
-export const useVuePopper = ({ api, props, hooks, instance, state, dropdownVm }) => {
+export const useVuePopper = ({
+  api,
+  props,
+  hooks,
+  instance,
+  state,
+  dropdownVm,
+  designConfig
+}: IDropdownMenuPopperParams): void => {
   const { nextTick, onBeforeUnmount, onDeactivated, onMounted, reactive, toRefs, watch } = hooks
-  const { emit, refs, slots, vm, parent } = instance
+  const { emit, slots, vm, parent } = instance
+  const designProps = {
+    placement: props.placement || designConfig?.props?.placement || 'bottom-end',
+    visibleArrow: props.visibleArrow || designConfig?.props?.visibleArrow || false
+  }
 
   const popper = userPopper({
     emit,
@@ -105,22 +120,31 @@ export const useVuePopper = ({ api, props, hooks, instance, state, dropdownVm })
       popperOptions: { boundariesPadding: 0, gpuAcceleration: false },
       offset: 0,
       boundariesPadding: 5,
-      ...props
+      ...props,
+      ...designProps
     },
     reactive,
-    refs,
+    vm,
     slots,
     toRefs,
     watch
   })
 
   onMounted(() => {
-    dropdownVm.popperElm = popper.popperElm.value = vm.$el
-    nextTick(() => (popper.referenceElm.value = dropdownVm.$el))
+    if (!dropdownVm) return
 
-    !props.multiStage && dropdownVm.initDomOperation()
+    if (popper.popperElm) {
+      dropdownVm.popperElm = popper.popperElm.value = vm.$el
+      nextTick(() => {
+        if (popper.referenceElm) {
+          popper.referenceElm.value = dropdownVm.$el
+        }
+      })
 
-    if (dropdownVm.inheritWidth) {
+      !props.multiStage && dropdownVm.initDomOperation()
+    }
+
+    if (dropdownVm.inheritWidth && popper.popperElm) {
       dropdownVm.popperElm.style.minWidth = dropdownVm.$el.clientWidth + 'px'
     }
   })
@@ -132,7 +156,7 @@ export const useVuePopper = ({ api, props, hooks, instance, state, dropdownVm })
   })
 
   api.doDestroy = popper.doDestroy
-  state.size = dropdownVm.size
+  state.size = dropdownVm?.size || ''
   state.showPopper = popper.showPopper.value
 
   parent.$on('updatePopper', () => {
@@ -144,6 +168,10 @@ export const useVuePopper = ({ api, props, hooks, instance, state, dropdownVm })
   parent.$on('visible', (value) => {
     state.showPopper = value
     popper.showPopper.value = value
+
+    if (state.showPopper) {
+      state.initShowPopper = true
+    }
   })
 
   watch(
@@ -155,9 +183,9 @@ export const useVuePopper = ({ api, props, hooks, instance, state, dropdownVm })
 }
 
 export const mounted =
-  ({ api, parent, state }) =>
-  () => {
-    parent.$on('menuselectedIndex', (selectedIndex) => {
+  ({ api, parent, state }: Pick<IDropdownMenuRenderlessParams, 'api' | 'parent' | 'state'>) =>
+  (): void => {
+    parent.$on('menu-selected-index', (selectedIndex) => {
       state.selectedIndex = selectedIndex
     })
     parent.$on('menu-item-click', api.handleMenuItemClick)
@@ -172,22 +200,23 @@ export const mounted =
   }
 
 export const handleMenuItemClick =
-  ({ state, dispatch }) =>
-  (itemData, instance, label, showContent, isDisabled) => {
+  ({ state, dispatch }: Pick<IDropdownMenuRenderlessParams, 'state' | 'dispatch'>) =>
+  ({ itemData, vm, label, showContent, disabled }): void => {
     state.label = label
     state.showContent = showContent
 
-    dispatch('TinyDropdown', 'current-item-click', [itemData, instance, isDisabled]) // 统一参数格式为对象
+    const data = { itemData, vm, disabled }
+    dispatch('TinyDropdown', 'current-item-click', data) // 统一参数格式为对象
   }
 
 export const handleMouseenter =
-  ({ emit }) =>
-  ($event) => {
+  (emit: IDropdownMenuRenderlessParams['emit']) =>
+  ($event: MouseEvent): void => {
     emit('mouseenter', $event)
   }
 
 export const handleMouseleave =
-  ({ emit }) =>
-  ($event) => {
+  (emit: IDropdownMenuRenderlessParams['emit']) =>
+  ($event: MouseEvent): void => {
     emit('mouseleave', $event)
   }

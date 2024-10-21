@@ -9,18 +9,20 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-
+import type { IAnchorRenderlessParams, IAnchorLinkItem } from '@/types'
 import { addClass, removeClass } from '../common/deps/dom'
 
-const setFixAnchor = ({ vm }) => {
-  const { fixRef } = vm.$refs
-  if (fixRef) {
-    fixRef.style.position = 'fixed'
-    fixRef.style.top = fixRef.offsetTop
+export const setFixAnchor =
+  ({ vm, props }: Pick<IAnchorRenderlessParams, 'vm' | 'props'>) =>
+  () => {
+    const { anchorWrapRef } = vm.$refs
+    if (anchorWrapRef && props.isAffix) {
+      const { top } = anchorWrapRef.getBoundingClientRect()
+      anchorWrapRef.style.top = `${top}px`
+    }
   }
-}
 
-const setMarkClass = ({ state, props }) => {
+const setMarkClass = ({ state, props }: Pick<IAnchorRenderlessParams, 'state' | 'props'>) => {
   const { scrollContainer } = state
   const { markClass } = props
   const activeContentEl = scrollContainer.querySelector(`${state.currentLink}`)
@@ -32,24 +34,32 @@ const setMarkClass = ({ state, props }) => {
   }
 }
 
-const setScrollContainer = ({ state, api, cb = null }) => {
-  const currentContainer = api.getContainer()
-  const { scrollContainer } = state
-  if (scrollContainer !== currentContainer) {
-    state.scrollContainer = currentContainer
-    cb && cb()
+export const setScrollContainer =
+  ({ state, api }: Pick<IAnchorRenderlessParams, 'state' | 'api'>) =>
+  (cb: Function | null = null) => {
+    const currentContainer = api.getContainer()
+    const { scrollContainer } = state
+    if (scrollContainer !== currentContainer) {
+      state.scrollContainer = currentContainer
+      cb && cb()
+    }
   }
-}
 
-const updateSkidPosition = ({ vm, state, emit }) => {
+const updateSkidPosition = ({ vm, state, emit }: Pick<IAnchorRenderlessParams, 'vm' | 'state' | 'emit'>) => {
   const { currentLink } = state
   const activeEl = vm.$refs[currentLink]
   const { skidRef, maskRef, anchorRef } = vm.$refs
 
-  if (!activeEl || !anchorRef) {
+  if (!activeEl) {
     return
   }
-  emit('onChange', currentLink)
+
+  emit('change', currentLink)
+  emit('onChange', currentLink) // deprecated 原事件onChange v3.12.0废弃，v3.17.0移除；移除原因：命名规范
+
+  if (!anchorRef || !skidRef || !maskRef) {
+    return
+  }
 
   const { offsetHeight, offsetWidth } = activeEl
   const { top: linkTitleClientTop, left: linkTitleClientLeft } = activeEl.getBoundingClientRect()
@@ -67,15 +77,18 @@ const updateSkidPosition = ({ vm, state, emit }) => {
   }
 }
 
-const getCurrentAnchor = ({ vm, state, link, emit }) => {
-  if (state.currentLink === link || state.isScroll) {
-    return
-  }
-  state.currentLink = link
-  updateSkidPosition({ vm, state, emit })
-}
+export const getCurrentAnchor =
+  ({ vm, state, emit }: Pick<IAnchorRenderlessParams, 'vm' | 'state' | 'emit'>) =>
+  (link: string) => {
+    if (state.currentLink === link || state.isScroll) {
+      return
+    }
 
-const addObserver = ({ props, state }) => {
+    state.currentLink = link
+    updateSkidPosition({ vm, state, emit })
+  }
+
+const addObserver = ({ props, state }: Pick<IAnchorRenderlessParams, 'props' | 'state'>) => {
   const { links } = props
   const { intersectionObserver, expandLink } = state
   const observer = (list) => {
@@ -92,7 +105,7 @@ const addObserver = ({ props, state }) => {
   observer(links)
 }
 
-const setCurrentHash = (state) => {
+const setCurrentHash = ({ state }: Pick<IAnchorRenderlessParams, 'state'>): boolean => {
   if (state.currentHash !== location.hash) {
     state.currentHash = location.hash
     return true
@@ -101,53 +114,61 @@ const setCurrentHash = (state) => {
 }
 
 // 处理滚动结束
-const handleScroll = (state) => {
+export const handleScroll = (state: IAnchorRenderlessParams['state']) => () => {
   clearTimeout(state.scrollTimer)
-  state.scrollTimer = setTimeout(() => {
+  state.scrollTimer = window.setTimeout(() => {
     state.isScroll = false
     clearTimeout(state.scrollTimer)
-  }, 2000)
+  }, 200)
 }
 
 // 设置滚动偏移量
-const setChildOffsetTop = ({ state, props }) => {
+const setChildOffsetTop = ({ state, props }: Pick<IAnchorRenderlessParams, 'state' | 'props'>) => {
+  if (!props.links?.length) {
+    return
+  }
   state.offsetTop = document.querySelector(props.links[0].link)?.offsetTop || 0
 }
 
 export const getContainer =
-  ({ props }) =>
-  () =>
-    props.containerId ? document.querySelector(props.containerId) : document.body
+  ({ props }: Pick<IAnchorRenderlessParams, 'props'>) =>
+  (): Element =>
+    (props.containerId && document.querySelector(props.containerId)) || document.body
 
 export const mounted =
-  ({ vm, state, api, props }) =>
+  ({ state, api, props, nextTick }: Pick<IAnchorRenderlessParams, 'state' | 'api' | 'props' | 'nextTick'>) =>
   () => {
-    setScrollContainer({ state, api })
-    setFixAnchor({ vm })
-    api.onItersectionObserver()
-    setCurrentHash(state)
-    setChildOffsetTop({ state, props })
+    nextTick(() => {
+      api.setScrollContainer()
+      api.setFixAnchor()
+      api.onItersectionObserver()
+      setCurrentHash({ state })
+      setChildOffsetTop({ state, props })
+    })
   }
 
 export const updated =
-  ({ state, api }) =>
+  ({ api }: Pick<IAnchorRenderlessParams, 'api'>) =>
   () => {
     const cb = api.onItersectionObserver
-    setScrollContainer({ state, api, cb })
+    api.setScrollContainer(cb)
   }
 
 export const unmounted =
-  ({ state }) =>
+  ({ state, api }: Pick<IAnchorRenderlessParams, 'state' | 'api'>) =>
   () => {
     const { intersectionObserver } = state
     intersectionObserver.disconnect()
-    state.scrollContainer.removeEventListener('scroll', handleScroll(state))
+    if (state.scrollContainer) {
+      state.scrollContainer.removeEventListener('scroll', api.handleScroll())
+    }
   }
 
 export const onItersectionObserver =
-  ({ vm, state, props, emit }) =>
+  ({ state, props, api, vm, emit }: Pick<IAnchorRenderlessParams, 'state' | 'props' | 'api' | 'vm' | 'emit'>) =>
   () => {
     const { expandLink, scrollContainer } = state
+    state.currentLink && updateSkidPosition({ vm, state, emit })
     state.intersectionObserver = new IntersectionObserver(
       (entries) => {
         const { top } = scrollContainer.getBoundingClientRect()
@@ -156,6 +177,19 @@ export const onItersectionObserver =
           const key = item.target.id
           state.observerLinks[key] = item
         })
+
+        // 判断hash值变化
+        if (state.currentHash !== location.hash) {
+          state.currentHash = location.hash
+          state.currentLink = state.currentHash
+          updateSkidPosition({ vm, state, emit })
+          return
+        }
+
+        if (state.isScroll) {
+          api.handleScroll()
+          return
+        }
 
         for (let key in state.observerLinks) {
           if (Object.prototype.hasOwnProperty.call(state.observerLinks, key)) {
@@ -167,40 +201,40 @@ export const onItersectionObserver =
             ) {
               const link = `#${item.target.id}`
               if (!expandLink[link].children) {
-                getCurrentAnchor({ vm, state, link, emit })
+                api.getCurrentAnchor(link)
                 break
               } else {
-                getCurrentAnchor({ vm, state, link, emit })
+                api.getCurrentAnchor(link)
               }
             }
           }
         }
       },
-      { root: scrollContainer, threshold: [0] }
+      { root: scrollContainer, threshold: [0, 0.25, 0.5, 1] }
     )
 
     addObserver({ props, state })
   }
 
 export const linkClick =
-  ({ state, vm, emit, props }) =>
-  (e, item) => {
+  ({ state, vm, emit, props, api }: Pick<IAnchorRenderlessParams, 'state' | 'vm' | 'emit' | 'props' | 'api'>) =>
+  (e: Event, item: IAnchorLinkItem) => {
     state.isScroll = true
     const { link, title } = item
     const emitLink = { link, title }
     emit('linkClick', e, emitLink)
 
-    const isChangeHash = setCurrentHash(state)
+    const isChangeHash = setCurrentHash({ state })
     const { scrollContainer } = state
     state.currentLink = link
     updateSkidPosition({ vm, state, emit })
     setMarkClass({ state, props })
 
-    if (scrollContainer !== document.body && !isChangeHash) {
-      const linkEl = scrollContainer.querySelector(item.link)
-      const top = linkEl.offsetTop - scrollContainer.offsetTop // 修复横向锚点无法滚动到顶部
-      const param = { top, left: 0, behavior: 'smooth' }
-      scrollContainer.scrollTo(param)
-      scrollContainer.addEventListener('scroll', handleScroll(state))
+    if (scrollContainer && scrollContainer !== document.body && !isChangeHash) {
+      const linkEl = scrollContainer.querySelector(item.link) as HTMLElement
+      const top = linkEl?.offsetTop - scrollContainer.offsetTop // 修复横向锚点无法滚动到顶部
+      const param = { top, left: 0, behavior: 'smooth' } as ScrollToOptions
+      scrollContainer?.scrollTo(param)
+      scrollContainer?.addEventListener('scroll', api.handleScroll())
     }
   }

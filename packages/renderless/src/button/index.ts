@@ -9,15 +9,20 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-import { IButtonRenderlessParams, IButtonState } from '@/types'
+import type { IButtonRenderlessParams, IButtonState } from '@/types'
+import { xss } from '../common'
 
 export const handleClick =
   ({ emit, props, state }: Pick<IButtonRenderlessParams, 'emit' | 'props' | 'state'>) =>
-  (event: MouseEvent) => {
-    if (props.nativeType === 'button' && props.resetTime > 0) {
+  (event: MouseEvent): void => {
+    const urlHref = xss.filterUrl(props.href)
+
+    if (urlHref) {
+      location.href = urlHref
+    } else if (props.nativeType === 'button' && props.resetTime > 0) {
       state.disabled = true
 
-      state.timer = setTimeout(() => {
+      state.timer = window.setTimeout(() => {
         state.disabled = false
       }, props.resetTime)
     }
@@ -25,4 +30,4 @@ export const handleClick =
     emit('click', event)
   }
 
-export const clearTimer = (state: IButtonState) => () => clearTimeout(state.timer)
+export const clearTimer = (state: IButtonState) => (): void => clearTimeout(state.timer)

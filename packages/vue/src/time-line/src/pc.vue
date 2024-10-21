@@ -10,44 +10,52 @@
  *
  -->
 <template>
-  <div :class="['tiny-steps', { 'is-horizontal': horizontal && !vertical, 'tiny-steps--mini': size === 'mini' }]">
-    <div :class="state.computedWrapperClass" @click="contentClick">
+  <div
+    :class="[
+      'tiny-timeline tiny-steps',
+      { 'is-horizontal': horizontal && !vertical, 'tiny-steps--mini': size === 'mini' }
+    ]"
+  >
+    <div :class="state.computedWrapperClass">
       <slot>
         <tiny-timeline-item
           v-for="(node, index) in state.nodes"
           :key="index"
+          :node-index="index"
           :node="node"
           :space="space"
+          :line-width="lineWidth"
+          :shape="shape"
+          :autoColorField="autoColorField"
           @click="handleClick({ index, node })"
         >
           <template #active-node-desc="slotScoped">
             <slot name="active-node-desc" :node="slotScoped.node"></slot>
           </template>
-          <template #top="node">
-            <slot name="top" :slot-scope="node.slotScope"></slot>
+          <template #top="{ slotScope }">
+            <slot name="top" :slot-scope="slotScope"></slot>
           </template>
-          <template #bottom="node">
-            <slot name="bottom" :slot-scope="node.slotScope"></slot>
+          <template #bottom="{ slotScope }">
+            <slot name="bottom" :slot-scope="slotScope"></slot>
           </template>
-          <template #left="node">
-            <slot name="left" :slot-scope="node.slotScope"></slot>
+          <template #left="{ slotScope }">
+            <slot name="left" :slot-scope="slotScope"></slot>
           </template>
-          <template #right="node">
-            <slot name="right" :slot-scope="node.slotScope"></slot>
+          <template #right="{ slotScope }">
+            <slot name="right" :slot-scope="slotScope"></slot>
           </template>
         </tiny-timeline-item>
       </slot>
     </div>
-    <div class="tiny-steps__bottom-divider" v-if="textPosition === 'right' && showDivider"></div>
   </div>
 </template>
 
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/time-line/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
-import { iconYes, iconClose } from '@opentiny/vue-icon'
 import '@opentiny/vue-theme/steps/index.less'
 import TimelineItem from '@opentiny/vue-timeline-item'
+import type { ITimelineApi } from '@opentiny/vue-renderless/types/time-line.type'
 
 export default defineComponent({
   emits: ['click'],
@@ -67,11 +75,12 @@ export default defineComponent({
     'size',
     'textPosition',
     'showDivider',
-    'onlyNumber'
+    'onlyNumber',
+    'lineWidth',
+    'shape',
+    'autoColorField'
   ],
   components: {
-    IconYes: iconYes(),
-    IconClose: iconClose(),
     TinyTimelineItem: TimelineItem
   },
   setup(props, context) {
@@ -80,7 +89,7 @@ export default defineComponent({
       context,
       renderless,
       api
-    })
+    }) as unknown as ITimelineApi
   }
 })
 </script>

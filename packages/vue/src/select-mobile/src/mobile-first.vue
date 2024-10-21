@@ -18,10 +18,11 @@
       :show-footer="multiple"
       :custom-class="[{ 'min-h-[90%]': state.search.show }, { 'pb-4': state.search.show && multiple }]"
     >
-      <div v-show="!state.search.show" :class="['flex flex-col px-4']">
+      <div data-tag="tiny-select-mobile-content" v-show="!state.search.show" :class="['flex flex-col px-4']">
         <div
+          data-tag="tiny-select-mobile-multiple"
           v-if="multiple"
-          :class="['flex items-start leading-6 py-3 cursor-pointer select-none']"
+          :class="['flex items-start leading-5.5 py-3 cursor-pointer select-none']"
           @click="allCheckHandler"
         >
           <component
@@ -30,34 +31,35 @@
               state.checkList.length === 0
                 ? 'icon-check'
                 : state.checkList.length === menus.length
-                ? 'icon-checked-sur'
-                : 'icon-halfselect'
+                  ? 'icon-checked-sur'
+                  : 'icon-halfselect'
             "
             :class="['flex-none mt-1 mr-2', state.checkList.length ? 'fill-color-brand' : 'fill-color-icon-disabled']"
             custom-class="w-4.5 h-4.5"
           />
-          <div :class="['flex-auto', { 'truncate': ellipsis }]">{{ t('ui.base.all') }}</div>
+          <div data-tag="tiny-select-mobile-ellipsis" :class="['flex-auto', { 'truncate': ellipsis }]">
+            {{ t('ui.base.all') }}
+          </div>
         </div>
         <tiny-option
           v-for="(item, index) in menus"
           :key="item[valueField]"
           :multiple="multiple"
           :ellipsis="ellipsis"
-          :textField="textField"
-          :textField2="textField2"
-          :textField3="textField3"
+          :text-field="textField"
+          :text-field2="textField2"
+          :text-field3="textField3"
           :option="item"
           :selected="isSelected(item)"
           @click="selectOption(item, index)"
-        >
-          <slot :item="item" :index="index"></slot>
-        </tiny-option>
+          ><slot :item="item" :index="index"></slot
+        ></tiny-option>
       </div>
       <!-- search box -->
-      <div :class="[state.search.show ? 'flex flex-col flex-auto' : 'hidden']">
+      <div data-tag="tiny-select-mobile-box" :class="[state.search.show ? 'flex flex-col flex-auto' : 'hidden']">
         <!-- search header -->
-        <div class="flex leading-6 pt-4 pb-4 px-4 text-base items-center">
-          <div class="flex-auto flex items-center h-8 py-1 px-3 bg-color-bg-4 rounded">
+        <div data-tag="tiny-select-mobile-header" class="flex leading-6 pt-4 pb-4 px-4 text-base items-center">
+          <div class="flex-auto flex items-center h-8 py-1 px-3 bg-color-bg-4 rounded-full">
             <IconSearch custom-class="h-4 w-4" class="mr-1 fill-color-icon-disabled"></IconSearch>
             <input
               v-model="state.search.input"
@@ -71,16 +73,20 @@
           </div>
         </div>
         <!-- search body -->
-        <div class="flex-auto overflow-auto flex flex-col">
-          <div v-show="state.search.filterOptions.length" :class="['flex flex-col px-4']">
+        <div data-tag="tiny-select-mobile-body" class="flex-auto overflow-auto flex flex-col">
+          <div
+            data-tag="tiny-select-mobile-filter"
+            v-show="state.search.filterOptions.length"
+            :class="['flex flex-col px-4']"
+          >
             <tiny-option
               v-for="(item, index) in state.search.filterOptions"
               :key="item[valueField]"
               :multiple="multiple"
               :ellipsis="ellipsis"
-              :textField="textField"
-              :textField2="textField2"
-              :textField3="textField3"
+              :text-field="textField"
+              :text-field2="textField2"
+              :text-field3="textField3"
               :option="item"
               :selected="isSelected(item)"
               @click="searchSelectHandler(item, index)"
@@ -90,11 +96,14 @@
             </tiny-option>
           </div>
           <div
+            data-tag="tiny-select-mobile-nodata"
             v-show="!state.search.filterOptions.length"
             class="w-full flex justify-center items-center text-center flex-auto"
           >
-            <tiny-exception component-page type="nodata">
-              <template #content>{{ t('ui.select.noSearchData') }}</template>
+            <tiny-exception component-page type="nodata" tiny_mode="mobile-first" tiny_mode_root>
+              <template #content>
+                <span class="text-color-icon-secondary">{{ t('ui.select.noSearchData') }}</span>
+              </template>
             </tiny-exception>
           </div>
         </div>
@@ -120,23 +129,29 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/select-mobile/vue'
 import { $prefix, setup, $props, defineComponent } from '@opentiny/vue-common'
-import { IconSearch, IconClose, IconHalfselect, IconCheckedSur, IconCheck } from '@opentiny/vue-icon'
+import { iconSearch, iconClose, iconHalfselect, iconCheckedSur, iconCheck } from '@opentiny/vue-icon'
 import Button from '@opentiny/vue-button'
 import ActionSheet from '@opentiny/vue-action-sheet'
+import Exception from '@opentiny/vue-exception'
+import Input from '@opentiny/vue-input'
+import Cell from '@opentiny/vue-cell'
 import Option from './option.vue'
 
 export default defineComponent({
   name: $prefix + 'SelectMobile',
-  emits: ['click', 'search-click', 'update:visible', 'update:text'],
+  emits: ['click', 'search-click', 'update:visible', 'update:text', 'update:modelValue', 'confirm', 'close'],
   components: {
     TinyActionSheet: ActionSheet,
     TinyOption: Option,
     TinyButton: Button,
-    IconCheck: IconCheck(),
-    IconCheckedSur: IconCheckedSur(),
-    IconHalfselect: IconHalfselect(),
-    IconSearch: IconSearch(),
-    IconClose: IconClose()
+    TinyException: Exception,
+    IconCheck: iconCheck(),
+    IconCheckedSur: iconCheckedSur(),
+    IconHalfselect: iconHalfselect(),
+    IconSearch: iconSearch(),
+    IconClose: iconClose(),
+    TinyInput: Input,
+    TinyCell: Cell
   },
   props: {
     ...$props,
@@ -161,6 +176,14 @@ export default defineComponent({
       type: String,
       default: 'label'
     },
+    textField2: {
+      type: String,
+      default: ''
+    },
+    textField3: {
+      type: String,
+      default: ''
+    },
     title: String,
     textSplit: {
       type: String,
@@ -179,11 +202,24 @@ export default defineComponent({
       type: Object,
       default: () => ({
         options: [],
-        searchMethod: null
+        searchMethod: null,
+        openSearchSlot: false
       })
-    }
+    },
+    lockScroll: {
+      type: Boolean,
+      default: true
+    },
+    mode: {
+      type: String,
+      default: '',
+      validator(val) {
+        return ['', 'form'].includes(val)
+      }
+    },
+    placeholder: String
   },
-  setup(props, context): any {
+  setup(props: any, context: any) {
     return setup({ props, context, renderless, api, mono: true })
   }
 })

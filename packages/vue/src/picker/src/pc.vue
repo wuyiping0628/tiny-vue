@@ -1,26 +1,18 @@
-<!--
- * Copyright (c) 2022 - present TinyVue Authors.
- * Copyright (c) 2022 - present Huawei Cloud Computing Technologies Co., Ltd.
- *
- * Use of this source code is governed by an MIT-style license.
- *
- * THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL BE USEFUL,
- * BUT WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR
- * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
- *
- -->
 <template>
-  <div ref="reference" class="tiny-date-container">
+  <!-- TODO: 后续去掉 tiny-date-container -->
+  <div ref="reference" class="tiny-picker tiny-date-container">
     <tiny-filter-box
       v-if="shape === 'filter'"
-      v-clickoutside="handleClose"
+      v-clickoutside.mousedown="handleClose"
       @click="handleFocus"
       :show-close="clearable"
+      :placeholder="placeholder"
       :disabled="state.pickerDisabled"
       :label="label"
       :tip="tip"
       :value="state.displayValue.toString()"
       :drop-down-visible="state.pickerVisible"
+      :blank="blank"
     ></tiny-filter-box>
     <tiny-input
       :tabindex="tabindex"
@@ -32,20 +24,19 @@
       :size="state.pickerSize"
       :name="name"
       v-bind="state.firstInputId"
-      v-clickoutside="handleClose"
+      v-clickoutside.mousedown="handleClose"
       :placeholder="placeholder"
       @focus="handleFocus"
       @keydown="handleKeydown"
       :model-value="state.displayValue"
-      :title="state.displayValue"
+      :title="state.type === 'date' ? '' : state.displayValue"
       :display-only="state.isDisplayOnly"
       :display-only-content="state.displayValue"
-      @update:modelValue="(value) => (state.userInput = value)"
+      @input="handleInput"
       @change="handleChange"
       @mouseenter="handleMouseEnter"
       @mouseleave="state.showClose = false"
       :validate-event="false"
-      ref="reference"
     >
       <template v-if="label" #prefix>
         <tiny-tooltip
@@ -72,22 +63,12 @@
           <component :is="state.triggerClass" @click="handleFocus" class="tiny-svg-size" />
         </i>
       </template>
-      <template #panel>
-        <component
-          :is="state.panel"
-          ref="picker"
-          :visible="state.pickerVisible"
-          @pick="handlePick"
-          @select-range="handleSelectRange"
-          @select-change="handleSelectChange"
-        ></component>
-      </template>
     </tiny-input>
     <div
       class="tiny-date-editor tiny-range-editor tiny-input tiny-input__inner"
       :class="[
         'tiny-date-editor--' + state.type,
-        state.pickerSize ? `tiny-range-editor--${state.pickerSize}` : '',
+        state.pickerSize ? `tiny-range-editor--${state.pickerSize} tiny-input-${state.pickerSize}` : '',
         state.pickerDisabled ? 'is-disabled' : '',
         state.pickerVisible ? 'is-active' : '',
         state.isDisplayOnly ? 'is-display-only' : ''
@@ -96,8 +77,7 @@
       @mouseenter="handleMouseEnter"
       @mouseleave="state.showClose = false"
       @keydown="handleKeydown"
-      ref="reference"
-      v-clickoutside="handleClose"
+      v-clickoutside.mousedown="handleClose"
       v-else
     >
       <tiny-tooltip
@@ -138,13 +118,21 @@
         @focus="handleFocus"
         class="tiny-range-input"
       />
-      <i @click="handleClickIcon" v-if="state.haveTrigger" class="tiny-input__icon tiny-range__close-icon">
+      <i class="tiny-input__icon tiny-input__icon">
         <transition name="tiny-transition-icon-scale-in">
-          <component :is="state.showClose ? clearIcon : null" />
+          <div v-if="state.haveTrigger" class="tiny-range__close-box">
+            <component
+              :is="state.showClose ? clearIcon : null"
+              @click="handleClickIcon"
+              class="baseClearicon tiny-range__close-icon"
+            />
+          </div>
         </transition>
-      </i>
-      <i class="tiny-input__icon tiny-range__icon tiny-input__suffix" v-if="!state.isDisplayOnly">
-        <component :is="state.triggerClass" />
+        <component
+          v-if="!state.isDisplayOnly"
+          :is="state.triggerClass"
+          class="tiny-input__icon tiny-range__icon tiny-input__suffix"
+        />
       </i>
       <tiny-tooltip
         class="tiny-range-editor-display-only"
@@ -161,19 +149,23 @@
       :is="state.panel"
       :step="step"
       :show-week-number="showWeekNumber"
+      :time-editable="timeEditable"
       :format-weeks="formatWeeks"
+      :now-click="nowClick"
       ref="picker"
       :visible="state.pickerVisible"
       @pick="handlePick"
       @select-range="handleSelectRange"
       @select-change="handleSelectChange"
-    ></component>
+    >
+      <slot name="now"></slot>
+    </component>
   </div>
 </template>
 
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/picker/vue'
-import { $prefix, setup, directive, defineComponent } from '@opentiny/vue-common'
+import { setup, directive, defineComponent } from '@opentiny/vue-common'
 import Input from '@opentiny/vue-input'
 import Clickoutside from '@opentiny/vue-renderless/common/deps/clickoutside'
 import DatePanel from '@opentiny/vue-date-panel'
@@ -182,142 +174,24 @@ import MonthRangePanel from '@opentiny/vue-month-range'
 import YearRangePanel from '@opentiny/vue-year-range'
 import TimePanel from '@opentiny/vue-time'
 import TimeRangePanel from '@opentiny/vue-time-range'
+import QuarterPanel from '@opentiny/vue-quarter-panel'
 import TimeSelect from '@opentiny/vue-time-panel'
-import { iconCalendar, iconTime, iconClose } from '@opentiny/vue-icon'
 import TinyTooltip from '@opentiny/vue-tooltip'
 import FilterBox from '@opentiny/vue-filter-box'
+import { iconCalendar, iconTime } from '@opentiny/vue-icon'
+import { pickerProps } from './type'
+import '@opentiny/vue-theme/picker/index.less'
 
 export default defineComponent({
-  name: $prefix + 'Picker',
-  componentName: 'Picker',
   components: {
     TinyInput: Input,
     TinyFilterBox: FilterBox,
+    TinyTooltip,
     IconCalendar: iconCalendar(),
-    IconTime: iconTime(),
-    IconClose: iconClose(),
-    TinyTooltip
+    IconTime: iconTime()
   },
   emits: ['created', 'select-change', 'update:modelValue', 'blur', 'focus', 'change'],
-  props: {
-    type: {
-      type: String,
-      default: 'date'
-    },
-    tabindex: {
-      type: String,
-      default: '1'
-    },
-    timeArrowControl: Boolean,
-    size: String,
-    format: String,
-    valueFormat: String,
-    timeFormat: String,
-    readonly: Boolean,
-    placeholder: String,
-    startPlaceholder: String,
-    endPlaceholder: String,
-    prefixIcon: Object,
-    suffixIcon: Object,
-    label: String,
-    shape: String,
-    tip: String,
-    clearIcon: {
-      type: Object,
-      default() {
-        return iconClose()
-      }
-    },
-    name: {
-      default: '',
-      validator(value) {
-        return (
-          value === null ||
-          value === undefined ||
-          typeof value === 'string' ||
-          value instanceof String ||
-          (Array.isArray(value) &&
-            value.length === 2 &&
-            value.every((item) => typeof item === 'string' || item instanceof String))
-        )
-      }
-    },
-    clearable: {
-      type: Boolean,
-      default: true
-    },
-    disabled: Boolean,
-    id: {
-      default: '',
-      validator(value) {
-        return (
-          value === null ||
-          value === undefined ||
-          typeof value === 'string' ||
-          value instanceof String ||
-          (Array.isArray(value) &&
-            value.length === 2 &&
-            value.every((item) => typeof item === 'string' || item instanceof String))
-        )
-      }
-    },
-    popperClass: String,
-    popperAppendToBody: {
-      type: Boolean,
-      default: true
-    },
-    align: {
-      type: String,
-      default: 'left'
-    },
-    editable: {
-      type: Boolean,
-      default: true
-    },
-    modelValue: {},
-    defaultValue: {},
-    defaultTime: {},
-    rangeSeparator: {
-      type: [Object, String],
-      default: '-'
-    },
-    unlinkPanels: Boolean,
-    pickerOptions: {},
-    validateEvent: {
-      type: Boolean,
-      default: true
-    },
-    isRange: Boolean,
-    arrowControl: Boolean,
-    timezoneData: {},
-    showTimezone: {
-      type: Boolean,
-      default: false
-    },
-    defaultTimezone: String,
-    isutc8: {
-      type: Boolean,
-      default: false
-    },
-    dbTimezone: Number,
-    timezone: Number,
-    iso8601: Boolean,
-    displayOnly: {
-      type: Boolean,
-      default: false
-    },
-    step: {
-      type: Object,
-      default() {
-        return { hour: 1, minute: 1, second: 1 }
-      }
-    },
-    showWeekNumber: {
-      type: Boolean,
-      default: false
-    },
-    formatWeeks: Function
-  },
+  props: pickerProps,
   directives: directive({ Clickoutside }),
   setup(props, context) {
     return setup({
@@ -332,6 +206,7 @@ export default defineComponent({
         YearRangePanel,
         TimePanel,
         TimeRangePanel,
+        QuarterPanel,
         TimeSelect
       }
     })

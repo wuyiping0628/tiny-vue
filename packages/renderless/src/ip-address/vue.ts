@@ -23,14 +23,32 @@ import {
   change,
   blur,
   keyup,
-  keydown,
-  getHeightOfSize
+  keydown
 } from './index'
 import { KEY_CODE } from '../common'
+import type {
+  IIpAddressProps,
+  IIpAddressState,
+  IIpAddressApi,
+  ISharedRenderlessFunctionParams,
+  IIpAddressRenderlessParamUtils
+} from '@/types'
 
 export const api = ['state', 'focus', 'inputEvent', 'blur', 'keyup', 'keydown', 'change', 'select']
 
-const initState = ({ reactive, computed, handleValue, parent, props }) => {
+const initState = ({
+  reactive,
+  computed,
+  handleValue,
+  parent,
+  props
+}: {
+  reactive: ISharedRenderlessFunctionParams<null>['reactive']
+  computed: ISharedRenderlessFunctionParams<null>['computed']
+  handleValue: ReturnType<typeof useHandleValue>
+  parent: ISharedRenderlessFunctionParams<null>['parent']
+  props: IIpAddressProps
+}) => {
   const state = reactive({
     ...handleValue.state,
     active: false,
@@ -47,15 +65,38 @@ const initState = ({ reactive, computed, handleValue, parent, props }) => {
 
     formDisabled: computed(() => (parent.tinyForm || {}).disabled),
     disabled: computed(() => props.disabled || state.formDisabled),
-    heightStyle: computed(() => getHeightOfSize(props.size)),
-    lineHeightStyle: computed(() => getHeightOfSize(props.size, 'line-height')),
-    allHeightStyle: computed(() => `${state.heightStyle}${state.lineHeightStyle}`)
+    size: computed(() => props.size)
   })
 
-  return state
+  return state as IIpAddressState
 }
 
-const initApi = ({ state, api, dispatch, handleValue, emit, broadcast, parent, componentName, props, eventName }) => {
+const initApi = ({
+  state,
+  api,
+  dispatch,
+  handleValue,
+  emit,
+  broadcast,
+  parent,
+  componentName,
+  props,
+  eventName
+}: {
+  state: IIpAddressState
+  api: IIpAddressApi
+  dispatch: IIpAddressRenderlessParamUtils['dispatch']
+  handleValue: ReturnType<typeof useHandleValue>
+  emit: IIpAddressRenderlessParamUtils['emit']
+  broadcast: IIpAddressRenderlessParamUtils['broadcast']
+  parent: IIpAddressRenderlessParamUtils['parent']
+  componentName: string
+  props: IIpAddressProps
+  eventName: {
+    change: string
+    blur: string
+  }
+}) => {
   Object.assign(api, {
     ...handleValue.api,
     state,
@@ -88,7 +129,7 @@ export const useHandleValue = ({ componentName, dispatch, eventName, props, reac
   const api = {
     isIP6,
     isIP4
-  }
+  } as IIpAddressApi
 
   api.getValue = getValue({ api, props, state })
   api.setValue = setValue({ api, props, state })
@@ -98,7 +139,7 @@ export const useHandleValue = ({ componentName, dispatch, eventName, props, reac
     () => props.modelValue,
     (value) => {
       if (!state.isDel) {
-        api.setValue(value)
+        api?.setValue?.(value)
         dispatch(componentName, eventName, [value])
       }
     },
@@ -112,11 +153,11 @@ export const useHandleValue = ({ componentName, dispatch, eventName, props, reac
 }
 
 export const renderless = (
-  props,
-  { reactive, toRefs, watch, inject, computed },
-  { $prefix, emit, parent, broadcast, dispatch }
+  props: IIpAddressProps,
+  { reactive, toRefs, watch, inject, computed }: ISharedRenderlessFunctionParams<null>,
+  { emit, parent, broadcast, dispatch }: IIpAddressRenderlessParamUtils
 ) => {
-  const api = {}
+  const api = {} as IIpAddressApi
   const componentName = 'FormItem'
   const eventName = {
     change: 'form.change',

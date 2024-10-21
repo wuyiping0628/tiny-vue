@@ -13,6 +13,9 @@ const moduleMap = require(pathFromWorkspaceRoot('packages/modules.json'))
 
 type mode = 'pc' | 'mobile' | 'mobile-first'
 
+// 需要在入口文件中排除的组件，比如：富文本
+export const excludeComponents = ['RichText']
+
 export interface Module {
   /** 源码路径，如 vue/src/button/index.ts */
   path: string
@@ -78,7 +81,8 @@ const getByName = ({
   isOriginal?: boolean
 }) => {
   const callback = (item) => {
-    const result = new RegExp(`/${name}/|^vue-${name}/`).test(item.path)
+    // 可以支持单独打出design的包
+    const result = new RegExp(`${name.startsWith('design') ? '' : '/'}${name}/|^vue-${name}/`).test(item.path)
     return inversion ? !result : result
   }
 
@@ -374,7 +378,7 @@ const getComponents = (mode, isSort = true) => {
     .filter((item) => item.type === 'component')
     // 以下3种情况，均写入entry js文件。
     // 1、入参all，  2、chart组件，item.mode不存在  3、item.mode包含要输出的entry
-    .filter((item) => mode === 'all' || !item.mode || item.mode.includes(mode))
+    .filter((item) => mode === 'all' || (mode === 'pc' && !item.mode) || (item.mode && item.mode.includes(mode)))
   return components
 }
 
@@ -443,11 +447,10 @@ const createModuleMapping = (componentName, isMobile = false) => {
   })
 
   const moduleJson = quickSort({ sortData: moduleMap, returnType: 'object' })
-
-  fs.writeJsonSync(
+  fs.writeFileSync(
     pathJoinFromCLI('../../packages/modules.json'),
     prettierFormat({
-      str: JSON.stringify(moduleJson),
+      str: typeof moduleJson === 'string' ? moduleJson : JSON.stringify(moduleJson),
       options: {
         parser: 'json',
         printWidth: 10

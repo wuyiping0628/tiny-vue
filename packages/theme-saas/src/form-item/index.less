@@ -2,6 +2,8 @@
 @import '../mixins/common.less';
 
 @form-item-prefix-cls: ~'@{css-prefix}form-item';
+@autocomplete-prefix-cls: ~'@{css-prefix}autocomplete';
+@cascader-prefix-cls: ~'@{css-prefix}cascader';
 @input-prefix-cls: ~'@{css-prefix}input';
 @input-group-prefix-cls: ~'@{css-prefix}input-group';
 @textarea-prefix-cls: ~'@{css-prefix}textarea';
@@ -15,8 +17,13 @@
 @ip-address-prefix-cls: ~'@{css-prefix}ip-address';
 
 .@{form-item-prefix-cls} {
+  @apply relative;
   @apply mb-5;
   .clearfix();
+
+  .@{form-item-prefix-cls}__content-muti-children {
+    @apply w-full;
+  }
 
   & & {
     @apply mb-0;
@@ -62,10 +69,8 @@
   }
 
   &--medium &__label {
-    height: 22px;
-    line-height: 22px;
+    @apply ~'leading-5.5';
     @apply text-sm;
-    @apply box-content;
   }
 
   &--small &__label {
@@ -170,7 +175,7 @@
     @apply text-left;
     @apply align-middle;
     @apply float-left;
-    @apply text-xs;
+    @apply text-sm;
     @apply text-color-text-secondary;
     @apply h-7;
     @apply leading-7;
@@ -184,7 +189,7 @@
 
   &__content {
     @apply relative;
-    @apply text-xs;
+    @apply text-sm;
     .clearfix();
 
     .@{input-prefix-cls} {
@@ -214,13 +219,17 @@
       @apply mt-1;
     }
 
+    .@{autocomplete-prefix-cls},
     .@{numeric-prefix-cls},
+    .@{cascader-prefix-cls},
     .@{date-editor-prefix-cls}--daterange.@{input-prefix-cls},
     .@{date-editor-prefix-cls}--daterange.@{input-prefix-cls}__inner,
     .@{date-editor-prefix-cls}--timerange.@{input-prefix-cls},
     .@{date-editor-prefix-cls}--timerange.@{input-prefix-cls}__inner,
     .@{date-editor-prefix-cls}--datetimerange.@{input-prefix-cls},
-    .@{date-editor-prefix-cls}--datetimerange.@{input-prefix-cls}__inner {
+    .@{date-editor-prefix-cls}--datetimerange.@{input-prefix-cls}__inner,
+    .@{date-editor-prefix-cls}--monthrange.@{input-prefix-cls},
+    .@{date-editor-prefix-cls}--monthrange.@{input-prefix-cls}__inner {
       @apply w-full;
     }
   }
@@ -282,24 +291,5 @@
 
   .@{input-prefix-cls}__validateIcon {
     @apply hidden;
-  }
-}
-
-.@{css-prefix} {
-  &zoom-in-top-enter-active,
-  &zoom-in-top-leave-active {
-    @apply opacity-100;
-    @apply scale-y-100;
-    transition:
-      transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
-      opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-    transform-origin: center top;
-  }
-
-  &zoom-in-top-enter,
-  &zoom-in-top-enter-from,
-  &zoom-in-top-leave-active {
-    @apply opacity-0;
-    @apply scale-y-0;
   }
 }

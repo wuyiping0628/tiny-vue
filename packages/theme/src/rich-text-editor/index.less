@@ -1,23 +1,82 @@
+@import '../custom.less';
 @import './vars.less';
+@rich-text-editor-prefix-cls: ~'@{css-prefix}rich-text-editor';
 
-.tiny-rich-text-editor {
+.@{rich-text-editor-prefix-cls} {
   .component-css-vars-rich-text-editor();
+
+  strong {
+    font-weight: bold;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  a,
+  a:hover {
+    text-decoration: underline;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    font-weight: bold;
+  }
+
+  h2 {
+    font-size: 1.5em;
+    margin-block-start: 0.83em;
+    margin-block-end: 0.83em;
+    font-weight: bold;
+  }
+
+  h3 {
+    font-size: 1.17em;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    font-weight: bold;
+  }
+
+  h4 {
+    margin-block-start: 1.33em;
+    margin-block-end: 1.33em;
+    font-weight: bold;
+  }
+
+  h5 {
+    font-size: 0.83em;
+    margin-block-start: 1.67em;
+    margin-block-end: 1.67em;
+  }
+
+  h6 {
+    font-size: 0.83em;
+    margin-block-start: 1.67em;
+    margin-block-end: 1.67em;
+  }
 
   height: 100%;
 
   &__toolbar {
     padding: 8px;
-    border: 1px solid var(--ti-rich-text-editor-box-outline-color);
+    border: 1px solid var(--ti-rich-text-editor-box-border-color);
   }
 
   &__toolbar button {
     height: 24px;
-    padding: .25rem;
-    margin-right: .25rem;
+    padding: 0.25rem;
+    margin-right: 0.25rem;
     border: none;
-    border-radius: .4rem;
+    border-radius: 0.4rem;
     background: transparent;
     cursor: pointer;
+
+    svg,
+    input {
+      cursor: pointer;
+    }
 
     &:not(:disabled):hover,
     &.is-active {
@@ -34,7 +93,7 @@
     }
 
     &:disabled {
-      color: var(--ti-rich-text-editor-button-disabled);
+      color: var(--ti-rich-text-editor-button-disabled-text-color);
       cursor: not-allowed;
 
       svg {
@@ -50,47 +109,72 @@
     overflow: hidden;
     display: inline-block;
   }
-}
 
-// p-h1~6
-.tiny-rich-text-editor {
+  .tippy-box {
+    .tippy-content {
+      .bubble-menu {
+        button {
+          border-width: 1px;
+          border-left: none;
+        }
+
+        &:nth-child(1) {
+          border-left-width: 1px;
+        }
+      }
+    }
+  }
+
+  // p-h1~6
   .h-box {
     position: relative;
 
     .h-options {
       position: absolute;
-      background-color: #dfdede;
-      padding: .15rem;
-      left: 0px;
+      padding: 0.15rem;
+      background-color: var(--ti-rich-text-editor-options-bg-color);
+      left: 0;
       display: none;
-      border-radius: .4rem;
+      border-radius: var(--ti-rich-text-editor-options-border-radius);
+      box-shadow: var(--ti-rich-text-editor-options-box-shadow);
       z-index: 999;
 
       button {
+        color: black;
         margin: 0;
+        text-align: center;
+        line-height: var(--ti-common-line-height-3);
+
+        svg,
+        path {
+          fill: black;
+        }
+
+        &:hover {
+          background-color: var(--ti-rich-text-edito-options-item-bg-color);
+
+          svg,
+          path {
+            fill: var(--ti-rich-text-edito-options-item-hover-color);
+          }
+        }
       }
     }
 
     &:hover {
-      background-color: #d2e4ff;
-
       .h-options {
         display: flex;
         flex-direction: column;
 
         button {
           width: auto;
-          color: black;
         }
       }
     }
   }
-}
 
-// 表格区域样式
-.tiny-rich-text-editor {
+  // 表格区域样式
   .table-button {
-
     .table-box {
       display: flex;
       position: relative;
@@ -99,7 +183,7 @@
         display: inline-block;
       }
 
-      .table-option {
+      .table-panel {
         position: absolute;
         background: white;
         left: 0;
@@ -121,8 +205,8 @@
         }
 
         .isActive {
-          background-color: rgba(32, 122, 183, .5);
-          border-color: rgba(32, 122, 183, .5);
+          background-color: rgb(32 122 183 / 50%);
+          border-color: rgb(32 122 183 / 50%);
         }
       }
     }
@@ -136,10 +220,7 @@
     }
   }
 
-}
-
-// 颜色选择样式
-.tiny-rich-text-editor {
+  // 颜色选择样式
   .color-button {
     position: relative;
     padding-right: 1.2rem;
@@ -155,17 +236,14 @@
     }
 
     &:hover {
-
       #tiny-back-color,
       #tiny-color {
         background-color: #d2e4ff;
       }
     }
   }
-}
 
-// 图片样式
-.tiny-rich-text-editor {
+  // 图片样式
   .image-button {
     position: relative;
 
@@ -196,111 +274,97 @@
 
     input {
       position: absolute;
-      width: 100%;
       height: 100%;
-      left: 0px;
+      left: 0;
       opacity: 0;
       width: 0;
     }
   }
-}
 
-.tiny-rich-text-editor .tiny-rich-text-editor__toolbar {
-  .line-height-button {
-    position: relative;
+  .tiny-rich-text-editor__toolbar {
+    .line-height-button {
+      position: relative;
 
-    .line-height-options {
-      position: absolute;
-      background-color: #dfdede;
-      padding: .15rem;
-      left: 0px;
-      display: none;
-      border-radius: .4rem;
-      z-index: 999;
+      .line-height-options {
+        position: absolute;
+        padding: 0.15rem;
+        background-color: var(--ti-rich-text-editor-options-bg-color);
+        left: 0;
+        display: none;
+        border-radius: var(--ti-rich-text-editor-options-border-radius);
+        box-shadow: var(--ti-rich-text-editor-options-box-shadow);
+        z-index: 999;
 
-      button {
-        margin: 0;
+        button {
+          color: black;
+          margin: 0;
+          text-align: center;
+          line-height: var(--ti-common-line-height-3);
+
+          &:hover {
+            background-color: var(--ti-rich-text-editor-options-item-bg-color);
+            color: var(--ti-rich-text-editor-options-item-hover-color);
+          }
+        }
+      }
+
+      &:hover {
+        .line-height-options {
+          display: flex;
+          flex-direction: column;
+
+          button {
+            width: auto;
+          }
+        }
       }
     }
 
-    &:hover {
-      .line-height-options {
-        display: flex;
-        flex-direction: column;
+    .font-size-box {
+      position: relative;
+
+      .font-size-options {
+        display: none;
+        position: absolute;
+        border-radius: var(--ti-rich-text-editor-options-border-radius);
+        background-color: var(--ti-rich-text-editor-options-bg-color);
+        box-shadow: var(--ti-rich-text-editor-options-box-shadow);
+        z-index: 99;
 
         button {
-          width: auto;
           color: black;
+          margin: 0;
+          text-align: center;
+          line-height: var(--ti-common-line-height-3);
+
+          &:hover {
+            background-color: var(--ti-rich-text-editor-options-item-bg-color);
+            color: var(--ti-rich-text-editor-options-item-hover-color);
+          }
+        }
+      }
+
+      &:hover {
+        background-color: var(--ti-rich-text-editor-options-item-bg-color);
+
+        .font-size-options {
+          display: flex;
+          flex-direction: column;
         }
       }
     }
   }
-}
 
-.tiny-rich-text-editor {
   .bubble-menu {
-
     button {
       background-color: #f1f3f5;
     }
   }
-}
 
-.tiny-rich-text-editor .tiny-rich-text-editor__toolbar {
-  .font-size-box {
-    position: relative;
-
-    .font-size-options {
-      display: none;
-      position: absolute;
-      border-radius: 0.4rem;
-      background-color: #dfdede;
-      z-index: 99;
-
-      button {
-        color: black;
-        margin: 0;
-        text-align: center;
-      }
-    }
-
-    &:hover {
-      background-color: #d2e4ff;
-
-      .font-size-options {
-        display: flex;
-        flex-direction: column;
-      }
-    }
-  }
-}
-
-// 富文本编辑器的主题区域，需要对高度进行调整，达到融为一体
-.tiny-rich-text-editor__container {
-  overflow: auto;
-  padding: 0 10px;
-  height: 100%;
-  border: 1px solid var(--ti-rich-text-editor-box-outline-color);
-  border-top: 0;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-    height: 0px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: rgb(0, 0, 0);
-    border-radius: 8px;
-  }
-}
-
-.tiny-rich-text-editor {
   .ProseMirror {
     outline: none !important;
-  }
 
-  .ProseMirror {
-    >*+* {
+    > * + * {
       margin-top: 0.75em;
     }
 
@@ -326,44 +390,47 @@
       line-height: 1.1;
     }
 
+    p {
+      margin: 0;
+      line-height: 1.5;
+
+      &[level='1'] {
+        line-height: 1;
+      }
+
+      &[level='1.5'] {
+        line-height: 1.5;
+      }
+
+      &[level='2'] {
+        line-height: 2;
+      }
+
+      &[level='2.5'] {
+        line-height: 2.5;
+      }
+    }
+
     code {
       background-color: rgba(#616161, 0.1);
       color: #616161;
     }
 
-    pre {
-      background: #0D0D0D;
-      color: #FFF;
-      font-family: 'JetBrainsMono', monospace;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-
-      code {
-        color: inherit;
-        padding: 0;
-        background: none;
-        font-size: 0.8rem;
-      }
-    }
-
     img {
       max-width: 100%;
-      height: auto;
     }
 
     blockquote {
       padding-left: 1rem;
-      border-left: 2px solid rgba(#0D0D0D, 0.1);
+      border-left: 2px solid rgba(#0d0d0d, 0.1);
     }
 
     hr {
       border: none;
-      border-top: 2px solid rgba(#0D0D0D, 0.1);
+      border-top: 2px solid rgba(#0d0d0d, 0.1);
       margin: 2rem 0;
     }
-  }
 
-  .ProseMirror {
     .img-button {
       resize: both;
       overflow: hidden;
@@ -393,7 +460,7 @@
         box-sizing: border-box;
         position: relative;
 
-        >* {
+        > * {
           margin-bottom: 0;
         }
       }
@@ -407,12 +474,12 @@
       .selectedCell:after {
         z-index: 2;
         position: absolute;
-        content: "";
+        content: '';
         left: 0;
         right: 0;
         top: 0;
         bottom: 0;
-        background: rgba(200, 200, 255, 0.4);
+        background: #c8c8ff66;
         pointer-events: none;
       }
 
@@ -440,11 +507,8 @@
       cursor: ew-resize;
       cursor: col-resize;
     }
-  }
 
-  .ProseMirror {
-
-    ul[data-type="taskList"] {
+    ul[data-type='taskList'] {
       list-style: none;
       padding: 0;
 
@@ -452,22 +516,16 @@
         display: flex;
         align-items: center;
 
-        >label {
+        > label {
           flex: 0 0 auto;
           margin-right: 0.5rem;
           user-select: none;
         }
 
-        >div {
+        > div {
           flex: 1 1 auto;
         }
       }
-    }
-  }
-
-  .ProseMirror {
-    >*+* {
-      margin-top: 0.75em;
     }
 
     .code-block {
@@ -475,7 +533,7 @@
 
       select {
         position: absolute;
-        top: .5rem;
+        top: 0.5rem;
         right: 0.5rem;
         border: 0;
         background: gray;
@@ -486,7 +544,7 @@
     pre {
       background: #0d0d0d;
       color: #fff;
-      font-family: "JetBrainsMono", monospace;
+      font-family: JetBrainsMono, monospace;
       padding: 0.75rem 1rem;
       border-radius: 0.5rem;
 
@@ -506,7 +564,6 @@
       .hljs-template-variable,
       .hljs-attribute,
       .hljs-tag,
-      .hljs-name,
       .hljs-regexp,
       .hljs-link,
       .hljs-name,
@@ -551,11 +608,85 @@
     }
   }
 
-  .ProseMirror p.is-editor-empty:first-child::before {
+  ~ .ProseMirror p.is-editor-empty:first-child:before {
     content: attr(data-placeholder);
     float: left;
     color: #9a9a9a;
     pointer-events: none;
     height: 0;
+  }
+
+  // 富文本编辑器的主题区域，需要对高度进行调整，达到融为一体
+  &__container {
+    overflow: auto;
+    padding: 10px;
+    height: 100%;
+    border: 1px solid var(--ti-rich-text-editor-box-border-color);
+    border-top: 0;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #000;
+      border-radius: 8px;
+    }
+  }
+
+  .tiny-image {
+    &__node__view {
+      display: inline-block;
+      margin: 0 5px;
+    }
+
+    &__view {
+      position: relative;
+      box-sizing: border-box;
+      border: 1px solid transparent;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    &__handle {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: var(--ti-base-color-brand-7);
+      position: absolute;
+    }
+
+    &__resize {
+      border: 2px solid var(--ti-base-color-brand-7);
+      left: 0;
+      position: absolute;
+      top: 0;
+      z-index: 1;
+
+      &__tl {
+        left: -5px;
+        top: -5px;
+        cursor: nwse-resize;
+      }
+
+      &__tr {
+        right: -5px;
+        top: -5px;
+        cursor: nesw-resize;
+      }
+
+      &__bl {
+        left: -5px;
+        bottom: -5px;
+        cursor: nesw-resize;
+      }
+
+      &__br {
+        right: -5px;
+        bottom: -5px;
+        cursor: nwse-resize;
+      }
+    }
   }
 }

@@ -11,11 +11,15 @@
  -->
 <script lang="tsx">
 import { renderless, api } from '@opentiny/vue-renderless/cascader-node/vue'
-import { $prefix, setup, h, defineComponent } from '@opentiny/vue-common'
+import { $prefix, setup, h, $props, defineComponent } from '@opentiny/vue-common'
 import Checkbox from '@opentiny/vue-checkbox'
 import Radio from '@opentiny/vue-radio'
 import { isEqual } from '@opentiny/vue-renderless/common/object'
-import { iconLoading, iconChevronRight, iconYes } from '@opentiny/vue-icon'
+import { iconLoadingShadow, iconChevronRight, iconYes } from '@opentiny/vue-icon'
+import type { PropType } from '@opentiny/vue-common'
+import type { ICascaderNodeApi, ICascaderNodeRenderlessParams } from '@opentiny/vue-renderless/types/cascader-node.type'
+import type { ICascaderPanelNode } from '@opentiny/vue-renderless/types/cascader-panel.type'
+import '@opentiny/vue-theme/cascader-node/index.less'
 
 export default defineComponent({
   name: $prefix + 'CascaderNode',
@@ -23,44 +27,47 @@ export default defineComponent({
     TinyCheckbox: Checkbox,
     TinyRadio: Radio,
     IconYes: iconYes(),
-    IconLoading: iconLoading(),
+    IconLoading: iconLoadingShadow(),
     IconChevronRight: iconChevronRight()
   },
   inheritAttrs: false,
   emits: ['expand', 'update:modelValue', 'expand-change', 'active-item-change', 'change'],
   inject: ['panel'],
   props: {
+    ...$props,
     node: {
+      type: Object as PropType<ICascaderPanelNode>,
       required: true
     },
     nodeId: String
   },
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({ props, context, renderless, api }) as unknown as ICascaderNodeApi &
+      Pick<ICascaderNodeRenderlessParams, 'panel'>
   },
   render() {
-    const renderPrefix = (h) => {
+    const renderPrefix = () => {
       const { isLeaf, isChecked, config } = this.state
       const { checkStrictly, multiple } = config
 
       if (multiple) {
-        return renderCheckbox(h)
+        return renderCheckbox()
       } else if (checkStrictly) {
-        return renderRadio(h)
+        return renderRadio()
       } else if (isLeaf && isChecked) {
-        return renderCheckIcon(h)
+        return renderCheckIcon()
       }
 
       return null
     }
 
-    const renderPostfix = (h) => {
+    const renderPostfix = () => {
       const { node, state } = this
 
       if (node.loading) {
-        return renderLoadingIcon(h)
+        return renderLoadingIcon()
       } else if (!state.isLeaf) {
-        return renderExpandIcon(h)
+        return renderExpandIcon()
       }
 
       return null
@@ -74,17 +81,17 @@ export default defineComponent({
       return (
         <tiny-checkbox
           modelValue={node.checked}
-          indeterminate={node.indeterminate}
+          indeterminate={!node.checked && node.indeterminate}
           disabled={state.isDisabled}
           onChange={this.handleMultiCheckChange}
-          nativeOnClick={stopPropagation}></tiny-checkbox>
+          onClick={stopPropagation}></tiny-checkbox>
       )
     }
 
     const renderRadio = () => {
       let { checkedValue, value, isDisabled } = this.state
 
-      if (isEqual(value, checkedValue)) {
+      if (isEqual(value as object, checkedValue)) {
         value = checkedValue
       }
 
@@ -93,7 +100,7 @@ export default defineComponent({
           v-model={checkedValue}
           disabled={isDisabled}
           label={value}
-          nativeOnClick={stopPropagation}
+          onClick={stopPropagation}
           onChange={this.handleCheckChange}>
           <span></span>
         </tiny-radio>
@@ -109,6 +116,7 @@ export default defineComponent({
     const renderContent = () => {
       const { panel, node } = this
       const render = panel.state.renderLabelFn
+
       const vnode = render ? render({ node, data: node.data }) : null
 
       return <span class="tiny-cascader-node__label">{vnode || node.label}</span>
@@ -117,7 +125,7 @@ export default defineComponent({
     const { state } = this
     const { checkStrictly, expandTrigger, multiple } = state.config
     const disabled = !checkStrictly && state.isDisabled
-    const events = {}
+    const events: { [key: string]: any; on?: { [key: string]: (...args: any[]) => any } } = {}
 
     events.on = {}
 
@@ -156,7 +164,7 @@ export default defineComponent({
         },
         ...events
       },
-      [renderPrefix(h), renderContent(h), renderPostfix(h)]
+      [renderPrefix(), renderContent(), renderPostfix()]
     )
   }
 })

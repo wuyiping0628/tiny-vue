@@ -10,38 +10,48 @@
  *
  */
 
+import type { IUserHeadApi, IUserHeadProps, IUserHeadRenderlessParamUtils, IUserHeadState } from 'types/user-head.type'
 import {
   computedMessage,
   computedStyle,
   computedFontSize,
   computedLabel,
   getInternalValue,
-  computedSize
+  handleClick,
+  mouseEnter
 } from './index'
+import type { ISharedRenderlessParamHooks } from 'types/shared.type'
 
-export const api = ['state']
+export const api = ['state', 'handleClick', 'mouseEnter']
 
-export const renderless = (props, { reactive, computed }) => {
-  const api = {
-    computedMessage: computedMessage(props),
-    getInternalValue: getInternalValue(props)
-  }
-  const state = reactive({
+export const renderless = (
+  props: IUserHeadProps,
+  { reactive, computed, inject }: ISharedRenderlessParamHooks,
+  { mode, emit }: IUserHeadRenderlessParamUtils
+): IUserHeadApi => {
+  const groupSize = inject('groupSize', null)
+
+  const state: IUserHeadState = reactive({
     internalValue: computed(() => api.getInternalValue()),
     label: computed(() => api.computedLabel()),
     style: computed(() => api.computedStyle()),
     message: computed(() => api.computedMessage()),
     fontSize: computed(() => api.computedFontSize()),
-    size: computed(() => api.computedSize())
+    size: groupSize || props.size,
+    color: inject('color', null) || props.color,
+    backgroundColor: inject('backgroundColor', null) || props.backgroundColor
   })
 
-  Object.assign(api, {
+  const api: IUserHeadApi = {
     state,
     computedLabel: computedLabel({ state, props }),
     computedStyle: computedStyle({ state, props }),
-    computedFontSize: computedFontSize({ props, state }),
-    computedSize: computedSize({ props, state })
-  })
+    computedMessage: computedMessage({ props }),
+    computedFontSize: computedFontSize({ props, state, mode }),
+    getInternalValue: getInternalValue({ props }),
+    handleClick: handleClick(emit),
+    mouseEnter: mouseEnter(emit)
+  }
 
   return api
 }

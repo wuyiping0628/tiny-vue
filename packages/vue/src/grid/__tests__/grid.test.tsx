@@ -87,8 +87,7 @@ describe('PC Mode', () => {
                 {data.row.name}
               </span>
             )
-          }}
-        ></GridColumn>
+          }}></GridColumn>
         <GridColumn field="city" titile="城市" width="100"></GridColumn>
       </Grid>
     ))
@@ -135,7 +134,7 @@ describe('PC Mode', () => {
 
   test.todo('footer-align 所有的表尾列的对齐方式;该属性的可选值为 left（左对齐）, center（居中对齐）, right（右对齐）')
 
-  test.todo('optimization 优化配置项')
+  test.todo('optimization 表格虚拟滚动的优化配置项')
 
   test.todo('params 额外的参数')
 
@@ -489,7 +488,7 @@ describe('PC Mode', () => {
   test.todo('fullscreen 全屏时或关闭全屏时触发的时间')
 
   // columnattrs
-  test.todo('align 列对其方式')
+  test.todo('align 列对齐方式')
 
   test.todo('class-name 给单元格附加 className，也可以是函数')
 

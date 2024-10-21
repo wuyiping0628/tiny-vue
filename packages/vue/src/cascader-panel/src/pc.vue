@@ -19,6 +19,8 @@
 import { $prefix, setup, defineComponent } from '@opentiny/vue-common'
 import { renderless, api } from '@opentiny/vue-renderless/cascader-panel/vue'
 import CascaderMenu from '@opentiny/vue-cascader-menu'
+import type { ICascaderPanelApi } from '@opentiny/vue-renderless/types/cascader-panel.type'
+import '@opentiny/vue-theme/cascader-panel/index.less'
 
 export default defineComponent({
   name: $prefix + 'CascaderPanel',
@@ -41,9 +43,9 @@ export default defineComponent({
       panel: this
     }
   },
-  emits: ['update:modelValue', 'change', 'close', 'active-item-change', 'expand-change'],
+  emits: ['update:modelValue', 'change', 'close', 'expand-change', 'active-item-change', 'load-data'],
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({ props, context, renderless, api }) as unknown as ICascaderPanelApi
   }
 })
 </script>

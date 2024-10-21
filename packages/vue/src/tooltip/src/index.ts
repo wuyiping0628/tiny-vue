@@ -1,8 +1,15 @@
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
+import type { ITooltipApi } from '@opentiny/vue-renderless/types/tooltip.type'
+
 import template from 'virtual-template?pc|mobile-first'
 
 export const tooltipProps = {
   ...$props,
+  visible: {
+    type: String,
+    default: () => 'always',
+    validator: (value: string) => ['always', 'auto'].includes(value)
+  },
   adjustArrow: {
     type: Boolean,
     default: () => false
@@ -15,11 +22,7 @@ export const tooltipProps = {
     type: Number,
     default: () => 0
   },
-  boundariesPadding: {
-    type: Number,
-    default: () => 5
-  },
-  content: { type: String },
+  content: { type: [String, Object] },
   disabled: { type: Boolean },
   enterable: {
     type: Boolean,
@@ -36,7 +39,7 @@ export const tooltipProps = {
   },
   effect: {
     type: String,
-    default: () => 'dark'
+    default: () => ''
   },
   openDelay: {
     type: Number,
@@ -53,7 +56,7 @@ export const tooltipProps = {
   popper: {},
   popperClass: { type: String },
   popperOptions: {
-    default: () => ({ gpuAcceleration: false, boundariesPadding: 10 })
+    default: () => ({})
   },
   pre: { type: Boolean },
   reference: {},
@@ -61,10 +64,6 @@ export const tooltipProps = {
   tabindex: {
     type: Number,
     default: () => 0
-  },
-  transformOrigin: {
-    type: [Boolean, String],
-    default: () => true
   },
   transition: {
     type: String,
@@ -78,9 +77,16 @@ export const tooltipProps = {
     type: Boolean,
     default: () => true
   },
+  genArrowByHtml: {
+    type: Boolean,
+    default: () => true
+  },
   zIndex: {
     type: String,
     default: () => 'next'
+  },
+  contentMaxHeight: {
+    type: String
   }
 }
 export default defineComponent({
@@ -88,6 +94,6 @@ export default defineComponent({
   componentName: 'Tooltip',
   props: tooltipProps,
   setup(props, context) {
-    return $setup({ props, context, template })
+    return $setup({ props, context, template }) as unknown as ITooltipApi
   }
 })

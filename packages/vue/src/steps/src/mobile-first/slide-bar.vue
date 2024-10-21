@@ -4,8 +4,9 @@
       ref="leftButton"
       data-tag="left-button"
       :class="[
-        'hidden flex-none h-8 cursor-pointer items-center select-none',
-        { 'sm:flex': slideBarState.canLeftScroll || slideBarState.canRightScroll }
+        'hidden flex-none cursor-pointer items-center select-none',
+        { 'sm:flex': slideBarState.canLeftScroll || slideBarState.canRightScroll },
+        size === 'large' ? 'h-12' : 'h-8'
       ]"
       @click="leftSlideHandler"
     >
@@ -34,15 +35,7 @@
             }"
             >{{ index }}</slot
           >
-          <slot
-            name="block-bottom"
-            :node="node"
-            :index="index"
-            :show="
-              index > slideBarState.boundingIndex.left &&
-              (slideBarState.boundingIndex.right === -1 || index < slideBarState.boundingIndex.right)
-            "
-          ></slot>
+          <slot name="block-bottom" :node="node" :index="index"></slot>
         </div>
       </div>
     </div>
@@ -50,8 +43,9 @@
       ref="rightButton"
       data-tag="right-button"
       :class="[
-        'hidden flex-none h-8 cursor-pointer items-center select-none',
-        { 'sm:flex': slideBarState.canLeftScroll || slideBarState.canRightScroll }
+        'hidden flex-none cursor-pointer items-center select-none',
+        { 'sm:flex': slideBarState.canLeftScroll || slideBarState.canRightScroll },
+        size === 'large' ? 'h-12' : 'h-8'
       ]"
       @click="rightSlideHandler"
     >
@@ -89,7 +83,8 @@ export default defineComponent({
       default: 5
     },
     noArrow: Boolean,
-    flex: Boolean
+    flex: Boolean,
+    size: String
   },
   setup(props: any, context: any) {
     return setup({ props, context, renderless, api })

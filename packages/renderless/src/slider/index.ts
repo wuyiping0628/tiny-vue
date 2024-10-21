@@ -14,29 +14,31 @@ import { KEY_CODE } from '../common'
 import { emitEvent } from '../common/event'
 import { on, off, hasClass } from '../common/deps/dom'
 import { toNumber } from '../common/string'
+import type { ISliderApi, ISliderRenderlessParams, ISliderState } from '@/types'
 
-export const bindEvent = (api) => () => {
+export const bindEvent = (api: ISliderApi) => () => {
   on(window, 'resize', api.bindResize)
   api.bindResize()
 }
 
-export const unBindEvent = (api) => () => off(window, 'resize', api.bindResize)
+export const unBindEvent = (api: ISliderApi) => () => off(window, 'resize', api.bindResize)
 
 export const bindResize =
-  ({ parent, props, state }) =>
+  ({ vm, props, state }: Pick<ISliderRenderlessParams, 'vm' | 'props' | 'state'>) =>
   () => {
-    const handleEl = (parent.$el as HTMLElement).querySelector('div.tiny-slider')
-
+    const handleEl = vm.$refs.slider
     state.sliderSize = handleEl['client' + (props.vertical ? 'Height' : 'Width')]
     state.sliderOffset = handleEl.getBoundingClientRect()
   }
 
 export const bindKeyDown =
-  ({ api, props, state }) =>
+  ({ api, props, state }: Pick<ISliderRenderlessParams, 'api' | 'props' | 'state'>) =>
   (event) => {
     if (state.disabled || state.activeIndex < 0) {
       return
     }
+
+    event.preventDefault()
 
     let currentValue = 0
 
@@ -72,7 +74,14 @@ export const bindKeyDown =
   }
 
 export const bindMouseDown =
-  ({ api, constants, mode, emit, state }) =>
+  ({
+    api,
+    constants,
+    mode,
+    emit,
+    state,
+    props
+  }: Pick<ISliderRenderlessParams, 'api' | 'state' | 'constants' | 'mode' | 'emit' | 'props'>) =>
   (event) => {
     if (event.button !== 0 && event.detail !== 0) {
       state.activeIndex = -1
@@ -85,15 +94,30 @@ export const bindMouseDown =
     }
 
     const handleEl = event.target
-    const isClickBar = hasClass(handleEl, constants.sliderCls(mode)) || hasClass(handleEl, constants.rangeCls(mode))
-    const isClickBtn =
-      hasClass(handleEl, constants.buttonCls(mode)) ||
-      hasClass(handleEl, constants.leftSvgCls(mode)) ||
-      hasClass(handleEl, constants.rightSvgCls(mode))
-    if (state.disabled || (!isClickBtn && !isClickBar)) {
+    let isClickBar: boolean | undefined = false
+    let isClickBtn: boolean | undefined = false
+    let isClickLabel: boolean | undefined = false
+
+    if (mode === 'mobile-first') {
+      const role = Array.from(handleEl.attributes).find((attr) => attr.name === 'role')
+      const name = role && role.value
+
+      isClickBar = name === constants.PC_SLIDER_CLS || name === constants.PC_RANGE_CLS
+      isClickBtn = name === constants.PC_BUTTON_CLS
+    } else {
+      isClickBar = hasClass(handleEl, constants.sliderCls(mode)) || hasClass(handleEl, constants.rangeCls(mode))
+      isClickBtn =
+        hasClass(handleEl, constants.buttonCls(mode)) ||
+        hasClass(handleEl, constants.leftSvgCls(mode)) ||
+        hasClass(handleEl, constants.rightSvgCls(mode))
+      isClickLabel = hasClass(handleEl, constants.PC_LABEL_CLS)
+    }
+    if (state.disabled || (!isClickBtn && !isClickBar && !isClickLabel)) {
       state.activeIndex = -1
       return
     }
+
+    api.bindResize()
 
     on(window, 'mouseup', api.bindMouseUp)
     on(window, 'mousemove', api.bindMouseMove)
@@ -103,7 +127,7 @@ export const bindMouseDown =
     state.isDrag = isClickBtn
     isClickBtn && (state.activeIndex = api.getActiveButtonIndex(event))
 
-    if (isClickBar) {
+    if (isClickBar || isClickLabel) {
       const currentValue = api.calculateValue(event)
       if (state.isDouble) {
         if (Math.abs(currentValue - state.leftBtnValue) > Math.abs(state.rightBtnValue - currentValue)) {
@@ -117,11 +141,15 @@ export const bindMouseDown =
       api.setBarStyle()
 
       emit('stop', api.getActiveButtonValue())
+
+      if (!props.changeCompat) {
+        emit('change', api.getActiveButtonValue())
+      }
     }
   }
 
 export const bindMouseMove =
-  ({ api, nextTick, state }) =>
+  ({ api, nextTick, state }: Pick<ISliderRenderlessParams, 'api' | 'nextTick' | 'state'>) =>
   (event) => {
     if (state.disabled || !state.isDrag) {
       return
@@ -137,13 +165,15 @@ export const bindMouseMove =
   }
 
 export const bindMouseUp =
-  ({ api, emit, state }) =>
+  ({ api, emit, state, props }: Pick<ISliderRenderlessParams, 'api' | 'emit' | 'state' | 'props'>) =>
   () => {
     if (state.disabled || !state.isDrag) {
       return
     }
 
-    state.showTip = false
+    if (state.mouseOuterBtn) {
+      state.showTip = false
+    }
     state.isDrag = false
 
     off(window, 'mouseup', api.bindMouseUp)
@@ -152,11 +182,16 @@ export const bindMouseUp =
     off(window, 'touchmove', api.bindMouseMove)
 
     emit('stop', api.getActiveButtonValue())
+
+    if (!props.changeCompat) {
+      emit('change', api.getActiveButtonValue())
+    }
   }
 
 export const displayTip =
-  ({ api, nextTick, state }) =>
+  ({ api, nextTick, state }: Pick<ISliderRenderlessParams, 'api' | 'nextTick' | 'state'>) =>
   (event) => {
+    state.mouseOuterBtn = false
     if (!state.showTip) {
       state.showTip = true
       api.changeActiveValue(api.getActiveButtonIndex(event) === 0)
@@ -167,53 +202,84 @@ export const displayTip =
     }
   }
 
-export const hideTip = (state) => () => !state.isDrag && (state.showTip = false)
+export const hideTip = (state: ISliderState) => () => {
+  state.mouseOuterBtn = true
+  !state.isDrag && (state.showTip = false)
+}
 
 export const setTipStyle =
-  ({ constants, mode, parent, props, state }) =>
+  ({
+    constants,
+    mode,
+    vm,
+    props,
+    state
+  }: Pick<ISliderRenderlessParams, 'vm' | 'props' | 'state' | 'constants' | 'mode'>) =>
   () => {
     if (!props.showTip) {
       return
     }
 
     const tipStyle = { top: 0, left: 0 }
-    const tipEl = parent.$el.querySelector('.' + constants.tipCls(mode))
+    const tipEl = vm.$refs.sliderTip
     const moveSize = ((state.activeValue - props.min) / state.rangeDiff) * state.sliderSize
 
     if (props.vertical) {
       tipStyle.top =
         state.sliderSize - moveSize - constants.BUTTON_SIZE - constants.TIP_HEIGHT / 2 + constants.HALF_BAR_HEIGHT
-      tipStyle.left = -tipEl.clientWidth / 2 + constants.HALF_BAR_HEIGHT
+      tipStyle.left = -tipEl.getBoundingClientRect().width / 2 + constants.HALF_BAR_HEIGHT
     } else {
       tipStyle.top = -constants.TIP_HEIGHT - constants.BUTTON_SIZE / 2 + constants.HALF_BAR_HEIGHT
-      tipStyle.left = moveSize - constants.HALF_BAR_HEIGHT - tipEl.clientWidth / 2
+      tipStyle.left = moveSize - tipEl.getBoundingClientRect().width / 2
     }
 
-    state.tipStyle = {
-      top: tipStyle.top + 'px',
-      left: tipStyle.left + 'px'
+    if (mode === 'mobile-first') {
+      state.tipStyle = {
+        left: tipStyle.left + 'px'
+      }
+    } else {
+      state.tipStyle = {
+        top: tipStyle.top + 'px',
+        left: tipStyle.left + 'px'
+      }
     }
   }
 
-const getActiveButtonIndexFlag = ({ state, event, constants, mode }) => {
+const getActiveButtonIndexFlag = ({
+  state,
+  event,
+  constants,
+  mode
+}: Pick<ISliderRenderlessParams, 'event' | 'constants' | 'state' | 'mode'>) => {
   const cls = constants.buttonCls(mode)
-  const { previousElementSibling } = event.target
+  const { previousElementSibling } = event.target as HTMLElement
 
-  return (
-    state.isDouble &&
-    (hasClass(previousElementSibling, cls) || event.target.className.baseVal === 'tiny-slider-right-svg')
-  )
+  if (mode === 'mobile-first') {
+    const role = Array.from(previousElementSibling.attributes).find((attr) => attr.name === 'role')
+    const name = role && role.value
+    return state.isDouble && name === constants.PC_BUTTON_CLS
+  } else {
+    return (
+      state.isDouble &&
+      (hasClass(previousElementSibling, cls) ||
+        (event.target as SVGAElement).className.baseVal === 'tiny-slider-right-svg')
+    )
+  }
 }
 
 export const getActiveButtonIndex =
-  ({ constants, mode, state }) =>
+  ({ constants, mode, state }: Pick<ISliderRenderlessParams, 'constants' | 'mode' | 'state'>) =>
   (event) => {
     const flag = getActiveButtonIndexFlag({ state, event, constants, mode })
     return flag ? 1 : 0
   }
 
-const calcCurrentValue = ({ currentValue, props, state }) => {
-  if(Array.isArray(currentValue)){
+const calcCurrentValue = ({
+  currentValue,
+  props,
+  state
+}: Pick<ISliderRenderlessParams, 'currentValue' | 'props' | 'state'>) => {
+  if (Array.isArray(currentValue)) {
     currentValue = currentValue[state.activeIndex]
   }
   if (currentValue <= props.min) {
@@ -234,7 +300,7 @@ const calcCurrentValue = ({ currentValue, props, state }) => {
       currentValue += stepValue * 2 > step ? Number(step) : 0
       if (stepPrecision) {
         // step为小数时，currentValue也保持相同的精度
-        currentValue = currentValue.toFixed(stepPrecision)
+        currentValue = Number(currentValue.toFixed(stepPrecision))
       }
     }
 
@@ -251,28 +317,33 @@ const calcCurrentValue = ({ currentValue, props, state }) => {
 }
 
 export const setActiveButtonValue =
-  ({ api, emit, props, state }) =>
-  (value) => {
-    let currentValue = value
-    currentValue = calcCurrentValue({ currentValue, props, state })
-    if (!state.isDouble) {
-      state.leftBtnValue = currentValue
+  ({ api, emit, props, state }: Pick<ISliderRenderlessParams, 'api' | 'emit' | 'props' | 'state'>) =>
+  (value: number | [number, number]) => {
+    if (Array.isArray(value)) {
+      // 在组件初始化和emit('update:modelValue')会发生modelValue为数组的情况
+      ;[state.leftBtnValue, state.rightBtnValue] = value
     } else {
-      if (state.activeIndex === 0) {
+      let currentValue = calcCurrentValue({ currentValue: value, props, state })
+      if (!state.isDouble) {
         state.leftBtnValue = currentValue
       } else {
-        state.rightBtnValue = currentValue
+        if (state.activeIndex === 0) {
+          state.leftBtnValue = currentValue
+        } else {
+          state.rightBtnValue = currentValue
+        }
       }
+
+      state.activeValue = currentValue
     }
 
-    state.activeValue = currentValue
     state.innerTrigger = true // 防止触发 watch
 
     emit('update:modelValue', api.getActiveButtonValue()) // 添加了一个emit触发input事件，实现双向绑定
   }
 
 export const setButtonStyle =
-  ({ props, state }) =>
+  ({ props, state }: Pick<ISliderRenderlessParams, 'props' | 'state'>) =>
   () => {
     const percent = ((state.activeValue - props.min) / state.rangeDiff) * 100
     const style = (props.vertical ? 'bottom' : 'left') + ':' + percent + '%'
@@ -287,7 +358,7 @@ export const setButtonStyle =
   }
 
 export const setBarStyle =
-  ({ props, state }) =>
+  ({ props, state }: Pick<ISliderRenderlessParams, 'props' | 'state'>) =>
   () => {
     const minSize = Math.abs(state.leftBtnPercent - state.rightBtnPercent)
     const maxSize = Math.max(state.leftBtnPercent, state.rightBtnPercent)
@@ -306,8 +377,10 @@ export const setBarStyle =
   }
 
 export const initSlider =
-  ({ api, props, state }) =>
+  ({ api, props, state }: Pick<ISliderRenderlessParams, 'api' | 'props' | 'state'>) =>
   (value) => {
+    if (state.isDrag) return
+
     state.isDouble = Array.isArray(value)
 
     const sliders = state.isDouble ? value : [value]
@@ -321,21 +394,26 @@ export const initSlider =
         state.rightBtnShow = true
       }
 
-      if (state.isInit) {
-        api.changeActiveValue(index === 0)
-      }
+      api.changeActiveValue(index === 0)
 
       api.setButtonStyle()
     })
-    state.isInit = false
+
     api.setBarStyle()
   }
 
 export const calculateValue =
-  ({ props, state }) =>
+  ({ props, state, vm }: Pick<ISliderRenderlessParams, 'props' | 'state' | 'vm'>) =>
   (event) => {
     let currentValue = 0
-    const offset = state.sliderOffset
+
+    if (state.sliderSize === 0) {
+      const handleEl = vm.$refs.slider
+      state.sliderSize = handleEl['client' + (props.vertical ? 'Height' : 'Width')]
+      state.sliderOffset = handleEl.getBoundingClientRect()
+    }
+
+    const offset = state.sliderOffset as DOMRect
 
     if (event.type === 'touchmove' || event.type === 'touchstart' || event.type === 'touchend') {
       if (props.vertical) {
@@ -361,7 +439,7 @@ export const changeActiveValue = (state) => (isLeft) => {
 export const formatTipValue = (props) => (value) =>
   props.formatTooltip instanceof Function ? props.formatTooltip(value) : value
 
-export const getActiveButtonValue = (state) => () =>
+export const getActiveButtonValue = (state: ISliderRenderlessParams['state']) => (): number | number[] =>
   state.isDouble ? [state.leftBtnValue, state.rightBtnValue] : state.leftBtnValue
 
 export const autoSlider = (api) => (value) => {
@@ -378,6 +456,10 @@ export const customBeforeAppearHook = (props) => (el) => {
     el.style.left = 0 + '%'
     el.style.width = 0 + '%'
   }
+}
+
+export const customAppearHook = () => (el) => {
+  el.style.transition = 'all 0.5s'
 }
 
 export const customAfterAppearHook =
@@ -423,7 +505,7 @@ export const watchActiveValue =
   }
 
 export const watchModelValue =
-  ({ api, state }) =>
+  ({ api, state }: Pick<ISliderRenderlessParams, 'api' | 'state'>) =>
   (value) => {
     // 防止多触点下，触发双向绑定导致渲染异常
     if (!state.innerTrigger) {
@@ -437,14 +519,19 @@ export const watchModelValue =
         api.setActiveButtonValue(value)
       }
     }
+
+    // 正在输入时，不应该改变输入的内容
+    if (!state.isSlotTyping) {
+      api.updateSlotValue()
+    }
   }
 
 export const getPoints =
-  ({ props, state }) =>
+  ({ props, state }: Pick<ISliderRenderlessParams, 'props' | 'state'>) =>
   () => {
     if (props.showSteps && props.step > 0) {
       state.points = []
-      const num = parseInt(props.max / props.step)
+      const num = Math.floor(props.max / props.step)
       for (let i = 1; i < num; i++) {
         const point = {
           position: (i / num) * 100 + '%',
@@ -456,13 +543,13 @@ export const getPoints =
   }
 
 export const getLabels =
-  ({ props, state }) =>
+  ({ props, state }: Pick<ISliderRenderlessParams, 'props' | 'state'>) =>
   () => {
     if (props.showLabel) {
       state.labels = []
 
       const isFunction = props.formatLabel instanceof Function
-      const num = parseInt(props.max / props.step)
+      const num = Math.floor(props.max / props.step)
       for (let i = 0; i <= num; i++) {
         const val = (i / num) * props.max
         const label = {
@@ -475,8 +562,43 @@ export const getLabels =
     }
   }
 
+interface IMarkListItem {
+  value: number
+  label: string
+  percent: number
+  positionStyle: { [key: string]: string }
+}
+
+export const getMarkList =
+  ({ props }: Pick<ISliderRenderlessParams, 'props'>) =>
+  (): IMarkListItem[] => {
+    const markList: IMarkListItem[] = []
+
+    if (!props.marks) {
+      return markList
+    }
+
+    for (const [key, label] of Object.entries(props.marks)) {
+      const markValue = Number(key)
+
+      if (markValue >= props.min && markValue <= props.max) {
+        const percent = (markValue - props.min) / (props.max - props.min)
+        markList.push({
+          value: markValue,
+          label,
+          percent,
+          positionStyle: {
+            [props.vertical ? 'bottom' : 'left']: percent * 100 + '%'
+          }
+        })
+      }
+    }
+
+    return markList
+  }
+
 export const inputValueChange =
-  ({ props, state, api }) =>
+  ({ props, state, api, emit }: Pick<ISliderRenderlessParams, 'api' | 'props' | 'state' | 'emit'>) =>
   ($event, pos) => {
     if (props.disabled || !state.isDouble) return
 
@@ -489,4 +611,54 @@ export const inputValueChange =
       return
     }
     api.initSlider([Math.min(...state.inputValue), Math.max(...state.inputValue)])
+
+    if (!props.changeCompat) {
+      emit('change', api.getActiveButtonValue())
+    }
+  }
+
+export const handleSlotInputFocus = (state: ISliderRenderlessParams['state']) => () => {
+  state.isSlotTyping = true
+}
+
+export const handleSlotInputBlur =
+  ({ state, api }: Pick<ISliderRenderlessParams, 'api' | 'state'>) =>
+  () => {
+    state.isSlotTyping = false
+    api.updateSlotValue()
+  }
+
+export const updateSlotValue =
+  ({ state }: Pick<ISliderRenderlessParams, 'state'>) =>
+  () => {
+    if (!state.isDouble) {
+      state.slotValue = state.activeValue
+    } else {
+      state.slotValue =
+        state.activeIndex === 0 ? [state.activeValue, state.rightBtnValue] : [state.leftBtnValue, state.activeValue]
+    }
+  }
+
+export const handleSlotInput =
+  ({ state, api }: Pick<ISliderRenderlessParams, 'api' | 'state'>) =>
+  (event: Event, isLeftInput = true): void => {
+    const inputValue = (event.target as HTMLInputElement).value
+
+    api.changeActiveValue(state.isDouble ? isLeftInput : true)
+    state.activeValue = Number(inputValue)
+    api.updateSlotValue()
+  }
+
+export const inputOnChange =
+  ({ api, emit, props, state }: Pick<ISliderRenderlessParams, 'api' | 'state' | 'props' | 'emit'>) =>
+  (currentValue: string) => {
+    if (!props.changeCompat) {
+      if (!/^\d+$/.test(currentValue)) {
+        state.activeValue = state.leftBtnValue
+        return
+      }
+      const value = toNumber(state.activeValue) || 0
+      api.autoSlider(value)
+      emit('change', api.getActiveButtonValue())
+    }
   }

@@ -71,10 +71,15 @@ const getCsvContent = ($table, opts, oColumns, oData) => {
   const tableEl = $table.$el
   const tab = opts.useTabs === false ? '' : '\t'
   const { columns, datas } = getCsvData(opts, oData, oColumns, tableEl)
-  let content = datas.length ? '\uFEFF' : ''
+  let content = '\ufeff' // BOM字节序标记
   const transfrom = (str) => {
     if (typeof str === 'string' && str.replace(/ /g, '').match(/[\s,"]/)) {
       str = '"' + str.replace(/"/g, '""') + '"'
+    }
+
+    // 在 =、@、+、-开头的数据加前置空格，解决csv文件注入问题
+    if (typeof str === 'string' && str.match(/^([@=]|([-\\+].*[^0-9\\.])).*$/)) {
+      str = ' ' + str
     }
 
     return str + tab
@@ -116,7 +121,7 @@ const getCsvContent = ($table, opts, oColumns, oData) => {
 
 const getCsvUrl = (opts, content) => {
   if (window.Blob && window.URL && window.URL.createObjectURL && browser.name !== 'safari') {
-    return URL.createObjectURL(new Blob([content], { type: 'text/csv' }))
+    return URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }))
   }
 
   return `data:attachment/csv;charset=utf-8,${encodeURIComponent(content)}`
@@ -129,15 +134,6 @@ const downloadCsc = (options, content) => {
 
   if (navigator.msSaveBlob && window.Blob) {
     navigator.msSaveBlob(new Blob([content], { type: 'text/csv;charset=utf-8' }), options.filename)
-  } else if (browser.name === 'ie') {
-    const win = window.top.open('about:blank', '_blank')
-
-    win.opener = null
-    win.document.charset = 'utf-8'
-    win.document.write(content)
-    win.document.close()
-    win.document.execCommand('SaveAs', options.filename)
-    win.close()
   } else {
     const linkElem = document.createElement('a')
 
@@ -159,7 +155,6 @@ const downloadCsc = (options, content) => {
 export default {
   _exportCsv(options) {
     let { visibleColumn, scrollXLoad, scrollYLoad, treeConfig } = this
-
     let mergedOpts = {
       columns: null,
       columnFilterMethod: (column) => column.property && !['index', 'selection', 'radio'].includes(column.type),

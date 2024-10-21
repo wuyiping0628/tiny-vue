@@ -38,14 +38,14 @@
   }
 
   .@{grid-custom-prefix-cls} {
-    &__tabs {
+    .@{grid-custom-prefix-cls}__tabs {
       @apply pt-7;
 
       .@{grid-custom-prefix-cls}__tabs-head {
         @apply whitespace-nowrap;
         @apply m-0;
         @apply overflow-hidden;
-        width: 300px;
+        @apply w-144;
         @apply absolute;
         @apply left-0;
         @apply top-0;
@@ -82,15 +82,15 @@
 
       .@{grid-custom-prefix-cls}__tabs-body {
         .tabs-body-item {
-          height: 340px;
+          @apply h-96;
 
           .other-setting {
             @apply h-full;
-            border-top: 1px solid #d9d9d9;
-            border-bottom: 1px solid #d9d9d9;
-            padding: 30px 20px 20px 25px;
+            @apply border-y border-y-color-border-separator;
+            @apply p-6;
             @apply relative;
             @apply -top-px;
+            @apply box-border;
 
             .label {
               @apply mr-5;
@@ -108,7 +108,7 @@
                 @apply ~'pb-2.5';
                 @apply mb-2;
                 @apply text-color-none;
-                border-bottom: 1px solid #e8ebef;
+                @apply border-b border-b-color-border-separator;
                 @apply flex;
                 @apply justify-between;
 
@@ -120,13 +120,13 @@
                 .clear-all {
                   @apply text-color-brand;
                   @apply cursor-pointer;
-                  @apply ml-4;
+                  @apply ml-3;
                 }
 
                 span:not(.clear-all) {
                   @apply inline-block;
                   @apply text-center;
-                  width: 60px;
+                  @apply w-16;
                 }
               }
 
@@ -134,7 +134,7 @@
                 .@{input-prefix-cls}__inner {
                   @apply border-0;
                   @apply p-0;
-                  padding-left: 5px;
+                  @apply pl-2;
                   @apply h-6;
 
                   &:focus {
@@ -152,33 +152,58 @@
                   }
                 }
               }
-              ul {
-                height: calc(100% - 20px);
+
+              .column-list-panel {
+                height: calc(100% - theme('spacing.5'));
                 @apply overflow-y-auto;
 
-                li {
-                  @apply h-8;
-                  @apply flex;
-                  @apply py-0;
-                  @apply ~'pl-1.5';
-                  @apply pr-2;
-                  @apply justify-between;
-                  @apply items-center;
+                .column-list-item {
+                  @apply grid;
+                  @apply h-auto;
+                  @apply overflow-hidden;
+                  @apply cursor-pointer;
+                  @apply origin-center;
+                  @apply ~"min-h-[theme(spacing.8)]";
+                  @apply transition-all;
+                  @apply duration-300;
+                  @apply ease-in-out;
+                  grid-template-rows: 1fr;
 
-                  &.show-dropdown {
-                    .dropdown-column .set-btn {
-                      @apply visible;
-                    }
+                  &.item-collapse {
+                    grid-template-rows: 0fr;
+                  }
+
+                  > div {
+                    @apply w-full;
+                    @apply min-h-0;
+                  }
+
+                  &.show-dropdown .dropdown-column .set-btn {
+                    @apply visible;
                   }
 
                   .sort-number {
                     @apply w-10;
+                    @apply text-center;
+
+                    .sort-number-display {
+                      @apply h-6;
+                      @apply flex;
+                      @apply justify-center;
+                      @apply items-center;
+                      @apply bg-transparent;
+                      @apply cursor-pointer;
+
+                      &:hover {
+                        @apply bg-color-bg-1;
+                      }
+                    }
                   }
 
                   .name {
                     @apply flex-1;
                     @apply my-0;
-                    @apply mx-4;
+                    @apply mx-2;
                     @apply overflow-hidden;
                     @apply whitespace-nowrap;
                     @apply text-ellipsis;
@@ -188,6 +213,10 @@
                     &.dragable {
                       @apply cursor-move;
                     }
+                  }
+
+                  .child-name {
+                    @apply pl-8;
                   }
 
                   .close-icon {
@@ -222,12 +251,12 @@
                   }
 
                   .dropdown-column {
-                    width: 60px;
+                    @apply w-16;
                     @apply text-center;
 
                     .is-text {
                       @apply inline-block;
-                      width: 60px;
+                      @apply w-16;
 
                       .set-btn.visibility-hidden {
                         @apply invisible;
@@ -244,39 +273,62 @@
                     @apply text-center;
                     @apply inline-block;
                     @apply invisible;
-                    width: 60px;
+                    @apply w-16;
                   }
 
-                  &:hover {
-                    @apply bg-color-bg-2;
+                  .column-container {
+                    @apply flex;
+                    @apply items-center;
 
-                    .close-icon {
-                      @apply visible;
+                    &.with-padding {
+                      @apply pr-2;
+                      @apply ~'pl-1.5';
                     }
 
-                    .close-icon.visibility-hidden {
-                      @apply invisible;
+                    .icon-expand {
+                      @apply ml-1;
+                      @apply -mr-1;
+                      @apply rotate-0;
+                      @apply transition-transform;
+                      @apply duration-300;
+                      @apply ease-in-out;
                     }
 
-                    .close-icon svg {
-                      @apply fill-color-none;
+                    .icon-collapse {
+                      @apply rotate-90;
                     }
 
-                    .set-btn:not(.visibility-hidden) {
-                      @apply visible;
-                    }
+                    &:hover {
+                      @apply bg-color-bg-2;
 
-                    .@{input-prefix-cls} {
-                      &:hover .@{input-prefix-cls}__inner {
-                        @apply bg-white;
+                      .close-icon {
+                        @apply visible;
                       }
 
-                      .@{input-prefix-cls}__inner {
-                        @apply bg-color-bg-2;
+                      .close-icon.visibility-hidden {
+                        @apply invisible;
                       }
 
-                      .@{input-prefix-cls}__suffix {
-                        @apply block;
+                      .close-icon svg {
+                        @apply fill-color-none;
+                      }
+
+                      .set-btn:not(.visibility-hidden) {
+                        @apply visible;
+                      }
+
+                      .@{input-prefix-cls} {
+                        &:hover .@{input-prefix-cls}__inner {
+                          @apply bg-white;
+                        }
+
+                        .@{input-prefix-cls}__inner {
+                          @apply bg-color-bg-2;
+                        }
+
+                        .@{input-prefix-cls}__suffix {
+                          @apply block;
+                        }
                       }
                     }
                   }
@@ -289,12 +341,27 @@
               @apply ~'pr-4.5';
               @apply pb-4;
               @apply pl-6;
+
+              .tiny-tree {
+                @apply p-0;
+                @apply -ml-2;
+                @apply ~'-mr-1.5';
+              }
+
+              .multi-check-all-btn {
+                @apply ~'mb-2.5';
+                @apply ml-5;
+              }
             }
 
             .right-panel {
               @apply p-5;
               @apply h-full;
               @apply box-border;
+
+              .child-dropdown {
+                @apply mr-10;
+              }
             }
 
             .group-label {
@@ -349,15 +416,15 @@
       @apply ~'my-0.5';
       @apply mx-3;
       @apply flex;
-      justify-content: right;
+      @apply text-right;
       @apply ~'pr-2.5';
 
       > button {
-        margin: 0 5px;
+        @apply my-0 mx-1;
       }
 
       > span {
-        margin: 0 5px;
+        @apply my-0 mx-1;
       }
     }
   }

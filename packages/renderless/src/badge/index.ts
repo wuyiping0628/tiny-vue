@@ -9,22 +9,38 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
+import type { IBadgeRenderlessParams, IBadgeContent } from '@/types'
+import type { StyleValue } from 'vue'
 
 export const computedContent =
-  ({ props, state }) =>
-  () =>
-    typeof state.valueRef === 'number' && typeof props.max === 'number'
-      ? props.max < state.valueRef
+  ({ props, state }: Pick<IBadgeRenderlessParams, 'props' | 'state'>) =>
+  (): IBadgeContent =>
+    (typeof props.value === 'number' || typeof props.value === 'string') && typeof props.max === 'number'
+      ? props.max < Number(state.valueRef)
         ? `${props.max}+`
         : state.valueRef
       : state.valueRef
 
 export const computedValueRef =
-  ({ props }) =>
-  () => {
-    if (typeof props.value === 'number') {
+  ({ props }: Pick<IBadgeRenderlessParams, 'props'>) =>
+  (): number | string | undefined => {
+    if (typeof props.value === 'number' || typeof props.value === 'string') {
       return props.value
+    } else {
+      return undefined
     }
+  }
 
-    return typeof props.modelValue === 'number' ? props.modelValue : undefined
+export const computedTransform =
+  ({ designConfig, props }: Pick<IBadgeRenderlessParams, 'designConfig' | 'props'>) =>
+  (): StyleValue => {
+    if (designConfig?.transform === 'unset') {
+      return null
+    }
+    return {
+      transform: `translate(
+        ${props.offset[0]}${typeof props.offset[0] === 'number' ? 'px' : ''},
+        ${props.offset[1]}${typeof props.offset[1] === 'number' ? 'px' : ''}
+      )`
+    }
   }

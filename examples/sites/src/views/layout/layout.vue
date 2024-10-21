@@ -1,53 +1,7 @@
 <template>
-  <div class="main-layout hp100 f-c f-box-stretch">
-    <!-- 切换语言 -->
-    <div class="lang-box">
-      <tiny-tooltip :content="$t('changeLanguage')" placement="left">
-        <span class="lang-btn" @click="changeLanguage">{{ $t('language') }}</span>
-      </tiny-tooltip>
-    </div>
-    <!-- 切換主题样式 -->
-    <tiny-dropdown class="theme-change-button" trigger="click">
-      <tiny-tooltip :content="$t('changeTheme')" placement="left">
-        <span>
-          <img :src="themeSvg" :alt="$t('changeTheme')" />
-        </span>
-      </tiny-tooltip>
-      <template #dropdown>
-        <tiny-dropdown-menu :options="themeData">
-          <tiny-dropdown-item
-            v-for="(item, index) in themeData"
-            :key="index"
-            @click="themeItemClick(item)"
-            :class="{ 'is-actived': item.value === currThemeLabel }"
-          >
-            {{ item.label }}
-          </tiny-dropdown-item>
-        </tiny-dropdown-menu>
-      </template>
-    </tiny-dropdown>
-    <div class="content-layout fi-1" :has-sider="!isFrame">
-      <div id="layoutSider" class="layout-sider" v-if="!isFrame">
-        <div class="api-type-box" :class="{ 'is-collapsed': isCollapsed }">
-          <div class="api-type">
-            <div :class="{ 'api-mode': true, active: apiModeState.apiMode === 'Options' }">
-              {{ $t2('选项式', 'Options') }}
-            </div>
-            <tiny-switch
-              class="api-switch"
-              true-value="Composition"
-              false-value="Options"
-              @change="apiModeFn.changeApiMode"
-              v-model="apiModeState.apiMode"
-            ></tiny-switch>
-            <div :class="{ 'api-mode': true, active: apiModeState.apiMode === 'Composition' }">
-              {{ $t2('组合式', 'Composition') }}
-            </div>
-            <tiny-tooltip :content="$t('apiType')" placement="right">
-              <icon-help-circle></icon-help-circle>
-            </tiny-tooltip>
-          </div>
-        </div>
+  <div class="main-layout ti-hp100 ti-f-c ti-f-box-stretch">
+    <div class="content-layout ti-fi-1" :has-sider="!isFrame">
+      <div id="layoutSider" class="layout-sider" :class="{ 'saas-border': templateModeState.isSaas }" v-if="!isFrame">
         <tiny-tree-menu
           ref="treeMenuRef"
           class="main-menu"
@@ -55,11 +9,34 @@
           node-key="id"
           ellipsis
           :data="menuOptions"
-          :collapsible="true"
+          :menu-collapsible="true"
           :filter-node-method="searchMenu"
           @current-change="clickMenu"
           @collapse-change="collapseChange"
         >
+          <template #default="{ data }">
+            <div class="node-name-container">
+              <tiny-tag v-if="data?.mode?.includes('mobile-first')" size="mini" effect="plain" class="absolute-tag"
+                >多端</tiny-tag
+              >
+              <!-- 分类图标 -->
+              <component
+                v-if="data.type === 'overview' || data.children"
+                :is="menuIcons[data.key]"
+                class="menu-type-icon"
+              ></component>
+              <span class="node-name-label">{{ data.label }}</span>
+              <version-tip
+                class="node-float-tip"
+                v-if="data.meta || data.versionTipOption"
+                :meta="data.meta"
+                v-bind="data.versionTipOption"
+                render-type="tag"
+                :is-from-menu="true"
+              >
+              </version-tip>
+            </div>
+          </template>
         </tiny-tree-menu>
       </div>
       <div
@@ -67,46 +44,49 @@
         ref="contentRef"
         :native-scrollbar="true"
         content-style="display: flex;  flex-direction: column; height:100%"
-        :class="'md-' + appData.configType"
+        class="md-tiny"
       >
         <router-view />
       </div>
     </div>
+
+    <float-settings v-if="!isThemeSaas"></float-settings>
   </div>
 </template>
 
 <script>
+import { useRoute } from 'vue-router'
 import { defineComponent, reactive, computed, toRefs, watch, onMounted, onUnmounted } from 'vue'
-import hljs from 'highlight.js/lib/core'
-import javascript from 'highlight.js/lib/languages/javascript'
-import css from 'highlight.js/lib/languages/css'
-import html from 'highlight.js/lib/languages/xml'
-import { Switch, TreeMenu, Dropdown, DropdownMenu, DropdownItem, Tooltip } from '@opentiny/vue'
-import { iconHelpCircle } from '@opentiny/vue-icon'
-import { genMenus } from '@/menus.jsx'
+import { TreeMenu, Dropdown, DropdownMenu, Tooltip, Tag, Radio, RadioGroup, Button } from '@opentiny/vue'
+import { genMenus, getMenuIcons } from '@/menus.jsx'
 import { router } from '@/router.js'
-import { $t2, $t, appData, appFn } from '@/tools'
-import themeSvg from '@/assets/images/theme.svg?url'
-import { useApiMode } from '../../tools'
-import useTheme from '../../tools/useTheme'
+import { getWord, i18nByKey, appData, appFn, useApiMode, useTemplateMode } from '@/tools'
+import useTheme from '@/tools/useTheme'
+import FloatSettings from '@/views/components/float-settings.vue'
+import VersionTip from '../components/VersionTip.vue'
 
 export default defineComponent({
   name: 'LayoutVue',
   components: {
-    TinySwitch: Switch,
     TinyTreeMenu: TreeMenu,
     TinyDropdown: Dropdown,
     TinyDropdownMenu: DropdownMenu,
-    TinyDropdownItem: DropdownItem,
     TinyTooltip: Tooltip,
-    IconHelpCircle: iconHelpCircle()
+    TinyTag: Tag,
+    TinyRadio: Radio,
+    TinyRadioGroup: RadioGroup,
+    TinyButton: Button,
+    FloatSettings,
+    VersionTip
   },
   props: [],
   setup() {
-    const { getThemeData, changeTheme, currThemeLabel } = useTheme()
+    const { defaultTheme } = useTheme()
     const { apiModeState, apiModeFn } = useApiMode()
-    let state = reactive({
+    const { templateModeState } = useTemplateMode()
+    const state = reactive({
       menuOptions: genMenus(),
+      menuIcons: {},
       hasHeader: true, // Header，当嵌入think时，无头。 所以预留变量
       isFrame: computed(() => router.currentRoute.value.meta?.iframe),
       contentRef: null,
@@ -115,19 +95,13 @@ export default defineComponent({
       expandKeys: []
     })
 
-    watch(
-      () => appData.configType,
-      () => {
-        state.menuOptions = genMenus()
-      }
-    )
+    const lang = getWord('zh-CN', 'en-US')
+    const route = useRoute()
+    const { all: allPathParam, theme = defaultTheme } = useRoute().params
+    const allPath = allPathParam ? allPathParam + '/' : ''
+    const getTo = (route, key) => `${import.meta.env.VITE_CONTEXT}${allPath}${lang}/${theme}/${route}${key}`
 
-    hljs.registerLanguage('javascript', javascript)
-    hljs.registerLanguage('css', css)
-    hljs.registerLanguage('html', html)
-
-    const lang = $t2('zh-CN', 'en-US')
-    const getTo = (route, key) => `${import.meta.env.VITE_CONTEXT}${lang}/os-theme/${route}${key}`
+    const isThemeSaas = import.meta.env.VITE_TINY_THEME === 'saas'
 
     const changeLanguage = () => {
       appFn.toggleLang()
@@ -136,34 +110,47 @@ export default defineComponent({
     const searchMenu = (value, data) => {
       if (!value) return true
       const trimValue = value.trim().toLowerCase()
-      const isGird = (trimValue === 'grid' || trimValue === '表格') && data.key?.startsWith('grid-')
+      const isGird = (trimValue === 'grid' || trimValue === '表格') && data.key?.startsWith('grid')
       return data.label.toLowerCase().includes(value.toLowerCase()) || isGird
     }
 
     const clickMenu = (menu) => {
       if (menu.type === 'overview') {
-        router.push(`${import.meta.env.VITE_CONTEXT}${lang}/overview`)
+        router.push(`${import.meta.env.VITE_CONTEXT}${allPath}${lang}/${theme}/overview`)
       } else if (menu.type === 'docs') {
         router.push(getTo('docs/', menu.key))
       } else if (menu.type === 'components') {
         router.push(getTo('components/', menu.key))
       }
     }
+
     const collapseChange = (isCollapsed) => {
       state.isCollapsed = isCollapsed
     }
-    let routerCbDestory = null
+    let routerCbDestroy = null
 
-    // 主题切换功能
-    const themeItemClick = (node) => {
-      const val = node?.value || 'tiny-infinity-theme'
+    watch(
+      () => route.path,
+      (currentVal) => {
+        // 监听路由变化，反作用与左侧列表菜单展开对应的列表
+        const list = currentVal.split('/')
+        if (list && list[list.length - 1]) {
+          const key = list[list.length - 1]
+          state.expandKeys = [key]
+          state.treeMenuRef.setCurrentKey(key)
+        }
+      }
+    )
 
-      changeTheme(val)
-    }
-
-    onMounted(() => {
-      // 每次切换路由，要导航到顶部
-      routerCbDestory = router.afterEach(() => {
+    onMounted(async () => {
+      // 每次切换路由，有锚点则跳转到锚点，否则导航到顶部
+      routerCbDestroy = router.afterEach((to) => {
+        if (to.hash) {
+          const el = document.querySelector(to.hash)
+          if (el) {
+            return el.scrollIntoView()
+          }
+        }
         state.contentRef.scrollTo({ top: 0, behavior: 'auto' })
       })
 
@@ -173,26 +160,28 @@ export default defineComponent({
         state.expandKeys = [cmpId]
         state.treeMenuRef.setCurrentKey(cmpId)
       }
+
+      state.menuIcons = await getMenuIcons()
     })
 
     onUnmounted(() => {
-      routerCbDestory()
+      routerCbDestroy()
     })
 
     return {
       ...toRefs(state),
-      appData, // 使用到里面的lang / configMode
+      appData,
       ...appFn,
       searchMenu,
       clickMenu,
       collapseChange,
-      themeData: getThemeData(),
-      themeItemClick,
-      currThemeLabel,
-      themeSvg,
       changeLanguage,
       apiModeState,
-      apiModeFn
+      apiModeFn,
+      templateModeState,
+      getWord,
+      i18nByKey,
+      isThemeSaas
     }
   }
 })
@@ -201,52 +190,26 @@ export default defineComponent({
 <style lang="less">
 .content-layout {
   display: flex;
-  --layout-tree-menu-input-height: 40px;
-  --layout-api-mode-height: 53px;
+  --layout-tree-menu-input-height: 32px;
+  --layout-content-main-min-width: 600px;
+  --layout-content-main-max-width: 1000px;
+}
+
+.tiny-tooltip.tiny-tooltip__popper.is-light.docs-tooltip {
+  border: none;
+
+  .popper__arrow {
+    border: none;
+  }
 }
 
 .theme-change-button {
-  position: fixed;
-  top: 135px;
-  right: 30px;
-  z-index: 1999;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 100%;
-  background-color: transparent;
-  img {
-    display: block;
-    width: 26px;
-    height: 26px;
+  &.tiny-dropdown .tiny-dropdown__trigger .tiny-dropdown__title {
+    margin-right: 0;
+    line-height: 1;
   }
-  .tiny-svg {
-    display: none;
-  }
-  &:hover {
-    background-color: #fff;
-    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.12);
-    cursor: pointer;
-  }
-}
 
-.lang-box {
-  position: fixed;
-  top: 80px;
-  right: 30px;
-  z-index: 1999;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 100%;
-  background-color: transparent;
   &:hover {
-    background-color: #fff;
-    box-shadow: 0 2px 8px 0 rgb(0 0 0 / 12%);
     cursor: pointer;
   }
   .lang-btn {
@@ -255,20 +218,106 @@ export default defineComponent({
   }
 }
 
-.tiny-dropdown-item.is-actived {
-  background-color: var(--ti-dropdown-item-hover-bg-color);
-  color: var(--ti-dropdown-item-hover-text-color);
-  border-radius: var(--ti-dropdown-item-border-radius);
+.is-collapsed + .main-menu.tiny-tree-menu {
+  height: 100%;
 }
 
 .main-menu.tiny-tree-menu {
-  height: calc(100% - var(--layout-api-mode-height));
+  height: 100%;
+  padding-top: 30px;
+  padding-left: 10px;
+  width: 276px;
+
+  &.is-collapsed {
+    width: 0;
+  }
+
+  &::before {
+    display: none;
+  }
+
+  .tiny-tree {
+    padding-bottom: 30px;
+
+    .tiny-tree-node__wrapper {
+      padding-right: 10px;
+    }
+
+    .tiny-tree-node {
+      &.is-current > .tiny-tree-node__content,
+      .tiny-tree-node__content:hover {
+        border-radius: 20px;
+      }
+      .tiny-tree-node__content {
+        height: 40px;
+        line-height: 40px;
+        &::before {
+          display: none;
+        }
+      }
+    }
+
+    .node-float-tip {
+      border-radius: 0;
+      margin-right: 8px;
+    }
+  }
+
+  .tiny-tree-menu__toggle-button {
+    transform: translateX(100%) translateY(-50%);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+
+    .tiny-svg {
+      margin-left: 0;
+    }
+  }
+
+  .tiny-input {
+    margin: 0 10px 12px;
+    width: auto;
+    max-width: unset;
+  }
+
+  .tiny-tree-node__content-box {
+    min-width: 0;
+  }
+
+  .tiny-tree-node__content {
+    position: relative;
+  }
+  .absolute-tag {
+    position: absolute;
+    right: 4px;
+    top: 18px;
+  }
   .tiny-tree {
     height: calc(100% - var(--layout-tree-menu-input-height));
     overflow-y: auto;
   }
   .tree-node-name {
     line-height: 1.5;
+
+    .node-name-container {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 6px;
+
+      .node-name-label {
+        flex-grow: 0;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .menu-type-icon {
+        width: 12px;
+        height: 12px;
+        display: inline-block;
+      }
+    }
   }
   & > .tiny-input .tiny-input__inner {
     height: var(--layout-tree-menu-input-height);
@@ -280,35 +329,30 @@ export default defineComponent({
 }
 
 #doc-layout {
-  overflow-y: auto;
+  width: 100%;
   height: calc(100vh - 60px);
+  overflow: hidden auto;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
+
 .api-type-box {
   overflow: hidden;
-  border-bottom: 1px solid var(--ti-common-color-line-dividing);
-  border-right: 1px solid var(--ti-common-color-line-dividing);
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
   transition: width 0.5s;
   width: 100%;
   position: relative;
-  height: var(--layout-api-mode-height);
   font-size: 14px;
-  &.is-collapsed {
-    // transition: width 0s;
-    width: 0;
-  }
+
   .api-type {
-    position: absolute;
     min-width: 220px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     padding: 16px;
     padding-left: 30px;
-    top: 0;
     background: #fff;
-    z-index: 20;
     overflow: hidden;
     .api-mode {
       color: rgba(60, 60, 60, 0.33);
@@ -324,13 +368,29 @@ export default defineComponent({
     & > .tiny-svg {
       font-size: 18px;
       margin-left: 8px;
-      fill: var(--ti-common-color-bg-emphasize);
+      fill: #191919;
     }
   }
 }
+
 #layoutSider {
   background: #fff;
   height: calc(100vh - 60px);
+  border-right: 1px solid #f0f0f0;
+
+  &.saas-border {
+    border-right: 1px solid #ddd;
+  }
+
+  .tiny-tree-menu .tiny-tree .tiny-tree-node.is-current > .tiny-tree-node__content .tiny-tree-node__content-left {
+    --ti-tree-node-content-current-bg-color: transparent;
+
+    border-radius: calc(var(--ti-tree-menu-node-height) * 0.5);
+
+    &::before {
+      display: none;
+    }
+  }
 }
 
 @media (max-width: 1023px) {
@@ -344,7 +404,7 @@ export default defineComponent({
   }
   #layoutSider.showMenu {
     display: block !important;
-    z-index: 9;
+    z-index: var(--docs-layout-sider-zindex);
   }
 }
 </style>

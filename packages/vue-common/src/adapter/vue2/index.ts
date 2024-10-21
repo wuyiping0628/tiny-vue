@@ -1,14 +1,20 @@
 import Vue from 'vue'
-import * as hooks from '@vue/composition-api'
-import type {} from 'vue-router'
+import * as compositionHooks from '@vue/composition-api'
+import * as vueHooks from 'vue'
 import { bindFilter, emitter, getElementCssClass, getElementStatusClass } from '../utils'
 import teleport from '../teleport'
+
+// vue2.7有version字段
+const isVueHooks = Boolean(Vue.version?.includes('2.7'))
+
+const hooks = isVueHooks ? vueHooks : compositionHooks
 
 const Teleport = teleport(hooks)
 
 export { emitter, bindFilter, getElementCssClass, getElementStatusClass, Teleport }
 
-if (!hooks.default['__composition_api_installed__']) {
+// 只有在vue的版本小于2.7并且composition-api没有注册的情况下才去注册hooks
+if (!hooks.default.__composition_api_installed__ && !isVueHooks) {
   Vue.use(hooks.default)
 }
 
@@ -34,7 +40,10 @@ export const renderComponent = ({
   return () =>
     hooks.h(
       (view && view.value) || component,
-      Object.assign({ props, attrs, [extend.isSvg ? 'nativeOn' : 'on']: on, scopedSlots: { ...slots } }, extend)
+      Object.assign(
+        { props, attrs, [extend.isSvg ? 'nativeOn' : 'on']: on, ref: 'modeTemplate', scopedSlots: { ...slots } },
+        extend
+      )
     )
 }
 
@@ -175,15 +184,6 @@ const defineProperties = (vm, instance, filter) => {
 
 const filter = (name) => name.indexOf('$') === 0 || name.indexOf('_') === 0 || name === 'constructor'
 
-const customEmit = (context, emit) => {
-  return function (...args) {
-    emit.apply(context, args)
-
-    // vue3 下 emit('update:modelValue') 会同时触发 input 事件，vue2 不会
-    if (args[0] === 'update:modelValue') emit.apply(context, ['input'].concat(args.slice(1)))
-  }
-}
-
 const createVm = (vm, instance, context = undefined) => {
   context || defineProperties(vm, instance, filter)
 
@@ -191,7 +191,7 @@ const createVm = (vm, instance, context = undefined) => {
     $attrs: { get: () => instance.$attrs },
     $children: { get: () => generateChildren(instance.$children) },
     $constants: { get: () => instance._constants },
-    $emit: { get: () => customEmit(instance, instance.$emit) },
+    $emit: { get: () => instance.$emit.bind(instance) },
     $el: { get: () => instance.$el },
     $listeners: { get: () => instance.$listeners },
     $mode: { get: () => instance._tiny_mode },
@@ -214,9 +214,14 @@ const createVm = (vm, instance, context = undefined) => {
   return vm
 }
 
+const onBeforeMount = (instance, refs) => {
+  Object.keys(instance.$refs).forEach((key) => {
+    refs[key] = instance.$refs[key]
+  })
+}
+
 export const tools = (context, mode) => {
   const instance = hooks.getCurrentInstance()?.proxy as any
-  console.log(instance)
   const root = instance?.$root
   const { route, router } = useRouter(instance)
   const i18n = root?.$i18n
@@ -225,6 +230,7 @@ export const tools = (context, mode) => {
   const childrenHandler = children(instance)
   const vm = createVm({}, instance, context)
   const emit = context.emit
+  const refs = {}
   const parentVm = instance.$parent ? createVm({}, instance.$parent) : null
 
   const setParentAttribute = ({ name, value }) => {
@@ -243,10 +249,14 @@ export const tools = (context, mode) => {
 
   hooks.onBeforeMount(() => defineProperties(vm, instance, filter))
 
+  if (vueHooks) {
+    hooks.onMounted(() => onBeforeMount(instance, refs))
+  }
+
   return {
     framework: 'vue2',
     vm,
-    emit: customEmit(context, emit),
+    emit,
     emitter,
     route,
     router,
@@ -254,7 +264,8 @@ export const tools = (context, mode) => {
     broadcast,
     parentHandler,
     childrenHandler,
-    refs: context.refs,
+    // 因为vue2.6版本context.refs是有值的，但是vue2.7版本是undefined所以这里需要做个兼容
+    refs: vueHooks ? refs : context.refs,
     i18n,
     slots: context.slots,
     scopedSlots: context.slots,
@@ -317,6 +328,8 @@ export const parseVnode = (vnode) => {
   return vnode
 }
 
+export const isEmptyVnode = (vnode) => !vnode || !vnode.tag
+
 export const h = hooks.h
 
 export const createComponentFn = (design) => {
@@ -343,3 +356,8 @@ export type {
 } from '@vue/composition-api'
 
 export type DefineComponent = typeof defineComponent
+
+export const isVnode = (vnode) =>
+  ['isStatic', 'isRootInsert', 'isComment', 'isCloned', 'isOnce'].every((key) => typeof vnode[key] !== 'undefined')
+
+export const KeepAlive = Vue.component('KeepAlive')

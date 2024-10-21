@@ -11,26 +11,35 @@
  */
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
 import { constants } from './service'
-import template from 'virtual-template?pc|mobile=pc|mobile-first'
+import template from 'virtual-template?pc|mobile|mobile-first'
+
+export const loadingProps = {
+  ...$props,
+  type: {
+    type: String,
+    validator: (value: string) => Boolean(~['primary', 'simple'].indexOf(value))
+  },
+  loadtext: {
+    type: String,
+    default: () => constants.LOAD_ICON_TEXT
+  },
+  _constants: {
+    type: Object,
+    default: () => constants
+  },
+  loadingImg: {
+    type: String
+  },
+  size: {
+    type: String,
+    default: 'small'
+  }
+}
 
 export default defineComponent({
   name: $prefix + 'Loading',
   emits: [],
-  props: {
-    ...$props,
-    type: {
-      type: String,
-      validator: (value: string) => Boolean(~['primary', 'simple'].indexOf(value))
-    },
-    loadtext: {
-      type: String,
-      default: () => constants.LOAD_ICON_TEXT
-    },
-    _constants: {
-      type: Object,
-      default: () => constants
-    }
-  },
+  props: loadingProps,
   setup(props, context) {
     return $setup({ props, context, template })
   }

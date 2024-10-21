@@ -45,6 +45,17 @@ export const computedFileStatus =
   () =>
     t(constants.FILE_STATUS)
 
+export const computedFileWords =
+  ({ t }) =>
+  () => ({
+    operation: t('ui.popupload.operation'),
+    waitUpload: t('ui.popupload.waitUpload'),
+    success: t('ui.popupload.success'),
+    uploadError: t('ui.popupload.uploadError'),
+    confirmDeleteTips: t('ui.popupload.confirmDeleteTips'),
+    delete: t('ui.popupload.delete')
+  })
+
 export const computedFileSize =
   ({ constants, t }) =>
   () =>
@@ -139,12 +150,10 @@ export const closeErrorTips = (state) => () => (state.errorTips = [])
 
 export const closeSuccessTips = (state) => () => (state.successTips = [])
 
-export const watchFilters = (state) => (value) => (state.filters = value)
-
 export const watchLimit = (state) => (value) => {
   state.limit = value
 
-  if (value != undefined && value > 0) {
+  if (value !== undefined && value > 0) {
     state.tipsTitle[0] = {
       count: value
     }
@@ -171,7 +180,7 @@ export const watchMaxUploadFileSize =
   (value) => {
     state.maxUploadFileSize = value
 
-    if (value != undefined && value != 0) {
+    if (value !== undefined && value !== 0) {
       state.tipsTitle[2] = {
         size: Math.floor(value / 1024) + constants.KB
       }
@@ -232,7 +241,7 @@ export const beforeAvatarUpload =
     let isnext = false
     let isSize = false
 
-    if (state.uploadFileType && state.uploadFileType.length != 0) {
+    if (state.uploadFileType && state.uploadFileType.length !== 0) {
       let arr = filepath.split('.')
       let fileend = '.' + arr[arr.length - 1]
 
@@ -243,7 +252,7 @@ export const beforeAvatarUpload =
       }
     }
 
-    if (state.maxUploadFileSize && state.maxUploadFileSize != 0) {
+    if (state.maxUploadFileSize && state.maxUploadFileSize !== 0) {
       if (file.size > state.maxUploadFileSize) {
         state.errorTips.push({ size: file.name })
         isSize = true

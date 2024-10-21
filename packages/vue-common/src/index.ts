@@ -7,14 +7,34 @@ import {
   getElementCssClass,
   getElementStatusClass
 } from './adapter'
-import { defineAsyncComponent, directive, emitter, h, markRaw, Teleport } from './adapter'
-import { parseVnode, renderComponent, rootConfig, tools, useRouter, getComponentName } from './adapter'
+import { defineAsyncComponent, directive, emitter, h, markRaw, Teleport, KeepAlive } from './adapter'
+import {
+  parseVnode,
+  isEmptyVnode,
+  renderComponent,
+  rootConfig,
+  tools,
+  useRouter,
+  getComponentName,
+  isVnode
+} from './adapter'
 import { t } from '@opentiny/vue-locale'
-import { stringifyCssClass } from './csscls'
+import { stringifyCssClass, stringifyCssClassObject, stringifyCssClassArray, deduplicateCssClass } from './csscls'
 import { twMerge } from 'tailwind-merge'
 import '@opentiny/vue-theme/base/index.less'
-
 import { defineComponent, isVue2, isVue3 } from './adapter'
+import { useBreakpoint } from './breakpoint'
+import { useDefer } from './usedefer'
+import { GRADIENT_ICONS_LIST, generateIcon } from './generateIcon'
+
+import { useInstanceSlots as createUseInstanceSlots } from '@opentiny/vue-renderless/common/deps/useInstanceSlots'
+import { useRelation as createUseRelation } from '@opentiny/vue-renderless/common/deps/useRelation'
+
+export const useInstanceSlots = createUseInstanceSlots({ ...hooks, isVue2 })
+export const useRelation = createUseRelation({ ...hooks, isVue2 })
+
+export { stringifyCssClass, stringifyCssClassObject, stringifyCssClassArray, deduplicateCssClass }
+export { useBreakpoint, useDefer }
 
 export { version } from '../package.json'
 
@@ -31,22 +51,29 @@ export const $props = {
   'tiny_chart_theme': Object
 }
 
-export const props = [
-  'tiny_mode',
-  'tiny_mode_root',
-  'tiny_template',
-  'tiny_renderless',
-  '_constants',
-  'tiny_theme',
-  'tiny_chart_theme'
-]
+export const props: Array<
+  | 'tiny_mode'
+  | 'tiny_mode_root'
+  | 'tiny_template'
+  | 'tiny_renderless'
+  | '_constants'
+  | 'tiny_theme'
+  | 'tiny_chart_theme'
+> = ['tiny_mode', 'tiny_mode_root', 'tiny_template', 'tiny_renderless', '_constants', 'tiny_theme', 'tiny_chart_theme']
 
 export const resolveMode = (props, context) => {
   let isRightMode = (mode) => ~['pc', 'mobile', 'mobile-first'].indexOf(mode)
   let config = rootConfig(context)
   let tinyModeProp = typeof props.tiny_mode === 'string' ? props.tiny_mode : null
   let tinyModeInject = hooks.inject('TinyMode', null)
-  let tinyModeGlobal = config.tiny_mode && config.tiny_mode.value
+  let tinyModeGlobal
+
+  // 解决modal、loading、notify 组件（函数式组件，脱离组件树）的内部组件模式判断错误问题。
+  if (typeof config.tiny_mode === 'string') {
+    tinyModeGlobal = config.tiny_mode
+  } else if (config.tiny_mode) {
+    tinyModeGlobal = config.tiny_mode.value
+  }
 
   if (!isRightMode(tinyModeProp)) tinyModeProp = null
   if (!isRightMode(tinyModeInject)) tinyModeInject = null
@@ -69,7 +96,7 @@ export const resolveMode = (props, context) => {
   return tinyMode
 }
 
-const resolveTheme = ({ props, context, utils }) => {
+export const resolveTheme = (props, context) => {
   const isRightTheme = (theme) => ~['tiny', 'saas'].indexOf(theme)
   const config = rootConfig(context)
   let tinyThemeProp = typeof props.tiny_theme === 'string' ? props.tiny_theme : null
@@ -82,10 +109,10 @@ const resolveTheme = ({ props, context, utils }) => {
 
   const tinyTheme = tinyThemeProp || tinyThemeInject || tinyThemeGlobal || 'tiny'
 
-  return (utils.vm.theme = tinyTheme)
+  return tinyTheme
 }
 
-const resolveChartTheme = ({ props, context, utils }) => {
+const resolveChartTheme = (props, context) => {
   const config = rootConfig(context)
   let tinyChartProp = typeof props.tiny_chart_theme === 'object' ? props.tiny_chart_theme : null
   let tinyChartInject = hooks.inject('TinyChartTheme', null)
@@ -93,24 +120,23 @@ const resolveChartTheme = ({ props, context, utils }) => {
 
   const tinyChartTheme = tinyChartProp || tinyChartInject || tinyChartGlobal || null
 
-  return (utils.vm.chart_theme = tinyChartTheme)
+  return tinyChartTheme
 }
 
 export const $setup = ({ props, context, template, extend = {} }) => {
+  const mode = resolveMode(props, context)
   const view = hooks.computed(() => {
     if (typeof props.tiny_template !== 'undefined') return props.tiny_template
 
-    const component = template(resolveMode(props, context), props)
+    const component = template(mode, props)
 
     return typeof component === 'function' ? defineAsyncComponent(component) : component
   })
 
-  initComponent()
-
   return renderComponent({ view, props, context, extend })
 }
 
-export const mergeClass = (...cssClasses) => twMerge(stringifyCssClass(cssClasses))
+export const mergeClass = /* @__PURE__ */ (...cssClasses) => twMerge(stringifyCssClass(cssClasses))
 
 // 提供给没有renderless层的组件使用（比如TinyVuePlus组件）
 export const design = {
@@ -134,24 +160,37 @@ interface DesignConfig {
   version?: string
 }
 
+interface CustomDesignConfig {
+  designConfig: null | DesignConfig
+}
+
+// 允许自定义主题规范，适用于MetaERP项目
+export const customDesignConfig: CustomDesignConfig = {
+  designConfig: null
+}
+
 export const setup = ({ props, context, renderless, api, extendOptions = {}, mono = false, classes = {} }) => {
   const render = typeof props.tiny_renderless === 'function' ? props.tiny_renderless : renderless
 
   // 获取组件级配置和全局配置（inject需要带有默认值，否则控制台会报警告）
-  const globalDesignConfig: DesignConfig = hooks.inject(design.configKey, {})
+  const globalDesignConfig: DesignConfig = customDesignConfig.designConfig || hooks.inject(design.configKey, {})
   const designConfig = globalDesignConfig?.components?.[getComponentName().replace($prefix, '')]
 
+  const specifyPc = typeof process === 'object' ? process.env?.TINY_MODE : null
   const utils = {
     $prefix,
     t,
     ...tools(context, resolveMode(props, context)),
-    mergeClass,
     designConfig,
-    globalDesignConfig
+    globalDesignConfig,
+    useBreakpoint
+  }
+  if (specifyPc !== 'pc') {
+    utils.mergeClass = mergeClass
   }
 
-  resolveTheme({ props, context, utils })
-  resolveChartTheme({ props, context, utils })
+  utils.vm.theme = resolveTheme(props, context)
+  utils.vm.chartTheme = resolveChartTheme(props, context)
   const sdk = render(props, hooks, utils, extendOptions)
 
   // 加载全局配置，合并api
@@ -166,28 +205,33 @@ export const setup = ({ props, context, renderless, api, extendOptions = {}, mon
     a: filterAttrs,
     d: utils.defineInstanceProperties,
     dp: utils.defineParentInstanceProperties,
-    gcls: (key) => getElementCssClass(classes, key),
-    m: mergeClass
+    gcls: (key) => getElementCssClass(classes, key)
   }
-
+  if (specifyPc !== 'pc') {
+    attrs.m = mergeClass
+  }
   /**
    * 修复 render 函数下 this.slots 不会动态更新的问题（vue3 环境没有问题）
    * 解决方法：在 instance 下注入 slots、scopedSlots
    * 注意：renderless 下尽量使用 vm.$refs、vm.$slots
    */
   attrs.d({
-    slots: { get: () => utils.vm.$slots },
-    scopedSlots: { get: () => utils.vm.$scopedSlots }
+    slots: { get: () => utils.vm.$slots, configurable: true },
+    scopedSlots: { get: () => utils.vm.$scopedSlots, configurable: true }
   })
 
   attrs.dp({
-    slots: { get: () => utils.parent.$slots },
-    scopedSlots: { get: () => utils.parent.$scopedSlots }
+    slots: { get: () => utils.parent.$slots, configurable: true },
+    scopedSlots: { get: () => utils.parent.$scopedSlots, configurable: true }
   })
 
   initComponent()
 
-  Array.isArray(api) &&
+  if (Array.isArray(api)) {
+    // 允许 design里定义的api扩展出来，
+    if (Array.isArray(designConfig?.api)) {
+      api = api.concat(designConfig.api)
+    }
     api.forEach((name) => {
       const value = sdk[name]
 
@@ -200,11 +244,13 @@ export const setup = ({ props, context, renderless, api, extendOptions = {}, mon
         }
       }
     })
+  }
 
   return attrs
 }
 
-export const svg = ({ name = 'Icon', component }) => {
+// 这里需要使用函数声明语句，可以提升变量，保证saas-common可以正常运行
+export function svg({ name = 'Icon', component }) {
   return (propData?) =>
     markRaw(
       defineComponent({
@@ -216,9 +262,13 @@ export const svg = ({ name = 'Icon', component }) => {
           const isMobileFirst = mode === 'mobile-first'
           const tinyTag = { 'data-tag': isMobileFirst ? 'tiny-svg' : null }
           const attrs = isVue3 ? tinyTag : { attrs: tinyTag }
-          const className = isMobileFirst
-            ? mergeClass('h-4 w-4 inline-block', customClass || '', mergeProps.class || '')
-            : 'tiny-svg'
+          let className = 'tiny-svg'
+
+          const specifyPc = typeof process === 'object' ? process.env?.TINY_MODE : null
+          if (specifyPc !== 'pc' && isMobileFirst) {
+            className = mergeClass('h-4 w-4 inline-block', customClass || '', mergeProps.class || '')
+          }
+
           const extend = Object.assign(
             {
               style: { fill, width, height },
@@ -233,12 +283,15 @@ export const svg = ({ name = 'Icon', component }) => {
             extend.nativeOn = context.listeners
           }
 
-          // 解决富文本组件工具栏图标大小不正确的问题
-          if (name.indexOf('IconRichText') !== -1) {
-            if (!isVue3) {
-              extend.attrs.viewBox = '0 0 24 24'
-            } else {
-              extend.viewBox = '0 0 24 24'
+          // 解决多个相同的渐变图标svg中有相同id时，在display：none，情况下导致的样式异常问题
+          if (GRADIENT_ICONS_LIST.includes(name)) {
+            const render = component.render
+            component.render = function (...args) {
+              // 指向正确的this对象，保证vue2运行正常
+              const newRender = render.bind(this)
+              const vnode = newRender(args)
+              generateIcon(vnode)
+              return vnode
             }
           }
 
@@ -252,7 +305,23 @@ export const svg = ({ name = 'Icon', component }) => {
       })
     )
 }
-
+/**
+ * 将用户传入的 $attrs中的属性， 与 filters 中传入的属性做对比。
+ * 如果include ,  且属性在filters中， 则返回。
+ * 如果 !include, 且属性不匹配filters， 则返回。
+ * 在模板中，都是通过 v-bind="a($attrs,[])" 来使用该函数 。
+ * @mark 由于现在组件都移除了 inheritAttrs。 加在外层的 v-bind="a()"" 都可以去掉了， 否则会出现双份效果。
+ *
+ * @param attrs : Object
+ * @param filters : string[]
+ * @param include : boolean
+ *
+ * @example Button-pc中： v-bind="a($attrs, ['class', 'style', 'title', 'id'], true)"
+ * @exampleResult 把用户使用<tiny-button ...id\class> 等属性，会传递给该位置的dom。
+ *
+ * @example Area-pc中： v-bind="a($attrs, ['^on[A-Z]'])"
+ * @exampleResult 把用户使用<tiny-area ...on> 等事件, 不会传递给内部的select上， 但是class,style等，会传递给select上。
+ */
 export const filterAttrs = (attrs, filters, include) => {
   const props = {}
 
@@ -263,10 +332,10 @@ export const filterAttrs = (attrs, filters, include) => {
       props[name] = attrs[name]
     }
   }
-
   return props
 }
 
+// eslint-disable-next-line import/no-mutable-exports
 export let setupComponent = {}
 
 export const initComponent = () => {
@@ -305,18 +374,22 @@ export {
   hooks,
   directive,
   parseVnode,
+  isEmptyVnode,
   useRouter,
   emitter,
   createComponent,
   defineAsyncComponent,
   getElementStatusClass,
-  Teleport
+  Teleport,
+  KeepAlive,
+  isVnode
 }
 
 export default {
   h,
   directive,
   parseVnode,
+  isEmptyVnode,
   useRouter,
   emitter,
   createComponent,
@@ -332,5 +405,6 @@ export default {
   setup,
   hooks,
   getElementStatusClass,
-  $install
+  $install,
+  isVnode
 }

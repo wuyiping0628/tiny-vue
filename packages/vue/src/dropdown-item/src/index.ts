@@ -13,76 +13,88 @@
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
 import template from 'virtual-template?pc|mobile|mobile-first'
 
-const $constants = {
+export const $constants = {
   ICON_MAP: {
-    leftWardArrow: 'icon-delta-left'
+    leftWardArrow: 'icon-left-ward-arrow'
+  }
+}
+
+export const dropdownItemProps = {
+  ...$props,
+  _constants: {
+    type: Object,
+    default: () => $constants
+  },
+  icon: [String, Object],
+  disabled: Boolean,
+  divided: Boolean,
+  itemData: {
+    type: [String, Object],
+    default: ''
+  },
+  title: String,
+  label: String,
+  level: String,
+  titleClass: String,
+  options: {
+    type: Array,
+    default: () => []
+  },
+  // mobile 属性，可选值 selection | filter | sort
+  type: {
+    type: String,
+    default: 'selection'
+  },
+  // 是否选中，勾选状态功能
+  selected: {
+    type: Boolean,
+    default: false
+  },
+  // 暂没找到使用的地方
+  selectedField: {
+    type: String,
+    default: 'selected'
+  },
+  // 暂没找到使用的地方
+  multiStage: {
+    type: Boolean,
+    default: false
+  },
+  currentIndex: {
+    type: Number,
+    default: () => -1
+  },
+  tooltipContent: {
+    type: String,
+    default: ''
+  },
+  // 以下为 tiny 新增
+  appendToBody: {
+    type: Boolean,
+    default: true
+  },
+  textField: {
+    type: String,
+    default: 'label'
+  },
+  tip: {
+    type: [String, Function],
+    default: ''
+  },
+  tipPosition: {
+    type: String,
+    default: 'right'
+  },
+  effect: {
+    type: String,
+    default: 'light'
   }
 }
 
 export default defineComponent({
   name: $prefix + 'DropdownItem',
   componentName: 'TinyDropdownItem',
-  props: {
-    ...$props,
-    _constants: {
-      type: Object,
-      default: () => $constants
-    },
-    icon: [String, Object],
-    disabled: Boolean,
-    divided: Boolean,
-    itemData: {
-      type: [String, Object],
-      default: ''
-    },
-    title: String,
-    label: {
-      type: String,
-      default: ''
-    },
-    level: String,
-    titleClass: String,
-    options: {
-      type: Array,
-      default: () => []
-    },
-    type: {
-      type: String,
-      default: 'selection'
-    },
-    selected: {
-      type: Boolean,
-      default: false
-    },
-    selectedField: {
-      type: String,
-      default: 'selected'
-    },
-    multiStage: {
-      type: Boolean,
-      default: false
-    },
-    currentIndex: {
-      type: Number,
-      default: () => -1
-    },
-    appendToBody: {
-      type: Boolean,
-      default: true
-    },
-    textField: {
-      type: String,
-      default: 'label'
-    },
-    tip: {
-      type: [String, Function],
-      default: ''
-    },
-    tipPosition: {
-      type: String,
-      default: 'right'
-    }
-  },
+  props: dropdownItemProps,
   setup(props, context) {
     return $setup({ props, context, template })
   }

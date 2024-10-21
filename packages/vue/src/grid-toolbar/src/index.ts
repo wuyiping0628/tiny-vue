@@ -36,7 +36,8 @@ import {
 import GridCustom from './custom.vue'
 import GridCustomSelect from './custom-select.vue'
 import GridCustomSaas from './custom-saas.vue'
-import { GridButton, GridConfig, GridAdapter, GridTools } from '@opentiny/vue-grid'
+import { GridConfig, GridAdapter, GridTools } from '@opentiny/vue-grid'
+import Button from '@opentiny/vue-button'
 
 const classMap = {
   isActive: 'is__active'
@@ -88,6 +89,7 @@ function renderCustomWrapper({ _vm, settingStore, settingsBtnOns, tableFullColum
       ref: 'customWrapper'
     },
     [
+      // TODO: 此处应使用图标按钮，但saas主题图标按钮样式有问题。
       h('div', { class: 'tiny-grid-custom__setting-btn', on: settingsBtnOns }, [
         setting?.simple
           ? h('tiny-grid-custom-select', {
@@ -108,7 +110,8 @@ function renderCustomWrapper({ _vm, settingStore, settingsBtnOns, tableFullColum
             showModal: (modalVisible) => (settingStore.customVisible = modalVisible),
             saveSettings: _vm.handleSaveSettings,
             resetSettings: (settings) => _vm.$emit('reset-setting', settings),
-            cancelSettings: () => _vm.$emit('cancel-setting')
+            cancelSettings: () => _vm.$emit('cancel-setting'),
+            deleteTemplate: (template) => _vm.$emit('delete-template', template)
           },
           props: {
             customMode: _vm.customMode,
@@ -127,7 +130,10 @@ function renderCustomWrapper({ _vm, settingStore, settingsBtnOns, tableFullColum
             initSettings,
             resetMethod: _vm.resetMethod,
             alwaysShowColumns: setting.alwaysShowColumns,
-            columnsGroup: setting.columnsGroup
+            columnsGroup: setting.columnsGroup,
+            showHideAll: setting.showHideAll,
+            fixedSorting: setting.fixedSorting,
+            setting
           },
           ref: 'custom'
         })
@@ -136,20 +142,23 @@ function renderCustomWrapper({ _vm, settingStore, settingsBtnOns, tableFullColum
   )
 }
 
-function getScopedSlots({ item, _vm }) {
+function getScopedSlots({ item, _vm, vSize }) {
   let scopedSlots = null
   let childHandler = (child) => {
     let res = [null]
 
     if (child.visible !== false) {
       res = h(
-        GridButton,
+        Button,
         {
           on: {
             click: (event) => _vm.btnEvent(event, child)
           },
           props: {
-            disabled: child.disabled
+            disabled: child.disabled,
+            size: vSize,
+            loading: child.loading,
+            type: child.type
           }
         },
         getFuncText(child.name)
@@ -169,7 +178,7 @@ function getScopedSlots({ item, _vm }) {
   return scopedSlots
 }
 
-function renderButtonWrapper({ _vm, $buttons, $grid, table, buttons }) {
+function renderButtonWrapper({ _vm, $buttons, $grid, table, buttons, vSize }) {
   let childrenArg
 
   if ($buttons) {
@@ -179,16 +188,19 @@ function renderButtonWrapper({ _vm, $buttons, $grid, table, buttons }) {
       let res = [null]
 
       if (item.visible !== false) {
-        let scopedSlots = getScopedSlots({ item, _vm })
+        let scopedSlots = getScopedSlots({ item, _vm, vSize })
 
         res = h(
-          GridButton,
+          Button,
           {
             on: {
               click: (event) => _vm.btnEvent(event, item)
             },
             props: {
-              disabled: item.disabled
+              disabled: item.disabled,
+              size: vSize,
+              loading: item.loading,
+              type: item.type
             },
             scopedSlots
           },
@@ -199,8 +211,8 @@ function renderButtonWrapper({ _vm, $buttons, $grid, table, buttons }) {
       return res
     })
   }
-
-  return h('div', { class: 'tiny-grid-button__wrapper' }, childrenArg)
+  // Tiny 新增，如果工具栏按钮数据为空则无需渲染按钮组容器
+  return childrenArg?.length ? h('div', { class: 'tiny-grid-button__wrapper' }, childrenArg) : null
 }
 
 export default defineComponent({
@@ -339,21 +351,25 @@ export default defineComponent({
       return GridTools.error('ui.grid.error.toolbarId')
     }
 
-    setTimeout(() => {
-      this.loadStorage()
-    })
+    this.loadStorage()
 
     GlobalEvent.on(this, 'mousedown', this.handleGlobalMousedownEvent)
     GlobalEvent.on(this, 'blur', this.handleGlobalBlurEvent)
-    this.$grid.toolBarVm = this
-  },
-  setup(props, { slots, attrs, listeners }) {
-    hooks.onBeforeUnmount(() => {
+
+    this.removeHandler = () => {
       GlobalEvent.off(this, 'mousedown')
       GlobalEvent.off(this, 'blur')
-    })
+    }
+
+    // 设置工具栏实例
+    this.$grid.connect({ name: 'toolbar', vm: this })
+  },
+  setup(props, { slots, attrs, listeners }) {
+    const instance = hooks.getCurrentInstance().proxy
 
     const tableListeners = getListeners(attrs, listeners)
+
+    hooks.onBeforeUnmount(() => typeof instance.removeHandler === 'function' && instance.removeHandler())
 
     return { slots, tableListeners }
   },
@@ -363,7 +379,7 @@ export default defineComponent({
     let { buttons: $buttons, tools: $tools } = $slots
     let settingsBtnOns = {}
 
-    setting && (settingsBtnOns.click = this.handleClickCustomEvent)
+    setting && (settingsBtnOns.click = this.settingBtnClick)
 
     const map = {
       isLoading: 'is__loading'
@@ -382,17 +398,39 @@ export default defineComponent({
       initSettings
     }
 
+    const defaultSlot = () => (typeof $slots.default === 'function' ? $slots.default() : $slots.default)
+
     let childrenArg = [
-      renderButtonWrapper({ _vm: this, $buttons, $grid, table, buttons }),
+      renderButtonWrapper({ _vm: this, $buttons, $grid, table, buttons, vSize }),
       setting ? renderCustomWrapper(args) : null,
       refresh ? renderRefreshWrapper({ _vm: this }) : null,
       fullScreen ? renderFullScreenWrapper({ _vm: this }) : null,
-      $tools ? renderToolsWrapper({ _vm: this, $tools, $grid, table }) : $slots.default && $slots.default()
+      $tools ? renderToolsWrapper({ _vm: this, $tools, $grid, table }) : defaultSlot()
     ]
 
     return h('div', propsArg, childrenArg)
   },
   methods: {
+    updateTemplateList() {
+      const custom = this.$refs.custom
+
+      if (custom && custom.$refs.switch) {
+        custom.$refs.switch.initStorage(false)
+      }
+    },
+    updateSelectedTemplate(val) {
+      const custom = this.$refs.custom
+
+      custom && custom.updateSelectedTemplate(val)
+    },
+    settingBtnClick() {
+      if (this.setting?.simple) {
+        return
+      }
+      return this.setting && this.setting.customSetting
+        ? this.setting.settingBtnClickFn()
+        : this.handleClickCustomEvent()
+    },
     updateConf() {
       let data = this.data
       let $children = this.$parent.$children
@@ -419,6 +457,12 @@ export default defineComponent({
     },
     openSetting() {
       this.settingStore.visible = true
+    },
+    showAllColumns() {
+      this.$refs.custom.showOrHideAllColumns(true)
+    },
+    hideAllColumns() {
+      this.$refs.custom.showOrHideAllColumns(false)
     },
     orderSetting() {
       let { id, settingOpts } = this
@@ -487,16 +531,19 @@ export default defineComponent({
           if (settingsStorage && settingsStorage.pageSize) {
             const pageSize = settingsStorage.pageSize
 
-            this.$grid.pagerConfig &&
-              this.$grid.pagerConfig.pageSize !== pageSize &&
-              this.$grid.pageSizeChange(pageSize, $grid.autoLoad === false)
+            if (this.$grid.pagerConfig && this.$grid.pagerConfig.pageSize !== pageSize) {
+              this.$grid.createJob('pageSizeChangeCallback', () => {
+                this.$grid.pageSizeChange(pageSize, $grid.autoLoad === false)
+              })
+            }
           }
         }
 
-        this.updateCustoms(customSettings.length ? customSettings : this.tableFullColumn)
+        this.$grid.createJob('updateCustomsCallback', () => {
+          this.updateCustoms(customSettings.length ? customSettings : this.tableFullColumn)
+        })
       }
     },
-    // NEXT 未用到
     updateColumn(fullColumn) {
       this.tableFullColumn = fullColumn
     },
@@ -614,11 +661,11 @@ export default defineComponent({
 
       tableComp.refreshColumn()
       this.tableFullColumn = this.tableFullColumn.slice(0)
-
+      // eslint-disable-next-line vue/valid-next-tick
       return this.$nextTick(() => this.$refs.custom && this.$refs.custom.saveSettings())
     },
-    applySettings({ columns, pageSize }) {
-      const sort = this.setting && !!this.setting.sortable
+    applySettings({ columns, pageSize, updatedSorting }) {
+      const sort = (this.setting && !!this.setting.sortable) || updatedSorting
 
       if (this.$grid) {
         if (columns && columns.length) {
@@ -637,7 +684,7 @@ export default defineComponent({
         }
       }
     },
-    handleSaveSettings(settingConfigs) {
+    handleSaveSettings(settingConfigs, visible, updatedSorting) {
       let { settingStore, setting, settingOpts } = this
       let customRef = this.$refs.custom
 
@@ -645,7 +692,8 @@ export default defineComponent({
 
       const { columns, pageSize, sortType } = settingConfigs
 
-      this.applySettings({ columns, pageSize })
+      this.applySettings({ columns, pageSize, updatedSorting })
+
       // 如果开启本地缓存则保存数据到 localstorage
       if (setting && settingOpts.storage === 'local') {
         // 保存时如果没有设置 id 就使用 null 清除掉本地存储中保存的 id

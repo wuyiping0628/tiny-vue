@@ -23,10 +23,9 @@
  *
  */
 
-import { extend } from '../../common/object'
 import { isNull } from '../../common/type'
 import { find } from '../../common/array'
-import { get, isFunction, set, findTree } from '../static'
+import { get, isFunction, set } from '../static'
 
 export const gridSize = ['medium', 'small', 'mini']
 
@@ -48,7 +47,11 @@ export const getColumnList = (columns) => {
   const result = []
 
   columns.forEach((column) => {
-    result.push.apply(result, column.children && column.children.length ? getColumnList(column.children) : [column])
+    if (column.children && column.children.length) {
+      result.push(...getColumnList(column.children))
+    } else {
+      result.push(column)
+    }
   })
 
   return result
@@ -67,21 +70,18 @@ export const getFilters = (filters) =>
 
 export const initFilter = (filter) => {
   // 改成这种方式可以让用户配置一些筛选的默认行为，如果用户不配置就采用默认的
-  return extend(
-    {
-      condition: {
-        input: '',
-        relation: 'equals',
-        empty: null,
-        type: null,
-        value: []
-      },
-      hasFilter: false,
-      custom: null
+  return {
+    condition: {
+      input: '',
+      relation: 'equals',
+      empty: null,
+      type: null,
+      value: []
     },
-    filter,
-    true
-  )
+    hasFilter: false,
+    custom: null,
+    ...filter
+  }
 }
 
 export const formatText = (value) => `${isNull(value) ? '' : value}`
@@ -131,47 +131,37 @@ export const setCellValue = (row, column, value) => {
 
 export const hasChildrenList = (item) => item && item.children && item.children.length > 0
 
-export const destroyColumn = ($table, { columnConfig }) => {
-  const matchObj = findTree($table.collectColumn, (column) => column === columnConfig)
-
-  if (matchObj) {
-    matchObj.items.splice(matchObj.index, 1)
-  }
-
-  $table.collectColumn = $table.collectColumn.slice(0)
-}
-
-export const emitEvent = (vnode, type, args) => {
-  if (vnode.tableListeners[type]) {
-    vnode.$emit.apply(vnode, [type].concat(args))
+export const emitEvent = (vm, type, args) => {
+  if (vm.tableListeners[type]) {
+    const params = [].concat(args)
+    vm.$emit(type, ...params)
   }
 }
 
-export const assemColumn = ($table, $column, instance) => {
-  const { columnConfig, $el: elm, $scopedSlots, $slots, $parent } = instance
-  const { collectColumn } = $table
+export const assemColumn = ($table) => {
+  const collectColumn = []
 
-  columnConfig.slots = $scopedSlots || $slots
+  const assem = (columnVms, columns) => {
+    if (Array.isArray(columnVms)) {
+      columnVms.forEach((columnVm) => {
+        const column = columnVm.columnConfig
+        const children = []
 
-  const parentNode = elm.parentNode
-  const insertIndex = [].indexOf.call(parentNode.children, elm)
-
-  if (!$column || $column !== $parent) {
-    collectColumn.splice(insertIndex, 0, columnConfig)
-  } else {
-    // 如果存在$column父级表格列组件实例
-    const parentConfig = $column.columnConfig
-
-    if (!parentConfig.children) {
-      parentConfig.children = []
+        if (column) {
+          columns.push(column)
+          assem(columnVm.childColumns, children)
+          // 兼容旧实现，如果当前列没有子列，children 为 falsy 值
+          column.children = children.length > 0 ? children : null
+        }
+      })
     }
-    parentConfig.children.splice(insertIndex, 0, columnConfig)
   }
 
-  $table.collectColumn = collectColumn.slice(0)
+  assem($table.childColumns, collectColumn)
+  $table.collectColumn = collectColumn
 }
 
-export const getCellValue = (row, column) => get(row, column.property)
+export const getCellValue = (row, column) => get(row, column.own.field)
 
 export const getListeners = ($attrs, $listeners) => {
   const regHyphenate = /\B([A-Z])/g
@@ -186,7 +176,7 @@ export const getListeners = ($attrs, $listeners) => {
     const event = $attrs[name]
 
     if (regEventPrefix.test(name) && typeof event === 'function') {
-      listeners[name.substr(2).replace(regHyphenate, '-$1').toLowerCase()] = event
+      listeners[name.slice(2).replace(regHyphenate, '-$1').toLowerCase()] = event
     }
   })
 

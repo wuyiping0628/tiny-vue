@@ -19,7 +19,6 @@ export const setSheetStyle =
         'position': 'absolute'
       }
       state.sheetContentStyle = {
-        'position': 'absolute',
         'max-height': props.height
       }
     } else {
@@ -41,6 +40,12 @@ export const initScrollMenu =
   () => {
     nextTick(() => {
       const { scrollMenu } = refs
+
+      // mobile-first是不使用BS优化的，没有这个ref节点。 所以直接返回
+      if (!scrollMenu) {
+        return
+      }
+
       if (!state.scroll) {
         state.scroll = new BScroll(scrollMenu, {
           probeType: 3,
@@ -61,15 +66,12 @@ export const visibleHandle =
   }
 
 export const watchVisible =
-  ({ emit, props, state }) =>
-  (value) => {
-    state.active = props.modelValue
-
+  ({ emit, state }) =>
+  (bool) => {
     setTimeout(() => {
-      value ? (state.toggle = true) : (state.toggle = false)
+      state.toggle = bool
     }, 0)
-
-    emit('update:visible', value)
+    emit('update:visible', bool)
   }
 
 export const menuHandle =
@@ -83,17 +85,16 @@ export const menuHandle =
   }
 
 export const close =
-  ({ emit, vm }) =>
+  ({ api }) =>
   () => {
-    vm.$refs.drawer.close()
-
-    emit('close', false)
+    api.handleClose('close', false)
   }
 
-export const hide = (emit) => () => {
-  emit('hide', false)
-  emit('update:visible', false)
-}
+export const hide =
+  ({ api }) =>
+  () => {
+    api.handleClose('hide', false)
+  }
 
 export const selectOption =
   ({ emit, props }) =>
@@ -106,10 +107,9 @@ export const selectOption =
   }
 
 export const confirm =
-  ({ emit, state }) =>
+  ({ state, api }) =>
   () => {
-    emit('confirm', state)
-    emit('update:visible', false)
+    api.handleClose('confirm', state)
   }
 
 export const actionSelectOption =
@@ -117,4 +117,18 @@ export const actionSelectOption =
   (option, index) => {
     emit('update:visible', false)
     emit('click', option, index)
+  }
+
+export const handleClose =
+  ({ vm, emit, props }) =>
+  (type, show) => {
+    if (typeof props.beforeClose === 'function' && props.beforeClose(type) === false) return
+
+    if (type === 'close') {
+      vm.$refs.drawer.close(true)
+    } else {
+      emit('update:visible', false)
+    }
+
+    emit(type, show)
   }

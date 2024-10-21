@@ -10,7 +10,7 @@
  *
  */
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
-import template from 'virtual-template?pc|mobile-first'
+import template from 'virtual-template?pc|mobile|mobile-first'
 
 export const tagProps = {
   ...$props,
@@ -19,11 +19,15 @@ export const tagProps = {
   type: String,
   theme: String,
   size: String,
-  color: String,
+  color: {
+    type: [String, Array],
+    default: ''
+  },
   closable: Boolean,
   operable: Boolean,
   disabled: Boolean,
   selectable: Boolean,
+  onlyIcon: Boolean, // 仅图标模式
   customClass: {
     type: String,
     default: ''
@@ -34,7 +38,17 @@ export const tagProps = {
     validator: (value: string) => Boolean(~['dark', 'light', 'plain'].indexOf(value))
   },
   beforeDelete: Function,
-  value: [Number, String]
+  value: [Number, String],
+
+  // mobile
+  mini: {
+    type: Boolean,
+    default: false
+  },
+  maxWidth: {
+    type: [String, Number],
+    default: null
+  }
 }
 
 export default defineComponent({

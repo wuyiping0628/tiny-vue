@@ -16,6 +16,7 @@ import { indexOf } from '../../array'
 import { hasOwn, typeOf } from '../../type'
 
 const defaultChildrenKey = 'children'
+const defaultIsLeafKey = 'isLeaf'
 
 const getPropertyFromData = (node, prop) => {
   const props = node.store.props
@@ -101,7 +102,7 @@ export default class Node {
     const props = store.props
 
     if (props && typeof props.isLeaf !== 'undefined') {
-      const isLeaf = getPropertyFromData(this, 'isLeaf')
+      const isLeaf = getPropertyFromData(this, defaultIsLeafKey)
 
       if (typeof isLeaf === 'boolean') {
         this.isLeafByUser = isLeaf
@@ -140,6 +141,7 @@ export default class Node {
 
       if (store.defaultExpandAll) {
         this.expanded = true
+        this.updateMethod(this, 'expanded')
       }
     } else if (level > 0 && store.lazy && store.defaultExpandAll) {
       this.expand()
@@ -156,21 +158,19 @@ export default class Node {
     this.text = null
     this.data = null
     this.parent = null
+    this.updateMethod = () => {}
 
     Object.keys(options).forEach((key) => {
       if (hasOwn.call(options, key)) {
         this[key] = options[key]
       }
     })
-    this.isLeaf = !!(this.data && this.data.isLeaf)
-    this.loaded = false
+    const isLeafKey = this.store?.props?.isLeaf || defaultIsLeafKey
+    this.isLeaf = !!(this.data && this.data[isLeafKey])
+    this.loaded = this.isLeaf
     this.loading = false
     this.childNodes = []
-    this.level = 0
-
-    if (this.parent) {
-      this.level = this.parent.level + 1
-    }
+    this.level = this.parent ? this.parent.level + 1 : 0
   }
 
   expandByDefaultKeys() {
@@ -293,7 +293,7 @@ export default class Node {
 
     if (!(child instanceof Node)) {
       if (!batch) {
-        const children = this.getChildren(true)
+        const children = this.getChildren(true) || []
 
         if (!~children.indexOf(child.data)) {
           insertNode({ arr: children, index, item: child.data })
@@ -310,6 +310,8 @@ export default class Node {
     insertNode({ arr: this.childNodes, index, item: child })
 
     this.updateLeafState()
+
+    return child
   }
 
   insertBefore(child, beforeNode) {
@@ -376,11 +378,13 @@ export default class Node {
 
         while (parentNode.level > 0) {
           parentNode.expanded = true
+          parentNode.updateMethod(parentNode, 'expanded')
           parentNode = parentNode.parent
         }
       }
 
       this.expanded = true
+      this.updateMethod(this, 'expanded')
       callback && callback()
     }
 
@@ -408,6 +412,7 @@ export default class Node {
 
   collapse() {
     this.expanded = false
+    this.updateMethod(this, 'expanded')
   }
 
   shouldLoadData() {

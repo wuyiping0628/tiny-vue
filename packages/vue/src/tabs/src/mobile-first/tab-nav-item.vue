@@ -12,7 +12,8 @@ export default defineComponent({
     selected: Boolean,
     navItem: Object
   },
-  setup(props: any, context: any) {
+  components: { IconClose: IconClose() },
+  setup(props, context): any {
     return setup({ props, context, renderless, api, mono: true })
   },
   render() {
@@ -24,29 +25,25 @@ export default defineComponent({
       {
         attrs: { 'data-tag': 'tiny-tab-nav-item' },
         class: [
-          'w-max h-11 sm:h-10 inline-flex flex-col justify-center pl-3 pr-3 group',
+          'w-max h-11 sm:h-10 inline-flex flex-col justify-center group',
           'first:ml-3 last:mr-3 hover:cursor-pointer sm:first:pl-0 sm:last:pr-0 sm:first:ml-0 sm:last:mr-0',
-          state.tabSize === 'big' ? 'min-w-[theme(spacing.8)]' : 'min-w-[theme(spacing.7)]'
+          state.separator ? 'mx-3.5 [&:last-of-type>div>span:last-of-type]:hidden [&:not(:last-of-type)]:mr-px' : 'mx-3'
         ],
         on: { click: handleNavItemClick }
       },
       [
         h(
-          'div',
+          'span',
           {
             class: [
-              'inline-block text-base sm:text-sm group-hover:text-color-brand',
-              selected ? 'text-color-brand' : 'text-color-text-primary sm:text-color-text-secondary'
+              'text-base sm:text-sm leading-6 sm:leading-5.5 group-hover:text-color-brand',
+              state.tabSize === 'large' ? 'min-w-[theme(spacing.8)]' : 'min-w-[theme(spacing.7)]',
+              selected ? 'text-color-brand font-bold' : 'text-color-text-primary'
             ],
-            style: state.tabSize === 'big' ? 'font-size: 1rem' : ''
+            style: state.tabSize === 'large' ? 'font-size: 1rem' : ''
           },
           [
-            h('span', { class: 'w-max relative' }, [
-              navItem.slotTitle ? navItem.slotTitle(navItem) : h('span', {}, title),
-              selected
-                ? h('div', { class: 'absolute sm:-bottom-2.5 -bottom-3 w-full h-0.5 bg-color-brand z-20' }, [])
-                : null
-            ]),
+            navItem.slotTitle ? navItem.slotTitle(navItem) : h('span', {}, title),
             navItem.slotSetting || state.withClose
               ? h(
                   'span',
@@ -56,12 +53,16 @@ export default defineComponent({
                       'hover:fill-color-icon-hover focus:fill-color-icon-focus',
                       navItem.slotSetting ? '-translate-y-0.5' : ''
                     ],
-                    on: {
-                      click: navItem.slotSetting ? settingClick : handleNavItemClose
-                    }
+                    on: { click: navItem.slotSetting ? settingClick : handleNavItemClose }
                   },
                   [navItem.slotSetting ? navItem.slotSetting(navItem) : h(IconClose())]
                 )
+              : null,
+            state.separator
+              ? h('span', {
+                  attrs: { 'data-tag': 'tiny-tab-nav-item-separator' },
+                  class: 'relative left-3.5 inline-flex bg-color-border-separator w-px h-3'
+                })
               : null
           ]
         )

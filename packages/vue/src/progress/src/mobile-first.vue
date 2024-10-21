@@ -5,14 +5,21 @@
     :aria-valuenow="percentage"
     aria-valuemin="0"
     aria-valuemax="100"
+    data-tag="tiny-progress"
   >
-    <div class="relative leading-none" :class="[type === 'line' ? 'flex items-center' : 'inline-block']">
+    <div
+      data-tag="tiny-progress-content"
+      class="relative leading-none"
+      :class="[type === 'line' ? 'flex items-center' : 'inline-block']"
+    >
       <div
+        data-tag="tiny-progress-line"
         class="box-border inline-block align-middle flex-1"
         :class="[!showText ? 'pr-0 mr-0 block' : '', textInside ? 'pr-0 mr-0' : '']"
         v-if="type === 'line'"
       >
         <div
+          data-tag="tiny-progress-strokewidth"
           class="rounded-full bg-color-bg-3 overflow-hidden relative align-middle"
           :class="[size === 'small' ? 'h-1' : '', size === 'medium' ? 'h-2' : '', size === 'large' ? 'h-4' : '']"
           :style="state.strokeWidth ? { height: state.strokeWidth + 'px' } : {}"
@@ -25,6 +32,7 @@
             @after-appear="customAfterAppearHook"
           >
             <div
+              data-tag="tiny-progress-bar"
               :class="
                 m(
                   `absolute left-0 top-0 h-full bg-color-brand text-right rounded-full leading-none whitespace-nowrap transition-[width] duration-500 ease-in after:content-[''] after:h-full after:inline-block after:align-middle`,
@@ -43,9 +51,10 @@
         </div>
       </div>
       <div
+        data-tag="tiny-progress-circle-style"
         class="inline-block"
         :class="[size === 'small' && 'w-12 h-12', size === 'medium' && 'w-24 h-24', size === 'large' && 'w-40 h-40']"
-        :style="state.circleStyle"
+        :style="width ? state.circleStyle : {}"
         v-else
       >
         <svg viewBox="0 0 100 100">
@@ -86,12 +95,13 @@
         "
         v-if="showText && !textInside"
         :style="{ fontSize: state.progressTextSize + 'px' }"
+        data-tag="tiny-progress-text"
       >
         <template v-if="!status">
           <span v-if="type === 'line'">
             {{ state.content }}
           </span>
-          <div v-else>
+          <div v-else class="text-[0]">
             <span :style="{ fontSize: state.progressTextSize + 'px' }">{{
               typeof format === 'function' ? state.content : percentage
             }}</span>
@@ -113,16 +123,21 @@
         />
       </div>
     </div>
-    <div v-if="type !== 'line' && info" class="mt-2 text-center text-sm text-gray-500">
+    <div
+      data-tag="tiny-progress-info"
+      v-if="type !== 'line' && info"
+      class="mt-2 text-center text-sm text-color-text-secondary"
+    >
       {{ info }}
     </div>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/progress/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
 import { iconClose, iconSuccess, iconError, iconYes, iconWarning } from '@opentiny/vue-icon'
+import type { IProgressApi } from '@opentiny/vue-renderless/types/progress.type'
 
 export default defineComponent({
   props: [
@@ -147,7 +162,7 @@ export default defineComponent({
     IconWarning: iconWarning()
   },
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IProgressApi
   }
 })
 </script>

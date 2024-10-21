@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full w-full flex">
-    <slot :data="data">{{ data.day }}</slot>
+  <div class="w-full flex">
+    <slot :data="data">{{ data.value }}</slot>
   </div>
 </template>
 

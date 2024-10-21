@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="125px" height="125px" viewBox="0 0 125 125" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>面包屑 breadcrumb</title>
+    <defs>
+        <linearGradient x1="44.0988019%" y1="63.7576467%" x2="128.792906%" y2="14.9605244%" id="linearGradient-1">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#FFCC00" offset="0%"></stop>
+            <stop stop-color="#FF9D00" offset="100%"></stop>
+        </linearGradient>
+        <path d="M62.1247709,48.6505293 L68.3743128,55.1558219 C68.8047299,55.6038531 69.0128201,56.0518843 68.9985832,56.4999155 C69.0138629,56.9474485 68.8057835,57.3958133 68.3750458,57.8441781 L62.1255039,64.3494707 C61.3338953,65.1734745 60.5422867,65.2146747 59.750678,64.4730713 L59.6256872,64.3494707 C58.7924149,63.4820984 58.7924149,62.614726 59.6256872,61.7473537 L64.666,56.5 L59.6249542,51.2526463 C58.8333456,50.4286426 58.7937651,49.6046389 59.5062129,48.7806351 L59.6249542,48.6505293 C60.4582264,47.7831569 61.2914987,47.7831569 62.1247709,48.6505293 Z" id="path-3"></path>
+        <filter x="-35.0%" y="-14.7%" width="170.0%" height="141.2%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.661752894   0 0 0 0 0.324547702   0 0 0 0 0.00489962574  0 0 0 0.5 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <linearGradient x1="44.0988019%" y1="63.7576467%" x2="128.792906%" y2="14.9605244%" id="linearGradient-5">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="组件总览" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="-TinyUI-Vue-组件总览1" transform="translate(-1869.000000, -385.000000)">
+            <g id="编组-25备份-3" transform="translate(1771.000000, 352.000000)">
+                <g id="Crumb-面包屑" transform="translate(98.000000, 33.000000)">
+                    <g id="编组"></g>
+                    <rect id="矩形-2" fill="url(#linearGradient-1)" opacity="0.604724702" x="16" y="45" width="36" height="22" rx="4"></rect>
+                    <g id="形状结合">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                        <use fill="url(#linearGradient-2)" fill-rule="evenodd" xlink:href="#path-3"></use>
+                    </g>
+                    <rect id="矩形-2备份" fill="url(#linearGradient-5)" x="74" y="45" width="36" height="22" rx="4"></rect>
+                    <path d="M18,77 L108,77 C109.104569,77 110,77.8954305 110,79 C110,80.1045695 109.104569,81 108,81 L18,81 C16.8954305,81 16,80.1045695 16,79 C16,77.8954305 16.8954305,77 18,77 Z" id="形状结合备份" fill="#5073E5"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

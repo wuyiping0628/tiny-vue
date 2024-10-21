@@ -70,8 +70,9 @@
     </div>
   </div>
 </template>
+
 <script lang="jsx">
-import { defineComponent, reactive, computed, toRefs, watch, onMounted, onUnmounted, nextTick, h } from 'vue';
+import { defineComponent, reactive, computed, toRefs, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import demo from '@demo';
@@ -152,7 +153,7 @@ const getApiTableOptFn = oneApiArr => {
   };
 };
 
-function loadPage(){
+function loadPage() {
   const lang = $t2('cn', 'en');
 
   state.cmpTopMdShow = state.currJsonShow = true;
@@ -170,22 +171,20 @@ function loadPage(){
   if (faqMdConfig[state.cmpId]) {
     fetchDemosFile(`@demos/app/${state.cmpId}/webdoc/${state.cmpId}.faq.${lang}.md`)
       .then(data => {
-        console.log(data)
+        console.log(data);
         state.cmpFAQMd = marked(DOMPurify.sanitize(data));
       })
-      .catch(error => {}
-      );
+      .catch(error => {});
   } else {
     state.cmpFAQMd = null;
   }
 
-  
   fetchDemosFile(`@demos/app/${state.cmpId}/webdoc/${state.cmpId}.json`)
     .then(jsonStr => {
       const json = JSON.parse(jsonStr);
       state.currJson = {
         ...json,
-        demos: $clone(json['demos'] || []), // 克隆一下,避免保存上次的isOpen
+        demos: $clone(json.demos || []), // 克隆一下,避免保存上次的isOpen
         column: json.column || '1', // columns可能为空
         title: json.title || state.cmpId,
       };
@@ -197,7 +196,7 @@ function loadPage(){
 
         if (!hash) return;
 
-        if (hash.indexOf('/') > -1) {
+        if (hash.includes('/')) {
           hash = hash.slice(1);
         }
 
@@ -209,10 +208,10 @@ function loadPage(){
       }, 0);
     })
     .catch(error => {
-      throw new Error(error)
+      throw new Error(error);
       state.currJsonShow = false;
     });
-};
+}
 
 const handleApiAnchor = ev => {
   if (ev.target.tagName === 'A' && ev.target.closest('.route-anchor')) {
@@ -243,7 +242,7 @@ const fn = {
 
 export default defineComponent({
   name: 'CmpDetail',
-  components: { demo },
+  components: { Demo: demo },
   setup() {
     watch(
       () => router.currentRoute.value.params.cmpId,
@@ -273,6 +272,7 @@ export default defineComponent({
   },
 });
 </script>
+
 <style lang="less">
 .types-table a,
 .api-table a {
@@ -291,7 +291,6 @@ export default defineComponent({
     max-height: 80vh;
   }
   .tiny-anchor-link {
-    margin-bottom: 10px;
     max-width: 150px;
     font-size: 12px;
     a {

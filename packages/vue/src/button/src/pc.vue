@@ -23,17 +23,18 @@
         'is-disabled': state.buttonDisabled,
         'is-loading': loading,
         'is-plain': state.plain,
+        'is-ghost': ghost,
         'is-round': round,
         'is-circle': circle,
-        'is-icon': icon && !loading && (text || $slots.default),
-        'is-only-icon': icon && !loading && !(text || $slots.default)
+        'is-icon': icon && !loading && (text || slots.default),
+        'is-only-icon': icon && !loading && !(text || slots.default)
       }
     ]"
     :tabindex="tabindex"
-    v-bind="a($attrs, ['class', 'style'], true)"
+    v-bind="a($attrs, ['class', 'style', 'title', 'id'], true)"
   >
     <icon-loading v-if="loading" class="tiny-icon-loading tiny-svg-size" />
-    <component v-if="icon && !loading" :is="icon" :class="{ 'is-text': text || $slots.default }" />
+    <component v-if="icon && !loading" :is="icon" :class="{ 'is-text': text || slots.default }" />
     <slot>
       <span>{{ text }}</span>
     </slot>
@@ -43,11 +44,12 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/button/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
-import { iconLoading } from '@opentiny/vue-icon'
+import { iconLoadingShadow } from '@opentiny/vue-icon'
+import type { IButtonApi } from '@opentiny/vue-renderless/types/button.type'
 import '@opentiny/vue-theme/button/index.less'
 
 export default defineComponent({
-  emits: ['click', 'hook-updated'],
+  emits: ['click'],
   props: [
     ...props,
     'type',
@@ -62,11 +64,13 @@ export default defineComponent({
     'autofocus',
     'round',
     'circle',
-    'tabindex'
+    'tabindex',
+    'customClass',
+    'ghost'
   ],
-  components: { IconLoading: iconLoading() },
+  components: { IconLoading: iconLoadingShadow() },
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IButtonApi
   }
 })
 </script>

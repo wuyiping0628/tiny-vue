@@ -22,12 +22,7 @@
         type ? 'tiny-badge--' + type : '',
         badgeClass || ''
       ]"
-      :style="{
-        transform: `translate(
-          ${offset[0]}${typeof offset[0] === 'number' ? 'px' : ''},
-          ${offset[1]}${typeof offset[1] === 'number' ? 'px' : ''}
-        )`
-      }"
+      :style="!isDot ? state.transform : ''"
     >
       <slot name="content">
         <a v-if="state.href" :href="state.href" :target="target" rel="noopener noreferrer">{{ state.content }}</a>
@@ -40,6 +35,7 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/badge/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
+import type { IBadgeApi } from '@opentiny/vue-renderless/types/badge.type'
 import '@opentiny/vue-theme/badge/index.less'
 
 export default defineComponent({
@@ -58,7 +54,7 @@ export default defineComponent({
     'data'
   ],
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IBadgeApi
   }
 })
 </script>

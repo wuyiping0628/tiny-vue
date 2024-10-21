@@ -20,6 +20,7 @@ import {
   handleCancel,
   handleChange,
   setSelectionRange,
+  displayValue,
   handleConfirm
 } from './index'
 import { compuAmPmMode } from '../time-range'
@@ -40,7 +41,9 @@ const initState = ({ reactive, props, computed, api }) => {
     disabled: false,
     arrowControl: false,
     visible: false,
+    showTimePickerButton: false,
     needInitAdjust: true,
+    displayValue: computed(() => api.displayValue()),
     showSeconds: computed(() => (state.format || '').includes('ss')),
     useArrow: computed(() => state.arrowControl || props.timeArrowControl || false),
     amPmMode: computed(() => api.compuAmPmMode())
@@ -49,10 +52,15 @@ const initState = ({ reactive, props, computed, api }) => {
   return state
 }
 
-export const renderless = (props, { computed, onMounted, reactive, watch, nextTick }, { t, emit: $emit, vm }) => {
+export const renderless = (
+  props,
+  { computed, onMounted, reactive, watch, nextTick },
+  { t, emit: $emit, vm, designConfig }
+) => {
   const api = {}
   const emit = props.emitter ? props.emitter.emit : $emit
   const state = initState({ reactive, props, computed, api })
+  state.showTimePickerButton = designConfig?.showTimePickerButton ?? true
 
   Object.assign(api, {
     t,
@@ -61,13 +69,14 @@ export const renderless = (props, { computed, onMounted, reactive, watch, nextTi
     adjustSpinners: adjustSpinners(vm),
     handleCancel: handleCancel({ state, emit }),
     setSelectionRange: setSelectionRange({ state, emit }),
-    watchVisible: watchVisible({ nextTick, vm, state }),
+    watchVisible: watchVisible({ nextTick, vm, state, api }),
     isValidValue: isValidValue({ state }),
     changeSelectionRange: changeSelectionRange({ vm, state }),
     handleConfirm: handleConfirm({ state, emit }),
     handleKeydown: handleKeydown({ api, vm }),
     handleChange: handleChange({ api, emit, state }),
-    watchValue: watchValue({ api, emit, nextTick, state })
+    displayValue: displayValue({ state, t }),
+    watchValue: watchValue({ api, nextTick, state })
   })
 
   watch(() => state.value, api.watchValue)

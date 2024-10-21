@@ -10,6 +10,14 @@
  *
  */
 
+import type {
+  IDropdownItemState,
+  IDropdownItemApi,
+  IDropdownItemProps,
+  IDropdownItemRenderlessParamUtils,
+  ISharedRenderlessParamHooks,
+  IDropdownMenuVm
+} from '@/types'
 import {
   tagClick,
   confirm,
@@ -29,7 +37,7 @@ import {
   getItemStyle,
   handleClick,
   computedGetIcon,
-  getTip
+  computedTip
 } from './index'
 
 export const api = [
@@ -47,11 +55,12 @@ export const api = [
   'close',
   'closed',
   'handleClick',
-  'getTip'
+  'computedTip'
 ]
 
-const initState = ({ reactive, computed, api, props, parent, dropdownMenuVm }) => {
-  const state = reactive({
+const initState = ({ reactive, computed, api, props, parent, dropdownMenuVm, dropdownVm }) => {
+  const state: IDropdownItemState = reactive({
+    checkedStatus: dropdownMenuVm?.checkedStatus,
     sort: props.modelValue,
     transition: true,
     getTitle: false,
@@ -65,9 +74,14 @@ const initState = ({ reactive, computed, api, props, parent, dropdownMenuVm }) =
     itemStyle: computed(() => api.getItemStyle()),
     activeColor: computed(() => parent.activeColor),
     closeOnClickOverlay: computed(() => parent.closeOnClickOverlay),
+    dropdownMenuVm,
+    currentIndex: props.currentIndex,
     textField: dropdownMenuVm?.textField || props.textField,
     popperClass: dropdownMenuVm?.popperClass || '',
-    getIcon: computed(() => api.computedGetIcon())
+    sizeClass: dropdownVm?.size ? `tiny-dropdown-item--${dropdownVm?.size}` : '',
+    getIcon: computed(() => api.computedGetIcon()),
+    children: [],
+    computedTip: computed(() => api.computedTip())
   })
 
   return state
@@ -92,30 +106,40 @@ const initApi = ({ api, state, emit, props, parent, dispatch, vm, constants, des
     getItemStyle: getItemStyle({ parent, state }),
     bindScroll: bindScroll({ api, parent }),
     confirm: confirm({ emit, props, state }),
-    handleClick: handleClick({ props, dispatch, vm, emit }),
+    handleClick: handleClick({ state, props, dispatch, vm, emit }),
     computedGetIcon: computedGetIcon({ constants, designConfig }),
-    getTip: getTip({ props, vm })
+    computedTip: computedTip({ props, vm })
   })
 }
 
 export const renderless = (
-  props,
-  { computed, reactive, watch, inject },
-  { parent, emit, vm, dispatch, mode, constants, designConfig }
-) => {
-  const api = {}
-  const dropdownMenuVm = inject('dropdownMenuVm', null)
-
-  if (mode === 'mobile') {
-    dropdownMenuVm.state.children = [...dropdownMenuVm.state.children, vm]
-  }
-  parent = parent.$parent
-
-  const state = initState({ reactive, computed, api, props, parent, dropdownMenuVm })
+  props: IDropdownItemProps,
+  { computed, onMounted, reactive, watch, inject }: ISharedRenderlessParamHooks,
+  { parent, emit, vm, dispatch, constants, designConfig }: IDropdownItemRenderlessParamUtils
+): IDropdownItemApi => {
+  const api = {} as IDropdownItemApi
+  const dropdownMenuVm = inject('dropdownMenuVm', null) as IDropdownMenuVm
+  const dropdownVm = inject('dropdownVm', null)
+  const state: IDropdownItemState = initState({ reactive, computed, api, props, parent, dropdownMenuVm, dropdownVm })
 
   initApi({ api, state, emit, props, parent, dispatch, vm, constants, designConfig })
 
   watch(() => state.showPopup, api.bindScroll)
+
+  onMounted(() => {
+    const realParent = parent.$parent.$parent || {}
+    if (realParent.state && realParent.state.children) {
+      realParent.state.children.push(vm)
+    } else {
+      if (dropdownMenuVm) {
+        dropdownMenuVm.state.children = [...dropdownMenuVm.state.children, vm]
+      }
+    }
+
+    if (props.disabled) {
+      state.checkedStatus = false
+    }
+  })
 
   return api
 }

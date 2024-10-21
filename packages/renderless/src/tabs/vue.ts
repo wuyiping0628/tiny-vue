@@ -10,6 +10,14 @@
  *
  */
 
+import type {
+  ITabsState,
+  ITabsApi,
+  ITabsProps,
+  ISharedRenderlessParamHooks,
+  ITabsRenderlessParamUtils,
+  ITabsRenderlessParams
+} from '@/types'
 import {
   calcMorePanes,
   calcExpandPanes,
@@ -39,7 +47,7 @@ export const api = [
   'getNavRefs'
 ]
 
-const initState = ({ reactive, props }) =>
+const initState = ({ reactive, props }: Pick<ITabsRenderlessParams, 'reactive' | 'props'>): ITabsState =>
   reactive({
     panes: [],
     currentName: props.modelValue || props.activeName,
@@ -52,10 +60,19 @@ const initState = ({ reactive, props }) =>
     offsetX: 0,
     offsetY: 0,
     direction: '',
-    expandPanesWidth: ''
-  })
+    expandPanesWidth: '',
+    activeIndex: 1,
+    separator: props.separator
+  }) as ITabsState
 
-const initWatcher = ({ watch, props, api, state, nextTick, refs }) => {
+const initWatcher = ({
+  watch,
+  props,
+  api,
+  state,
+  nextTick,
+  refs
+}: Pick<ITabsRenderlessParams, 'watch' | 'props' | 'api' | 'state' | 'nextTick' | 'refs'>) => {
   watch(() => props.modelValue, api.setCurrentName)
 
   watch(() => props.activeName, api.setCurrentName)
@@ -83,20 +100,20 @@ const initWatcher = ({ watch, props, api, state, nextTick, refs }) => {
 }
 
 export const renderless = (
-  props,
-  { onMounted, onUpdated, provide, reactive, watch },
-  { refs, parent, emit, constants, nextTick, childrenHandler }
-) => {
-  const api = {}
-  const state = initState({ reactive, props })
+  props: ITabsProps,
+  { onMounted, onUpdated, provide, reactive, watch }: ISharedRenderlessParamHooks,
+  { refs, parent, emit, constants, nextTick, childrenHandler }: ITabsRenderlessParamUtils
+): ITabsApi => {
+  const api = {} as ITabsApi
+  const state: ITabsState = initState({ reactive, props })
 
   Object.assign(api, {
     state,
     handleTabAdd: handleTabAdd(emit),
-    handleTabRemove: handleTabRemove(emit),
+    handleTabRemove: handleTabRemove({ emit, props }),
     changeDirection: changeDirection({ props, state }),
     changeCurrentName: changeCurrentName({ emit, state }),
-    calcMorePanes: calcMorePanes({ parent, props, state, refs, nextTick }),
+    calcMorePanes: calcMorePanes({ parent, props, state, refs }),
     calcExpandPanes: calcExpandPanes({ parent, props, state }),
     calcPaneInstances: calcPaneInstances({ constants, parent, state, childrenHandler }),
     handleTabDragStart: handleTabDragStart({ emit }),
@@ -110,6 +127,8 @@ export const renderless = (
   api.created()
 
   provide('rootTabs', parent)
+
+  provide('separator', state.separator)
 
   initWatcher({ watch, props, api, state, nextTick, refs })
 

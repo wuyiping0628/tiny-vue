@@ -27,6 +27,7 @@ import {
   computedErrorTypeTips,
   computedFileName,
   computedFileStatus,
+  computedFileWords,
   computedFileSize,
   computedLimitSizeTips,
   computedLimitTypeTips,
@@ -35,7 +36,6 @@ import {
   closeErrorTips,
   watchUploaFileType,
   watchMaxUploadFileSize,
-  watchFilters,
   watchAccept,
   computedUploadButtonText,
   computedUploadsButtonText,
@@ -52,6 +52,7 @@ import {
   fileUploadChange,
   deleteFile
 } from './index'
+import { formatFileSize } from '../common/string'
 
 export const api = [
   'state',
@@ -68,6 +69,7 @@ export const api = [
   'showDialog',
   'closeDialog',
   'fileUploadChange',
+  'formatFileSize',
   'deleteFile'
 ]
 
@@ -80,7 +82,6 @@ const initState = ({ reactive, props, computed, api }) =>
     isShowDialog: false,
     accept: props.accept,
     action: props.action,
-    filters: props.filters,
     headers: props.headers,
     disabled: props.disabled,
     multiple: props.multiple,
@@ -91,6 +92,8 @@ const initState = ({ reactive, props, computed, api }) =>
     fileSize: computed(() => api.computedFileSize()),
     fileName: computed(() => api.computedFileName()),
     fileStatus: computed(() => api.computedFileStatus()),
+    // tiny新增
+    fileWords: computed(() => api.computedFileWords()),
     cancelButtonText: computed(() => api.computedCancel()),
     submitButtonText: computed(() => api.computedconfirm()),
     errorNumTips: computed(() => api.computedErrorNumTips()),
@@ -110,6 +113,7 @@ const initState = ({ reactive, props, computed, api }) =>
 const initApi = ({ api, state, refs, emit, props, constants, t }) => {
   Object.assign(api, {
     state,
+    formatFileSize,
     abort: abort(refs),
     showDialog: showDialog(state),
     watchLimit: watchLimit(state),
@@ -118,7 +122,6 @@ const initApi = ({ api, state, refs, emit, props, constants, t }) => {
     watchAccept: watchAccept(state),
     progressEvent: progressEvent(emit),
     watchHeaders: watchHeaders(state),
-    watchFilters: watchFilters(state),
     watchMultiple: watchMultiple(state),
     watchDisabled: watchDisabled(state),
     closeErrorTips: closeErrorTips(state),
@@ -135,6 +138,7 @@ const initApi = ({ api, state, refs, emit, props, constants, t }) => {
     computedFileSize: computedFileSize({ constants, t }),
     computedCancel: computedCancel({ constants, props, t }),
     computedFileStatus: computedFileStatus({ constants, t }),
+    computedFileWords: computedFileWords({ t }),
     computedconfirm: computedconfirm({ constants, props, t }),
     computedUploadError: computedUploadError({ constants, t }),
     computedErrorNumTips: computedErrorNumTips({ constants, t }),
@@ -169,8 +173,6 @@ const initWatch = ({ watch, props, api }) => {
   watch(() => props.action, api.watchAction, { immediate: true })
 
   watch(() => props.headers, api.watchHeaders, { immediate: true })
-
-  watch(() => props.filters, api.watchFilters, { immediate: true })
 
   watch(() => props.limit, api.watchLimit, { immediate: true })
 }

@@ -17,7 +17,8 @@ export const $constants = {
     success: 'icon-success',
     error: 'icon-error',
     info: 'icon-help',
-    warning: 'icon-warning'
+    warning: 'icon-warning-triangle',
+    simple: 'icon-help'
   },
   TITLE_MAP: {
     success: 'ui.alert.success',
@@ -37,7 +38,7 @@ export const alertProps = {
   icon: [String, Object],
   type: {
     type: String,
-    default: 'success'
+    default: 'info'
   },
   size: {
     type: String,
@@ -74,6 +75,19 @@ export const alertProps = {
   showFoldable: {
     type: Boolean,
     default: false
+  },
+  customClass: [String, Object, Array],
+  offset: {
+    type: [Number, String],
+    default: 0
+  },
+  autoHide: {
+    type: Boolean,
+    default: false
+  },
+  target: {
+    type: String,
+    default: ''
   }
 }
 

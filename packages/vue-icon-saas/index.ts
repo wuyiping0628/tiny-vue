@@ -13,6 +13,7 @@
 import IconPromptExclamation from './src/prompt-exclamation'
 import IconAdd from './src/add'
 import IconAdministrator from './src/administrator'
+import IconAgendaView from './src/agenda-view'
 import IconAlignBaseline from './src/align-baseline'
 import IconAlignCenter from './src/align-center'
 import IconAlignFlexCenter from './src/align-flex-center'
@@ -22,6 +23,8 @@ import IconAlignJustify from './src/align-justify'
 import IconAlignLeft from './src/align-left'
 import IconAlignRight from './src/align-right'
 import IconAlignStretch from './src/align-stretch'
+import IconAngleLeft from './src/angle-left'
+import IconAngleRight from './src/angle-right'
 import IconAngularjs from './src/angularjs'
 import IconApp from './src/app'
 import IconApplication from './src/application'
@@ -61,18 +64,24 @@ import IconCode from './src/code'
 import IconCoin from './src/coin'
 import IconColReverse from './src/col-reverse'
 import IconCommission from './src/commission'
+import IconConfig from './src/config'
 import IconConmentRefresh from './src/conment-refresh'
 import IconCopySolid from './src/copy-solid'
 import IconCopy from './src/copy'
 import IconCourse from './src/course'
+import IconCreating from './src/creating'
 import IconCueL from './src/cue-l'
+import IconCueLO from './src/cue-l-o'
 import IconCustom from './src/custom'
 import IconCustomerService from './src/customer-service'
 import IconCrop from './src/crop'
 import IconDataSource from './src/data-source'
+import IconDayView from './src/day-view'
 import IconDefault from './src/default'
 import IconDefinedFiltration from './src/defined-filtration'
 import IconDel from './src/del'
+import IconDelete from './src/delete'
+import IconDeleteL from './src/delete-l'
 import IconDeletePage from './src/delete-page'
 import IconDeleted from './src/deleted'
 import IconDeltaDownO from './src/delta-down-o'
@@ -102,6 +111,7 @@ import IconDownloadLink from './src/download-link'
 import IconDownload from './src/download'
 import IconDraft from './src/draft'
 import IconEdit from './src/edit'
+import IconEditor from './src/editor'
 import IconEditorTab from './src/editor-tab'
 import IconEllipsis from './src/ellipsis'
 import IconEmailAdd from './src/email-add'
@@ -150,9 +160,12 @@ import IconFile from './src/file'
 import IconFilesCircle from './src/files-circle'
 import IconFiles from './src/files'
 import IconFiletext from './src/filetext'
+import IconFilletExternalLink from './src/fillet-external-link'
 import IconFileupload from './src/fileupload'
+import IconFilter from './src/filter'
 import IconFiltered from './src/filtered'
 import IconFlag from './src/flag'
+import IconFolder from './src/folder'
 import IconFolderClosed from './src/folder-closed'
 import IconFolderOpened from './src/folder-opened'
 import IconFontColor from './src/font-color'
@@ -160,12 +173,14 @@ import IconFontFamily from './src/font-family'
 import IconFontSize from './src/font-size'
 import IconFontStyle from './src/font-style'
 import IconFontWeight from './src/font-weight'
+import IconFreeze from './src/freeze'
 import IconFreezeLeft from './src/freeze-left'
 import IconFreezeRight from './src/freeze-right'
 import IconFrownO from './src/frown-o'
 import IconFrown from './src/frown'
 import IconFullscreen from './src/fullscreen'
 import IconFullscreenLeft from './src/fullscreen-left'
+import IconGoBack from './src/go-back'
 import IconGrade from './src/grade'
 import IconGroupTransfer from './src/group-transfer'
 import IconGroup from './src/group'
@@ -181,6 +196,7 @@ import IconHideLeft from './src/hide-left'
 import IconHideRight from './src/hide-right'
 import IconHideTopleft from './src/hide-topleft'
 import IconImport from './src/import'
+import IconImageError from './src/image-error'
 import IconInfoCircle from './src/info-circle'
 import IconInfoSolid from './src/info-solid'
 import IconInfo from './src/info'
@@ -217,6 +233,7 @@ import IconMinusSquare from './src/minus-square'
 import IconMinus from './src/minus'
 import IconMobileView from './src/mobile-view'
 import IconMobile from './src/mobile'
+import IconMonthView from './src/month-view'
 import IconMore from './src/more'
 import IconNew from './src/new'
 import IconNoPremission from './src/no-premission'
@@ -227,6 +244,7 @@ import IconNone from './src/none'
 import IconOffLine from './src/off-line'
 import IconOnLine from './src/on-line'
 import IconOperationfaildL from './src/operationfaild-l'
+import IconOperation from './src/operation'
 import IconOperationfaild from './src/operationfaild'
 import IconOuterLink from './src/outer-link'
 import IconPagelink from './src/pagelink'
@@ -253,6 +271,7 @@ import IconRadioselected from './src/radioselected'
 import IconReactjs from './src/reactjs'
 import IconRedo from './src/redo'
 import IconRefres from './src/refres'
+import IconRefresh from './src/refresh'
 import IconRenew from './src/renew'
 import IconRepeat from './src/repeat'
 import IconReplace from './src/replace'
@@ -262,6 +281,52 @@ import IconRightO from './src/right-o'
 import IconRight from './src/right'
 import IconRightward from './src/rightward'
 import IconRowReverse from './src/row-reverse'
+import IconRichTextAddColumnAfter from './src/rich-text-add-column-after'
+import IconRichTextAddColumnBefore from './src/rich-text-add-column-before'
+import IconRichTextAddRowAfter from './src/rich-text-add-row-after'
+import IconRichTextAddRowBefore from './src/rich-text-add-row-before'
+import IconRichTextAlignCenter from './src/rich-text-align-center'
+import IconRichTextAlignLeft from './src/rich-text-align-left'
+import IconRichTextAlignRight from './src/rich-text-align-right'
+import IconRichTextBold from './src/rich-text-bold'
+import IconRichTextCodeBlock from './src/rich-text-code-block'
+import IconRichTextCodeView from './src/rich-text-code-view'
+import IconRichTextColor from './src/rich-text-color'
+import IconRichTextDeleteColumn from './src/rich-text-delete-column'
+import IconRichTextDeleteRow from './src/rich-text-delete-row'
+import IconRichTextDeleteTable from './src/rich-text-delete-table'
+import IconRichTextFontSize from './src/rich-text-font-size'
+import IconRichTextFormatClear from './src/rich-text-format-clear'
+import IconRichTextH1 from './src/rich-text-h1'
+import IconRichTextH2 from './src/rich-text-h2'
+import IconRichTextH3 from './src/rich-text-h3'
+import IconRichTextH4 from './src/rich-text-h4'
+import IconRichTextH5 from './src/rich-text-h5'
+import IconRichTextH6 from './src/rich-text-h6'
+import IconRichTextHeading from './src/rich-text-heading'
+import IconRichTextHighLight from './src/rich-text-high-light'
+import IconRichTextItalic from './src/rich-text-italic'
+import IconRichTextImage from './src/rich-text-image'
+import IconRichTextLineHeight from './src/rich-text-line-height'
+import IconRichTextLink from './src/rich-text-link'
+import IconRichTextLinkUnlink from './src/rich-text-link-unlink'
+import IconRichTextListOrdered from './src/rich-text-list-ordered'
+import IconRichTextListUnordered from './src/rich-text-list-unordered'
+import IconRichTextMergeCells from './src/rich-text-merge-cells'
+import IconRichTextMergeCellsVertical from './src/rich-text-merge-cells-vertical'
+import IconRichTextNodeDelete from './src/rich-text-node-delete'
+import IconRichTextParagraph from './src/rich-text-paragraph'
+import IconRichTextQuoteText from './src/rich-text-quote-text'
+import IconRichTextRedo from './src/rich-text-redo'
+import IconRichTextSplitCellsHorizontal from './src/rich-text-split-cells-horizontal'
+import IconRichTextSplitCellsVertical from './src/rich-text-split-cells-vertical'
+import IconRichTextStrikeThrough from './src/rich-text-strike-through'
+import IconRichTextSubscript from './src/rich-text-subscript'
+import IconRichTextSuperscript from './src/rich-text-superscript'
+import IconRichTextTable from './src/rich-text-table'
+import IconRichTextTaskList from './src/rich-text-task-list'
+import IconRichTextUnderline from './src/rich-text-underline'
+import IconRichTextUndo from './src/rich-text-undo'
 import IconSandwichCollapse from './src/sandwich-collapse'
 import IconSandwichExpand from './src/sandwich-expand'
 import IconSave from './src/save'
@@ -276,6 +341,7 @@ import IconShareArrow from './src/share-arrow'
 import IconShoppingCard from './src/shopping-card'
 import IconSmileO from './src/smile-o'
 import IconSmile from './src/smile'
+import IconSoldOut from './src/sold-out'
 import IconSortDefault from './src/sort-default'
 import IconSort from './src/sort'
 import IconStarActive from './src/star-active'
@@ -284,6 +350,7 @@ import IconStarO from './src/star-o'
 import IconStartCircle from './src/start-circle'
 import IconStart from './src/start'
 import IconStatistics from './src/statistics'
+import IconStepsError from './src/steps-error'
 import IconStop from './src/stop'
 import IconStreamSolid from './src/stream-solid'
 import IconSuccess from './src/success'
@@ -327,6 +394,8 @@ import IconMobileRadioSelected from './src/mobile-radio-selected'
 import IconMobileCheckbox from './src/mobile-checkbox'
 import IconMobileCheckboxHalf from './src/mobile-checkbox-half'
 import IconMobileCheckboxSelected from './src/mobile-checkbox-selected'
+import IconMobileErrorWhite from './src/mobile-error-white'
+import IconMobileSuccessWhite from './src/mobile-success-white'
 import IconAudio from './src/audio'
 import IconMic from './src/mic'
 import IconExcelType from './src/excel-type'
@@ -339,12 +408,15 @@ import IconTextType from './src/text-type'
 import IconVideoType from './src/video-type'
 import IconWordType from './src/word-type'
 import IconZipType from './src/zip-type'
+import IconSubScript from './src/sub-script'
 
 // new design
 import IconPrompt from './src/prompt'
 import IconExpand from './src/expand'
 import IconPutAway from './src/put-away'
 import IconStretch from './src/stretch'
+import IconStretchCrosswise from './src/stretch-crosswise'
+import IconStretchUpright from './src/stretch-upright'
 import IconAddCircle from './src/add-circle'
 import IconUpWard from './src/up-ward'
 import IconDownWard from './src/down-ward'
@@ -353,8 +425,207 @@ import IconSortTriangle from './src/sort-triangle'
 import IconSortTriangleAscending from './src/sort-triangle-ascending'
 import IconSortTriangleDescending from './src/sort-triangle-descending'
 
+import IconFinish from './src/finish'
+import IconWarn from './src/warn'
+import IconAddPicture from './src/add-picture'
+
+// sync aui icons
+import IconAdministratorO from './src/administrator-o'
+import IconAudit from './src/audit'
+import IconBatchFill from './src/batch-fill'
+import IconCardMode from './src/card-mode'
+import IconDone from './src/done'
+import IconDoneMini from './src/done-mini'
+import IconEarthLined from './src/earth-lined'
+import IconEditorEraserFilled from './src/editor-eraser-filled'
+import IconExceptionO from './src/exception-o'
+import IconExceptionMiniO from './src/exception-mini-o'
+import IconExecutionPhase from './src/execution-phase'
+import IconFileuploadPro from './src/fileupload-pro'
+import IconHistoryRecord from './src/history-record'
+import IconImageAdd from './src/image-add'
+import IconListMode from './src/list-mode'
+import IconMaterial from './src/material'
+import IconMilestone from './src/milestone'
+import IconMinscreenRight from './src/minscreen-right'
+import IconNoData from './src/no-data'
+import IconNoNews from './src/no-news'
+import IconNoPerm from './src/no-perm'
+import IconNoResult from './src/no-result'
+import IconNotStarted from './src/not-started'
+import IconNotStartedMini from './src/not-started-mini'
+import IconOnGoing from './src/on-going'
+import IconOnGoingMini from './src/on-going-mini'
+import IconPageNoperm from './src/page-noperm'
+import IconPageNothing from './src/page-nothing'
+import IconPageServererror from './src/page-servererror'
+import IconPageWeaknet from './src/page-weaknet'
+import IconPublicHome from './src/public-home'
+import IconPublicNotice from './src/public-notice'
+import IconPublish from './src/publish'
+import IconScan from './src/scan'
+import IconSearchResource from './src/search-resource'
+import IconSettingData from './src/setting-data'
+import IconSortO from './src/sort-o'
+import IconSplit from './src/split'
+import IconSplitLeft from './src/split-left'
+import IconSplitRight from './src/split-right'
+import IconTableMode from './src/table-mode'
+import IconTransform from './src/transform'
+import IconUpgrading from './src/upgrading'
+import IconWeaknet from './src/weaknet'
+import IconWorkPackage from './src/work-package'
+import IconActivation from './src/activation'
+import IconGenerating from './src/generating'
+import IconProcessing from './src/processing'
+import IconReportSubmission from './src/report-submission'
+import IconStartO from './src/start-o'
+import IconTeams from './src/teams'
+import IconTurnOn from './src/turn-on'
+import IconWarningO from './src/warning-o'
+import IconAutomaticAssessment from './src/automatic-assessment'
+import IconAverageShippingPeriod from './src/average-shipping-period'
+import IconCustomsClearanceForm from './src/customs-clearance-form'
+import IconCustomsDeclaration from './src/customs-declaration'
+import IconDisallowance from './src/disallowance'
+import IconDiscountSup from './src/discount-sup'
+import IconDocument from './src/document'
+import IconDrawFlowchart from './src/draw-flowchart'
+import IconEngineWorkflow from './src/engine-workflow'
+import IconFinishO from './src/finish-o'
+import IconLocation from './src/location'
+import IconLocationNumber from './src/location-number'
+import IconMainFreightSettled from './src/main-freight-settled'
+import IconMainFreightToBeSettled from './src/main-freight-to-be-settled'
+import IconMaintainInspectionRecords from './src/maintain-inspection-records'
+import IconItemPlanningProperties from './src/item-planning-properties'
+import IconMsg from './src/msg'
+import IconOfd from './src/ofd'
+import IconPendingReview from './src/pending-review'
+import IconProcessPlanRequirements from './src/process-plan-requirements'
+import IconPurchasePlannedOrder from './src/purchase-planned-order'
+import IconRequirementsPlanning from './src/requirements-planning'
+import IconShipped from './src/shipped'
+import IconSubstituteMaterial from './src/substitute-material'
+import IconSurchargeSettled from './src/surcharge-settled'
+import IconSurchargeToBeSettled from './src/surcharge-to-be-settled'
+import IconToBeUploaded from './src/to-be-uploaded'
+import IconTotalNolume from './src/total-nolume'
+import IconTotalNumber from './src/total-number'
+import IconTotalWeight from './src/total-weight'
+import IconUnderReview from './src/under-review'
+import IconUnsubmitted from './src/unsubmitted'
+import IconViewFlowchart from './src/view-flowchart'
+import IconWaitForDeliveryO from './src/wait-for-delivery-o'
+import IconWaitForDelivery from './src/wait-for-delivery'
+import IconWaitingForReceipt from './src/waiting-for-receipt'
+import IconWaitingForSubmission from './src/waiting-for-submission'
+import IconWaitingToPick from './src/waiting-to-pick'
+import IconWriteProductioPlan from './src/write-production-plan'
+import IconXml from './src/xml'
+
 export {
+  IconActivation,
+  IconActivation as iconActivation,
+  IconGenerating,
+  IconGenerating as iconGenerating,
+  IconProcessing,
+  IconProcessing as iconProcessing,
+  IconReportSubmission,
+  IconReportSubmission as iconReportSubmission,
+  IconStartO,
+  IconStartO as iconStartO,
+  IconTeams,
+  IconTeams as iconTeams,
+  IconTurnOn,
+  IconTurnOn as iconTurnOn,
+  IconWarningO,
+  IconWarningO as iconWarningO,
+  IconAutomaticAssessment,
+  IconAutomaticAssessment as iconAutomaticAssessment,
+  IconAverageShippingPeriod,
+  IconAverageShippingPeriod as iconAverageShippingPeriod,
+  IconCustomsClearanceForm,
+  IconCustomsClearanceForm as iconCustomsClearanceForm,
+  IconCustomsDeclaration,
+  IconCustomsDeclaration as iconCustomsDeclaration,
+  IconDisallowance,
+  IconDisallowance as iconDisallowance,
+  IconDiscountSup,
+  IconDiscountSup as iconDiscountSup,
+  IconDocument,
+  IconDocument as iconDocument,
+  IconDrawFlowchart,
+  IconDrawFlowchart as iconDrawFlowchart,
+  IconEngineWorkflow,
+  IconEngineWorkflow as iconEngineWorkflow,
+  IconFinishO,
+  IconFinishO as iconFinishO,
+  IconLocation,
+  IconLocation as iconLocation,
+  IconLocationNumber,
+  IconLocationNumber as iconLocationNumber,
+  IconMainFreightSettled,
+  IconMainFreightSettled as iconMainFreightSettled,
+  IconMainFreightToBeSettled,
+  IconMainFreightToBeSettled as iconMainFreightToBeSettled,
+  IconMaintainInspectionRecords,
+  IconMaintainInspectionRecords as iconMaintainInspectionRecords,
+  IconItemPlanningProperties,
+  IconItemPlanningProperties as iconItemPlanningProperties,
+  IconMsg,
+  IconMsg as iconMsg,
+  IconOfd,
+  IconOfd as iconOfd,
+  IconPendingReview,
+  IconPendingReview as iconPendingReview,
+  IconProcessPlanRequirements,
+  IconProcessPlanRequirements as iconProcessPlanRequirements,
+  IconPurchasePlannedOrder,
+  IconPurchasePlannedOrder as iconPurchasePlannedOrder,
+  IconRequirementsPlanning,
+  IconRequirementsPlanning as iconRequirementsPlanning,
+  IconShipped,
+  IconShipped as iconShipped,
+  IconSubstituteMaterial,
+  IconSubstituteMaterial as iconSubstituteMaterial,
+  IconSurchargeSettled,
+  IconSurchargeSettled as iconSurchargeSettled,
+  IconSurchargeToBeSettled,
+  IconSurchargeToBeSettled as iconSurchargeToBeSettled,
+  IconToBeUploaded,
+  IconToBeUploaded as iconToBeUploaded,
+  IconTotalNolume,
+  IconTotalNolume as iconTotalNolume,
+  IconTotalNumber,
+  IconTotalNumber as iconTotalNumber,
+  IconTotalWeight,
+  IconTotalWeight as iconTotalWeight,
+  IconUnderReview,
+  IconUnderReview as iconUnderReview,
+  IconUnsubmitted,
+  IconUnsubmitted as iconUnsubmitted,
+  IconViewFlowchart,
+  IconViewFlowchart as iconViewFlowchart,
+  IconWaitForDeliveryO,
+  IconWaitForDeliveryO as iconWaitForDeliveryO,
+  IconWaitForDelivery,
+  IconWaitForDelivery as iconWaitForDelivery,
+  IconWaitingForReceipt,
+  IconWaitingForReceipt as iconWaitingForReceipt,
+  IconWaitingForSubmission,
+  IconWaitingForSubmission as iconWaitingForSubmission,
+  IconWaitingToPick,
+  IconWaitingToPick as iconWaitingToPick,
+  IconWriteProductioPlan,
+  IconWriteProductioPlan as iconWriteProductioPlan,
+  IconXml,
+  IconXml as iconXml,
+  IconSubScript,
+  IconSubScript as iconSubScript,
   IconSortTriangle,
+  IconScan,
+  IconScan as iconScan,
   IconSortTriangle as iconSortTriangle,
   IconSortTriangleAscending,
   IconSortTriangleAscending as iconSortTriangleAscending,
@@ -370,6 +641,10 @@ export {
   IconPutAway as iconPutAway,
   IconStretch,
   IconStretch as iconStretch,
+  IconStretchCrosswise,
+  IconStretchCrosswise as iconStretchCrosswise,
+  IconStretchUpright,
+  IconStretchUpright as iconStretchUpright,
   IconAddCircle,
   IconAddCircle as iconAddCircle,
   IconAudio,
@@ -406,10 +681,16 @@ export {
   IconMobileRadio as iconMobileRadio,
   IconMobileRadioSelected,
   IconMobileRadioSelected as iconMobileRadioSelected,
+  IconMobileErrorWhite,
+  IconMobileErrorWhite as iconMobileErrorWhite,
+  IconMobileSuccessWhite,
+  IconMobileSuccessWhite as iconMobileSuccessWhite,
   IconAdd,
   IconAdd as iconAdd,
   IconAdministrator,
   IconAdministrator as iconAdministrator,
+  IconAgendaView,
+  IconAgendaView as iconAgendaView,
   IconAlignBaseline,
   IconAlignBaseline as iconAlignBaseline,
   IconAlignCenter,
@@ -428,6 +709,10 @@ export {
   IconAlignRight as iconAlignRight,
   IconAlignStretch,
   IconAlignStretch as iconAlignStretch,
+  IconAngleLeft,
+  IconAngleLeft as iconAngleLeft,
+  IconAngleRight,
+  IconAngleRight as iconAngleRight,
   IconAngularjs,
   IconAngularjs as iconAngularjs,
   IconApp,
@@ -506,6 +791,8 @@ export {
   IconColReverse as iconColReverse,
   IconCommission,
   IconCommission as iconCommission,
+  IconConfig,
+  IconConfig as iconConfig,
   IconConmentRefresh,
   IconConmentRefresh as iconConmentRefresh,
   IconCopySolid,
@@ -516,20 +803,30 @@ export {
   IconCrop as iconCrop,
   IconCourse,
   IconCourse as iconCourse,
+  IconCreating,
+  IconCreating as iconCreating,
   IconCueL,
   IconCueL as iconCueL,
+  IconCueLO,
+  IconCueLO as iconCueLO,
   IconCustom,
   IconCustom as iconCustom,
   IconCustomerService,
   IconCustomerService as iconCustomerService,
   IconDataSource,
   IconDataSource as iconDataSource,
+  IconDayView,
+  IconDayView as iconDayView,
   IconDefault,
   IconDefault as iconDefault,
   IconDefinedFiltration,
   IconDefinedFiltration as iconDefinedFiltration,
   IconDel,
   IconDel as iconDel,
+  IconDelete,
+  IconDelete as iconDelete,
+  IconDeleteL,
+  IconDeleteL as iconDeleteL,
   IconDeletePage,
   IconDeletePage as iconDeletePage,
   IconDeleted,
@@ -590,6 +887,8 @@ export {
   IconDraft as iconDraft,
   IconEdit,
   IconEdit as iconEdit,
+  IconEditor,
+  IconEditor as iconEditor,
   IconEditorTab,
   IconEditorTab as iconEditorTab,
   IconEllipsis,
@@ -676,6 +975,8 @@ export {
   IconEditorVideo as iconEditorVideo,
   IconFileCloudupload,
   IconFileCloudupload as iconFileCloudupload,
+  IconFilletExternalLink,
+  IconFilletExternalLink as iconFilletExternalLink,
   IconFileExcel,
   IconFileExcel as iconFileExcel,
   IconFile,
@@ -688,10 +989,14 @@ export {
   IconFiletext as iconFiletext,
   IconFileupload,
   IconFileupload as iconFileupload,
+  IconFilter,
+  IconFilter as iconFilter,
   IconFiltered,
   IconFiltered as iconFiltered,
   IconFlag,
   IconFlag as iconFlag,
+  IconFolder,
+  IconFolder as iconFolder,
   IconFolderClosed,
   IconFolderClosed as iconFolderClosed,
   IconFolderOpened,
@@ -706,6 +1011,8 @@ export {
   IconFontStyle as iconFontStyle,
   IconFontWeight,
   IconFontWeight as iconFontWeight,
+  IconFreeze,
+  IconFreeze as iconFreeze,
   IconFreezeLeft,
   IconFreezeLeft as iconFreezeLeft,
   IconFreezeRight,
@@ -720,6 +1027,8 @@ export {
   IconFullscreenLeft as iconFullscreenLeft,
   IconMinscreenLeft,
   IconMinscreenLeft as iconMinscreenLeft,
+  IconGoBack,
+  IconGoBack as iconGoBack,
   IconGrade,
   IconGrade as iconGrade,
   IconGroupTransfer,
@@ -750,6 +1059,8 @@ export {
   IconHideTopleft as iconHideTopleft,
   IconImport,
   IconImport as iconImport,
+  IconImageError,
+  IconImageError as iconImageError,
   IconInfoCircle,
   IconInfoCircle as iconInfoCircle,
   IconInfoSolid,
@@ -822,6 +1133,8 @@ export {
   IconMobileView as iconMobileView,
   IconMobile,
   IconMobile as iconMobile,
+  IconMonthView,
+  IconMonthView as iconMonthView,
   IconMore,
   IconMore as iconMore,
   IconNew,
@@ -842,6 +1155,8 @@ export {
   IconOnLine as iconOnLine,
   IconOperationfaildL,
   IconOperationfaildL as iconOperationfaildL,
+  IconOperation,
+  IconOperation as iconOperation,
   IconOperationfaild,
   IconOperationfaild as iconOperationfaild,
   IconOuterLink,
@@ -894,6 +1209,8 @@ export {
   IconRedo as iconRedo,
   IconRefres,
   IconRefres as iconRefres,
+  IconRefresh,
+  IconRefresh as iconRefresh,
   IconRenew,
   IconRenew as iconRenew,
   IconRepeat,
@@ -912,6 +1229,98 @@ export {
   IconRightward as iconRightward,
   IconRowReverse,
   IconRowReverse as iconRowReverse,
+  IconRichTextAddColumnAfter,
+  IconRichTextAddColumnAfter as iconRichTextAddColumnAfter,
+  IconRichTextAddColumnBefore,
+  IconRichTextAddColumnBefore as iconRichTextAddColumnBefore,
+  IconRichTextAddRowAfter,
+  IconRichTextAddRowAfter as iconRichTextAddRowAfter,
+  IconRichTextAddRowBefore,
+  IconRichTextAddRowBefore as iconRichTextAddRowBefore,
+  IconRichTextAlignCenter,
+  IconRichTextAlignCenter as iconRichTextAlignCenter,
+  IconRichTextAlignLeft,
+  IconRichTextAlignLeft as iconRichTextAlignLeft,
+  IconRichTextAlignRight,
+  IconRichTextAlignRight as iconRichTextAlignRight,
+  IconRichTextBold,
+  IconRichTextBold as iconRichTextBold,
+  IconRichTextCodeBlock,
+  IconRichTextCodeBlock as iconRichTextCodeBlock,
+  IconRichTextCodeView,
+  IconRichTextCodeView as iconRichTextCodeView,
+  IconRichTextColor,
+  IconRichTextColor as iconRichTextColor,
+  IconRichTextDeleteColumn,
+  IconRichTextDeleteColumn as iconRichTextDeleteColumn,
+  IconRichTextDeleteRow,
+  IconRichTextDeleteRow as iconRichTextDeleteRow,
+  IconRichTextDeleteTable,
+  IconRichTextDeleteTable as iconRichTextDeleteTable,
+  IconRichTextFontSize,
+  IconRichTextFontSize as iconRichTextFontSize,
+  IconRichTextFormatClear,
+  IconRichTextFormatClear as iconRichTextFormatClear,
+  IconRichTextH1,
+  IconRichTextH1 as iconRichTextH1,
+  IconRichTextH2,
+  IconRichTextH2 as iconRichTextH2,
+  IconRichTextH3,
+  IconRichTextH3 as iconRichTextH3,
+  IconRichTextH4,
+  IconRichTextH4 as iconRichTextH4,
+  IconRichTextH5,
+  IconRichTextH5 as iconRichTextH5,
+  IconRichTextH6,
+  IconRichTextH6 as iconRichTextH6,
+  IconRichTextHeading,
+  IconRichTextHeading as iconRichTextHeading,
+  IconRichTextHighLight,
+  IconRichTextHighLight as iconRichTextHighLight,
+  IconRichTextItalic,
+  IconRichTextItalic as iconRichTextItalic,
+  IconRichTextImage,
+  IconRichTextImage as iconRichTextImage,
+  IconRichTextLineHeight,
+  IconRichTextLineHeight as iconRichTextLineHeight,
+  IconRichTextLink,
+  IconRichTextLink as iconRichTextLink,
+  IconRichTextLinkUnlink,
+  IconRichTextLinkUnlink as iconRichTextLinkUnlink,
+  IconRichTextListOrdered,
+  IconRichTextListOrdered as iconRichTextListOrdered,
+  IconRichTextListUnordered,
+  IconRichTextListUnordered as iconRichTextListUnordered,
+  IconRichTextMergeCells,
+  IconRichTextMergeCells as iconRichTextMergeCells,
+  IconRichTextMergeCellsVertical,
+  IconRichTextMergeCellsVertical as iconRichTextMergeCellsVertical,
+  IconRichTextNodeDelete,
+  IconRichTextNodeDelete as iconRichTextNodeDelete,
+  IconRichTextParagraph,
+  IconRichTextParagraph as iconRichTextParagraph,
+  IconRichTextQuoteText,
+  IconRichTextQuoteText as iconRichTextQuoteText,
+  IconRichTextRedo,
+  IconRichTextRedo as iconRichTextRedo,
+  IconRichTextSplitCellsHorizontal,
+  IconRichTextSplitCellsHorizontal as iconRichTextSplitCellsHorizontal,
+  IconRichTextSplitCellsVertical,
+  IconRichTextSplitCellsVertical as iconRichTextSplitCellsVertical,
+  IconRichTextStrikeThrough,
+  IconRichTextStrikeThrough as iconRichTextStrikeThrough,
+  IconRichTextSubscript,
+  IconRichTextSubscript as iconRichTextSubscript,
+  IconRichTextSuperscript,
+  IconRichTextSuperscript as iconRichTextSuperscript,
+  IconRichTextTable,
+  IconRichTextTable as iconRichTextTable,
+  IconRichTextTaskList,
+  IconRichTextTaskList as iconRichTextTaskList,
+  IconRichTextUnderline,
+  IconRichTextUnderline as iconRichTextUnderline,
+  IconRichTextUndo,
+  IconRichTextUndo as iconRichTextUndo,
   IconSandwichCollapse,
   IconSandwichCollapse as iconSandwichCollapse,
   IconSandwichExpand,
@@ -940,6 +1349,8 @@ export {
   IconSmileO as iconSmileO,
   IconSmile,
   IconSmile as iconSmile,
+  IconSoldOut,
+  IconSoldOut as iconSoldOut,
   IconSortDefault,
   IconSortDefault as iconSortDefault,
   IconSort,
@@ -956,6 +1367,8 @@ export {
   IconStart as iconStart,
   IconStatistics,
   IconStatistics as iconStatistics,
+  IconStepsError,
+  IconStepsError as iconStepsError,
   IconStop,
   IconStop as iconStop,
   IconStreamSolid,
@@ -1033,17 +1446,166 @@ export {
   IconZoomIn,
   IconZoomIn as iconZoomIn,
   IconZoomOut,
-  IconZoomOut as iconZoomOut
+  IconZoomOut as iconZoomOut,
+  IconFinish,
+  IconFinish as iconFinish,
+  IconWarn,
+  IconWarn as iconWarn,
+  IconAddPicture,
+  IconAddPicture as iconAddPicture,
+
+  // sync aui icons
+  IconAdministratorO,
+  IconAdministratorO as iconAdministratorO,
+  IconAudit,
+  IconAudit as iconAudit,
+  IconBatchFill,
+  IconBatchFill as iconBatchFill,
+  IconCardMode,
+  IconCardMode as iconCardMode,
+  IconDone,
+  IconDone as iconDone,
+  IconDoneMini,
+  IconDoneMini as iconDoneMini,
+  IconEarthLined,
+  IconEarthLined as iconEarthLined,
+  IconEditorEraserFilled,
+  IconEditorEraserFilled as iconEditorEraserFilled,
+  IconExceptionO,
+  IconExceptionO as iconExceptionO,
+  IconExceptionMiniO,
+  IconExceptionMiniO as iconExceptionMiniO,
+  IconExecutionPhase,
+  IconExecutionPhase as iconExecutionPhase,
+  IconFileuploadPro,
+  IconFileuploadPro as iconFileuploadPro,
+  IconHistoryRecord,
+  IconHistoryRecord as iconHistoryRecord,
+  IconImageAdd,
+  IconImageAdd as iconImageAdd,
+  IconListMode,
+  IconListMode as iconListMode,
+  IconMaterial,
+  IconMaterial as iconMaterial,
+  IconMilestone,
+  IconMilestone as iconMilestone,
+  IconMinscreenRight,
+  IconMinscreenRight as iconMinscreenRight,
+  IconNoData,
+  IconNoData as iconNoData,
+  IconNoNews,
+  IconNoNews as iconNoNews,
+  IconNoPerm,
+  IconNoPerm as iconNoPerm,
+  IconNoResult,
+  IconNoResult as iconNoResult,
+  IconNotStarted,
+  IconNotStarted as iconNotStarted,
+  IconNotStartedMini,
+  IconNotStartedMini as iconNotStartedMini,
+  IconOnGoing,
+  IconOnGoing as iconOnGoing,
+  IconOnGoingMini,
+  IconOnGoingMini as iconOnGoingMini,
+  IconPageNoperm,
+  IconPageNoperm as iconPageNoperm,
+  IconPageNothing,
+  IconPageNothing as iconPageNothing,
+  IconPageServererror,
+  IconPageServererror as iconPageServererror,
+  IconPageWeaknet,
+  IconPageWeaknet as iconPageWeaknet,
+  IconPublicHome,
+  IconPublicHome as iconPublicHome,
+  IconPublicNotice,
+  IconPublicNotice as iconPublicNotice,
+  IconPublish,
+  IconPublish as iconPublish,
+  IconSearchResource,
+  IconSearchResource as iconSearchResource,
+  IconSettingData,
+  IconSettingData as iconSettingData,
+  IconSortO,
+  IconSortO as iconSortO,
+  IconSplit,
+  IconSplit as iconSplit,
+  IconSplitLeft,
+  IconSplitLeft as iconSplitLeft,
+  IconSplitRight,
+  IconSplitRight as iconSplitRight,
+  IconTableMode,
+  IconTableMode as iconTableMode,
+  IconTransform,
+  IconTransform as iconTransform,
+  IconUpgrading,
+  IconUpgrading as iconUpgrading,
+  IconWeaknet,
+  IconWeaknet as iconWeaknet,
+  IconWorkPackage,
+  IconWorkPackage as iconWorkPackage
 }
 
 export default {
+  IconActivation,
+  IconGenerating,
+  IconProcessing,
+  IconReportSubmission,
+  IconStartO,
+  IconTeams,
+  IconTurnOn,
+  IconWarningO,
+  IconAutomaticAssessment,
+  IconAverageShippingPeriod,
+  IconCustomsClearanceForm,
+  IconCustomsDeclaration,
+  IconDisallowance,
+  IconDiscountSup,
+  IconDocument,
+  IconDrawFlowchart,
+  IconEngineWorkflow,
+  IconFinishO,
+  IconLocation,
+  IconLocationNumber,
+  IconMainFreightSettled,
+  IconMainFreightToBeSettled,
+  IconMaintainInspectionRecords,
+  IconItemPlanningProperties,
+  IconMsg,
+  IconOfd,
+  IconPendingReview,
+  IconProcessPlanRequirements,
+  IconPurchasePlannedOrder,
+  IconRequirementsPlanning,
+  IconShipped,
+  IconSubstituteMaterial,
+  IconSurchargeSettled,
+  IconSurchargeToBeSettled,
+  IconToBeUploaded,
+  IconTotalNolume,
+  IconTotalNumber,
+  IconTotalWeight,
+  IconUnderReview,
+  IconUnsubmitted,
+  IconViewFlowchart,
+  IconWaitForDeliveryO,
+  IconWaitForDelivery,
+  IconWaitingForReceipt,
+  IconWaitingForSubmission,
+  IconWaitingToPick,
+  IconWriteProductioPlan,
+  IconXml,
+  IconScan,
+  IconSubScript,
   IconSortTriangle,
   IconSortTriangleAscending,
   IconSortTriangleDescending,
+  IconPromptExclamation,
   IconPrompt,
   IconExpand,
   IconPutAway,
   IconStretch,
+  IconStretchCrosswise,
+  IconStretchUpright,
   IconAddCircle,
   IconAudio,
   IconMic,
@@ -1062,6 +1624,8 @@ export default {
   IconMobileCheckboxSelected,
   IconMobileRadio,
   IconMobileRadioSelected,
+  IconMobileErrorWhite,
+  IconMobileSuccessWhite,
   IconAdd,
   IconAdministrator,
   IconAlignBaseline,
@@ -1073,6 +1637,8 @@ export default {
   IconAlignLeft,
   IconAlignRight,
   IconAlignStretch,
+  IconAngleLeft,
+  IconAngleRight,
   IconAngularjs,
   IconApp,
   IconApplication,
@@ -1112,18 +1678,23 @@ export default {
   IconCoin,
   IconColReverse,
   IconCommission,
+  IconConfig,
   IconConmentRefresh,
   IconCopySolid,
   IconCopy,
   IconCrop,
   IconCourse,
+  IconCreating,
   IconCueL,
+  IconCueLO,
   IconCustom,
   IconCustomerService,
   IconDataSource,
   IconDefault,
   IconDefinedFiltration,
   IconDel,
+  IconDelete,
+  IconDeleteL,
   IconDeletePage,
   IconDeleted,
   IconDeltaDownO,
@@ -1154,6 +1725,7 @@ export default {
   IconDownload,
   IconDraft,
   IconEdit,
+  IconEditor,
   IconEditorTab,
   IconEllipsis,
   IconEmailAdd,
@@ -1197,14 +1769,17 @@ export default {
   IconEditorUndo,
   IconEditorVideo,
   IconFileCloudupload,
+  IconFilletExternalLink,
   IconFileExcel,
   IconFile,
   IconFilesCircle,
   IconFiles,
   IconFiletext,
   IconFileupload,
+  IconFilter,
   IconFiltered,
   IconFlag,
+  IconFolder,
   IconFolderClosed,
   IconFolderOpened,
   IconFontColor,
@@ -1212,6 +1787,7 @@ export default {
   IconFontSize,
   IconFontStyle,
   IconFontWeight,
+  IconFreeze,
   IconFreezeLeft,
   IconFreezeRight,
   IconFrownO,
@@ -1219,6 +1795,7 @@ export default {
   IconFullscreen,
   IconFullscreenLeft,
   IconMinscreenLeft,
+  IconGoBack,
   IconGrade,
   IconGroupTransfer,
   IconGroup,
@@ -1234,6 +1811,7 @@ export default {
   IconHideRight,
   IconHideTopleft,
   IconImport,
+  IconImageError,
   IconInfoCircle,
   IconInfoSolid,
   IconInfo,
@@ -1280,6 +1858,7 @@ export default {
   IconOffLine,
   IconOnLine,
   IconOperationfaildL,
+  IconOperation,
   IconOperationfaild,
   IconOuterLink,
   IconPagelink,
@@ -1306,6 +1885,7 @@ export default {
   IconReactjs,
   IconRedo,
   IconRefres,
+  IconRefresh,
   IconRenew,
   IconRepeat,
   IconReplace,
@@ -1315,6 +1895,52 @@ export default {
   IconRight,
   IconRightward,
   IconRowReverse,
+  IconRichTextAddColumnAfter,
+  IconRichTextAddColumnBefore,
+  IconRichTextAddRowAfter,
+  IconRichTextAddRowBefore,
+  IconRichTextAlignCenter,
+  IconRichTextAlignLeft,
+  IconRichTextAlignRight,
+  IconRichTextBold,
+  IconRichTextCodeBlock,
+  IconRichTextCodeView,
+  IconRichTextColor,
+  IconRichTextDeleteColumn,
+  IconRichTextDeleteRow,
+  IconRichTextDeleteTable,
+  IconRichTextFontSize,
+  IconRichTextFormatClear,
+  IconRichTextH1,
+  IconRichTextH2,
+  IconRichTextH3,
+  IconRichTextH4,
+  IconRichTextH5,
+  IconRichTextH6,
+  IconRichTextHeading,
+  IconRichTextHighLight,
+  IconRichTextItalic,
+  IconRichTextImage,
+  IconRichTextLineHeight,
+  IconRichTextLink,
+  IconRichTextLinkUnlink,
+  IconRichTextListOrdered,
+  IconRichTextListUnordered,
+  IconRichTextMergeCells,
+  IconRichTextMergeCellsVertical,
+  IconRichTextNodeDelete,
+  IconRichTextParagraph,
+  IconRichTextQuoteText,
+  IconRichTextRedo,
+  IconRichTextSplitCellsHorizontal,
+  IconRichTextSplitCellsVertical,
+  IconRichTextStrikeThrough,
+  IconRichTextSubscript,
+  IconRichTextSuperscript,
+  IconRichTextTable,
+  IconRichTextTaskList,
+  IconRichTextUnderline,
+  IconRichTextUndo,
   IconSandwichCollapse,
   IconSandwichExpand,
   IconSave,
@@ -1329,6 +1955,7 @@ export default {
   IconShoppingCard,
   IconSmileO,
   IconSmile,
+  IconSoldOut,
   IconSortDefault,
   IconSort,
   IconStarActive,
@@ -1337,6 +1964,7 @@ export default {
   IconStartCircle,
   IconStart,
   IconStatistics,
+  IconStepsError,
   IconStop,
   IconStreamSolid,
   IconSuccess,
@@ -1375,5 +2003,53 @@ export default {
   IconWriting,
   IconYes,
   IconZoomIn,
-  IconZoomOut
+  IconZoomOut,
+  IconFinish,
+  IconWarn,
+  IconAddPicture,
+  // sync aui icons
+  IconAdministratorO,
+  IconAudit,
+  IconBatchFill,
+  IconCardMode,
+  IconDone,
+  IconDoneMini,
+  IconEarthLined,
+  IconEditorEraserFilled,
+  IconExceptionO,
+  IconExceptionMiniO,
+  IconExecutionPhase,
+  IconFileuploadPro,
+  IconHistoryRecord,
+  IconImageAdd,
+  IconListMode,
+  IconMaterial,
+  IconMilestone,
+  IconMinscreenRight,
+  IconNoData,
+  IconNoNews,
+  IconNoPerm,
+  IconNoResult,
+  IconNotStarted,
+  IconNotStartedMini,
+  IconOnGoing,
+  IconOnGoingMini,
+  IconPageNoperm,
+  IconPageNothing,
+  IconPageServererror,
+  IconPageWeaknet,
+  IconPublicHome,
+  IconPublicNotice,
+  IconPublish,
+  IconSearchResource,
+  IconSettingData,
+  IconSortO,
+  IconSplit,
+  IconSplitLeft,
+  IconSplitRight,
+  IconTableMode,
+  IconTransform,
+  IconUpgrading,
+  IconWeaknet,
+  IconWorkPackage
 }

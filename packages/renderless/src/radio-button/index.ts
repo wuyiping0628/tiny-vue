@@ -10,24 +10,32 @@
  *
  */
 
+import type { IRadioButtonRenderlessParams, IRadioGroupProps, IRadioButtonState } from '@/types'
+
 export const handleChange =
-  ({ constants, nextTick, dispatch, state }) =>
-  () => {
+  ({
+    constants,
+    nextTick,
+    dispatch,
+    state
+  }: Pick<IRadioButtonRenderlessParams, 'constants' | 'nextTick' | 'dispatch' | 'state'>) =>
+  (): void => {
     nextTick(() => {
       dispatch(constants.RADIO_GROUP, 'handleChange', [state.value])
     })
   }
 
-export const getValue = (state) => () => state.radioGroup.modelValue
+export const getValue = (state: IRadioButtonRenderlessParams['state']) => (): IRadioGroupProps['modelValue'] =>
+  state.radioGroup?.modelValue
 
 export const setValue =
-  ({ state }) =>
-  (val) =>
-    state.radioGroup.$emit('update:modelValue', val)
+  ({ state }: Pick<IRadioButtonRenderlessParams, 'state'>) =>
+  (val: IRadioGroupProps['modelValue']): void =>
+    state.radioGroup?.$emit('update:modelValue', val)
 
 export const getGroup =
-  ({ constants, parent: $parent }) =>
-  () => {
+  ({ constants, parent: $parent }: Pick<IRadioButtonRenderlessParams, 'constants' | 'parent'>) =>
+  (): IRadioButtonState['radioGroup'] | null => {
     let parent = $parent.$parent
 
     while (parent) {
@@ -38,20 +46,20 @@ export const getGroup =
       }
     }
 
-    return false
+    return null
   }
 
-export const getStyle = (state) => () => ({
-  backgroundColor: state.radioGroup.fill || '',
-  borderColor: state.radioGroup.fill || '',
-  boxShadow: state.radioGroup.fill ? `-1px 0 0 0 ${state.radioGroup.fill}` : '',
-  color: state.radioGroup.textColor || ''
+export const getStyle = (state: IRadioButtonRenderlessParams['state']) => () => ({
+  backgroundColor: state.radioGroup?.fill || '',
+  borderColor: state.radioGroup?.fill || '',
+  boxShadow: state.radioGroup?.fill ? `-1px 0 0 0 ${state.radioGroup.fill}` : '',
+  color: state.radioGroup?.textColor || ''
 })
 
 export const toggleEvents =
-  ({ refs, props }) =>
-  (isUnBind = false) => {
-    const radioEl = refs.radio
+  ({ vm, props }: Pick<IRadioButtonRenderlessParams, 'vm' | 'props'>) =>
+  (isUnBind = false): void => {
+    const radioEl = vm.$refs.radio
 
     Object.keys(props.events).forEach((ev) => {
       radioEl[(isUnBind ? 'remove' : 'add') + 'EventListener'](ev, props.events[ev])
@@ -59,11 +67,11 @@ export const toggleEvents =
   }
 
 export const keydownHandle =
-  ({ state, props }) =>
-  () => {
+  ({ state, props }: Pick<IRadioButtonRenderlessParams, 'state' | 'props'>) =>
+  (): void => {
     state.value = state.isDisabled ? state.value : props.label
   }
 
-export const handleFocus = (state) => () => (state.focus = true)
+export const handleFocus = (state: IRadioButtonRenderlessParams['state']) => (): boolean => (state.focus = true)
 
-export const handleBlur = (state) => () => (state.focus = false)
+export const handleBlur = (state: IRadioButtonRenderlessParams['state']) => (): boolean => (state.focus = false)

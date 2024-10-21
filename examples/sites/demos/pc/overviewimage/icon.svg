@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="125px" height="125px" viewBox="0 0 125 125" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icon 图标</title>
+    <defs>
+        <linearGradient x1="44.0988019%" y1="86.8386573%" x2="128.792906%" y2="-43.8247114%" id="linearGradient-1">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="44.0988019%" y1="81.3891518%" x2="128.792906%" y2="-29.9453163%" id="linearGradient-2">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="44.0988019%" y1="81.3891518%" x2="128.792906%" y2="-29.9453163%" id="linearGradient-3">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="44.0988019%" y1="57.3728338%" x2="128.792906%" y2="31.2220626%" id="linearGradient-4">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="组件总览" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="-TinyUI-Vue-组件总览3" transform="translate(-696.000000, -2809.000000)">
+            <g id="编组-17备份-20" transform="translate(598.000000, 2776.000000)">
+                <g id="Icon-图标" transform="translate(98.000000, 33.000000)">
+                    <g id="编组"></g>
+                    <rect id="矩形备份-7" fill="url(#linearGradient-1)" opacity="0.303770519" x="37" y="39" width="52" height="52" rx="4"></rect>
+                    <path d="M64.1511387,53.4367043 L67.7141884,60.423973 C67.8429733,60.6319274 68.0576149,60.798291 68.3151847,60.8398819 L76.256922,61.9628358 C76.9008467,62.0460175 77.1584166,62.8362444 76.6862051,63.2521533 L70.9338116,68.6589684 C70.7620984,68.8253319 70.6762418,69.0748772 70.7191701,69.3244226 L72.092876,76.9771455 C72.2216609,77.6010088 71.534808,78.0585085 70.9767399,77.7673723 L63.8935688,74.1489653 C63.6789273,74.0241926 63.3784291,74.0241926 63.1637875,74.1489653 L56.0806164,77.7673723 C55.5225484,78.0585085 54.8356954,77.6010088 54.9644804,76.9771455 L56.2094014,69.3244226 C56.2523297,69.0748772 56.1664731,68.825332 55.9947598,68.6589684 L50.2423663,63.2521533 C49.7701549,62.7946535 50.0277248,62.0460175 50.6716494,61.9628358 L58.6133867,60.8398819 C58.8709566,60.798291 59.0855981,60.6319275 59.214383,60.423973 L62.7345044,53.4367043 C63.0350026,52.8544319 63.8506405,52.8544319 64.1511387,53.4367043 Z" id="路径" stroke="url(#linearGradient-3)" fill="url(#linearGradient-2)"></path>
+                    <rect id="矩形" fill="url(#linearGradient-4)" x="23" y="33" width="38" height="17" rx="2"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

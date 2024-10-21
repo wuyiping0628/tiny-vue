@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="125px" height="125px" viewBox="0 0 125 125" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Badge 标记</title>
+    <defs>
+        <linearGradient x1="44.0988019%" y1="50.5523497%" x2="128.792906%" y2="48.5932155%" id="linearGradient-1">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="44.0988019%" y1="51.3380666%" x2="128.792906%" y2="46.5920661%" id="linearGradient-2">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+        <circle id="path-3" cx="15.5" cy="15.5" r="15.5"></circle>
+        <filter x="-12.9%" y="-6.5%" width="125.8%" height="125.8%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.368627451   0 0 0 0 0.48627451   0 0 0 0 0.878431373  0 0 0 0.349865467 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="Tiny-Vue" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="-TinyUI-Vue-组件总览1" transform="translate(-1478.000000, -2034.000000)">
+            <g id="组件" transform="translate(596.000000, 311.000000)">
+                <g id="编组-14备份-8" transform="translate(784.000000, 1690.000000)">
+                    <g id="Badge-标记" transform="translate(98.000000, 33.000000)">
+                        <g id="编组"></g>
+                        <g id="编组-22" transform="translate(26.000000, 33.000000)">
+                            <g id="编组-15" transform="translate(0.000000, 13.000000)">
+                                <path d="M4,0 L15.7174137,0 L15.7174137,0 L69,0 C71.209139,-4.05812251e-16 73,1.790861 73,4 L73,38 C73,40.209139 71.209139,42 69,42 L4,42 C1.790861,42 2.705415e-16,40.209139 0,38 L0,4 C-2.705415e-16,1.790861 1.790861,4.05812251e-16 4,0 Z" id="矩形" fill="#C8D4F8"></path>
+                                <rect id="矩形备份-6" fill="url(#linearGradient-1)" opacity="0.204287574" x="11" y="26" width="49" height="6" rx="3"></rect>
+                                <rect id="矩形备份-21" fill="url(#linearGradient-2)" opacity="0.604724702" x="11" y="12" width="31.4821429" height="6" rx="3"></rect>
+                            </g>
+                            <g id="编组-16" transform="translate(48.000000, 0.000000)">
+                                <g id="椭圆形">
+                                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                                    <use fill="#5073E5" fill-rule="evenodd" xlink:href="#path-3"></use>
+                                </g>
+                                <text id="9" font-family="PingFangSC-Semibold, PingFang SC" font-size="22" font-weight="500" letter-spacing="1.04761905" fill="#FFFFFF">
+                                    <tspan x="8.87619048" y="23">9</tspan>
+                                </text>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -8,20 +8,22 @@
     :class="
       m(
         gcls('button'),
+        gcls(banner ? 'button-banner' : 'button-base-width'),
         gcls(`size-${size || 'default'}`),
         gcls(
-          `type-${type || 'default'}${icon ? '-icon' : state.plain ? '-plain' : ''}
-          ${state.buttonDisabled ? '-disabled' : ''}`
+          `type-${type || 'default'}${icon ? '-icon' : state.plain ? '-plain' : ''}${
+            state.buttonDisabled ? '-disabled' : ''
+          }`
         ),
         gcls(round ? 'is-round' : 'no-round'),
         gcls(circle ? 'is-circle' : 'no-circle'),
         gcls({ 'is-border': circle || !(type === 'text' || icon) }),
         gcls({ 'button-link': href }),
-        buttonClass
+        customClass
       )
     "
     :tabindex="tabindex"
-    v-bind="a($attrs, ['class', 'style'], true)"
+    v-bind="a($attrs, ['class', 'style', 'id'], true)"
   >
     <icon-loading v-if="loading" :class="gcls('loading-svg')" />
     <component
@@ -42,7 +44,6 @@ import { iconLoading } from '@opentiny/vue-icon'
 import { classes } from './token'
 
 export default defineComponent({
-  inheritAttrs: false,
   emits: ['click'],
   props: [
     ...props,
@@ -60,7 +61,8 @@ export default defineComponent({
     'circle',
     'tabindex',
     'href',
-    'buttonClass'
+    'customClass',
+    'banner'
   ],
   components: { IconLoading: iconLoading() },
   setup(props, context): any {

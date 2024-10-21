@@ -11,10 +11,13 @@
  -->
 
 <script lang="tsx">
-import { $prefix, setup, h, defineComponent, props } from '@opentiny/vue-common' // 此处引入 h 是为了防止打包后 h 被重命名导致组件报错的问题
+import { $prefix, setup, h, defineComponent, props } from '@opentiny/vue-common'
+
+// 此处引入 h 是为了防止打包后 h 被重命名导致组件报错的问题
 import { renderless, api } from '@opentiny/vue-renderless/upload/vue'
 import UploadDragger from '@opentiny/vue-upload-dragger'
 import Modal from '@opentiny/vue-modal'
+import type { IUploadApi } from '@opentiny/vue-renderless/types/upload.type'
 
 export default defineComponent({
   inheritAttrs: false,
@@ -25,6 +28,7 @@ export default defineComponent({
     'action',
     'autoUpload',
     'beforeUpload',
+    'pasteUpload',
     'data',
     'disabled',
     'drag',
@@ -55,10 +59,9 @@ export default defineComponent({
       context,
       renderless,
       api,
-      mono: true,
       h,
       extendOptions: { Modal }
-    })
+    }) as unknown as IUploadApi
   },
   render() {
     let {
@@ -67,6 +70,7 @@ export default defineComponent({
       drag,
       handleChange,
       handleClick,
+      handlePaste,
       handleKeydown,
       isFolder,
       listType,
@@ -80,33 +84,42 @@ export default defineComponent({
     } = this
 
     const defaultSlot = (this.slots.default && this.slots.default()) || []
+    const operateSlot = this.slots.operate && this.slots.operate()
+    const tipSlot = this.slots.tip && this.slots.tip()
 
     const hidden = isHidden && fileList.length >= limit
 
     return (
-      <div
-        class={['tiny-upload', `tiny-upload--${listType}`, disabled ? 'is-disabled' : '', hidden ? 'is-hidden' : '']}
-        onClick={($event) => handleClick($event, type)}
-        onKeydown={handleKeydown}
-        tabindex="0">
-        {drag ? (
-          <UploadDragger disabled={disabled} onFile={uploadFiles}>
-            {defaultSlot}
-          </UploadDragger>
-        ) : (
-          defaultSlot
-        )}
-        <input
-          class="tiny-upload__input"
-          type="file"
-          webkitdirectory={isFolder}
-          ref="input"
-          name={name}
-          onChange={handleChange}
-          multiple={isFolder ? true : multiple}
-          accept={accept}
-        />
-      </div>
+      !hidden && (
+        <div class={['tiny-upload', `tiny-upload--${listType}`, disabled ? 'is-disabled' : '']}>
+          <div
+            class="tiny-upload-btn"
+            onClick={($event) => handleClick($event, type)}
+            onPaste={handlePaste}
+            onKeydown={handleKeydown}
+            tabindex="0">
+            {drag ? (
+              <UploadDragger disabled={disabled} onFile={uploadFiles}>
+                {defaultSlot}
+              </UploadDragger>
+            ) : (
+              defaultSlot
+            )}
+          </div>
+          {operateSlot}
+          {tipSlot}
+          <input
+            class="tiny-upload__input"
+            type="file"
+            webkitdirectory={isFolder}
+            ref="input"
+            name={name}
+            onChange={handleChange}
+            multiple={isFolder ? true : multiple}
+            accept={accept}
+          />
+        </div>
+      )
     )
   }
 })

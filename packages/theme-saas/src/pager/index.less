@@ -67,20 +67,21 @@
 
     li {
       @apply bg-transparent;
-      @apply inline-block;
+      @apply inline-flex;
+      @apply items-center;
+      @apply justify-center;
       @apply text-xs;
       @apply ml-2;
       @apply cursor-pointer;
       @apply text-center;
-      line-height: 26px;
       @apply h-7;
-      min-width: 28px;
+      @apply ~"min-w-[theme(spacing.7)]";
       @apply text-color-text-primary;
       @apply py-0 px-1;
       @apply box-border;
       @apply transition-all duration-500 ease-linear;
       @apply border border-solid border-transparent;
-      @apply rounded-sm;
+      @apply rounded;
 
       a {
         @apply text-color-text-primary;
@@ -113,32 +114,31 @@
 
       &.is-active {
         @apply text-color-brand;
-        @apply border-color-border-focus;
+        @apply bg-color-fill-6;
       }
 
       &:not(.is-active):hover {
-        @apply text-color-brand-hover;
+        @apply bg-color-border-disabled;
       }
 
       &:not(.is-active):active {
         @apply text-color-brand-active;
-        @apply border-color-brand-active;
+        @apply bg-color-fill-6;
       }
     }
   }
 
   &__goto {
-    font-size: 0;
+    @apply text-xs;
 
     input[type='text'] {
       @apply w-8;
       @apply text-center;
       @apply align-top;
-      @apply rounded-sm;
+      @apply rounded;
       @apply inline-block;
       position: inherit;
       @apply h-7;
-      line-height: 26px;
       @apply border border-solid border-color-border;
       @apply text-color-text-primary;
       @apply text-xs;
@@ -146,19 +146,26 @@
       @apply outline-0;
       @apply box-border;
       @apply mr-0;
+      @apply bg-color-bg-1;
 
-      &:hover {
+      &:hover:not(:disabled) {
         @apply border border-solid border-color-icon-primary;
         @apply text-color-icon-primary;
       }
 
-      &:focus,
-      &:active,
-      &.active,
-      &[active] {
+      &:focus:not(:disabled),
+      &:active:not(:disabled),
+      &.active:not(:disabled),
+      &[active]:not(:disabled) {
         @apply border border-solid border-color-border-focus;
         @apply shadow-sm;
         @apply text-color-icon-primary;
+      }
+
+      &:disabled {
+        @apply bg-color-border-disabled;
+        @apply text-color-border;
+        @apply cursor-not-allowed;
       }
     }
 
@@ -169,10 +176,9 @@
     }
 
     button {
-      min-width: 40px;
-      width: 37px;
+      @apply ~"min-w-[theme('spacing.10')]";
+      @apply w-9;
       @apply h-7;
-      line-height: 26px;
       @apply border border-solid border-color-border;
       @apply text-color-text-primary;
       @apply rounded-sm;
@@ -186,10 +192,7 @@
       @apply overflow-hidden;
       @apply text-ellipsis;
       @apply cursor-pointer;
-      transition:
-        border 0.3s,
-        color 0.3s,
-        background 0.3s;
+      @apply transition-all duration-300;
       @apply outline-0;
       .user-select(none);
       @apply ml-2;
@@ -198,13 +201,11 @@
 
   &__btn-prev,
   &__btn-next {
-    min-width: 28px;
+    @apply ~"min-w-[theme('spacing.7')]";
     @apply h-7;
     @apply text-xs;
     @apply text-color-text-primary;
-    @apply bg-color-bg-1;
-    @apply border border-solid border-color-border;
-    @apply rounded-sm;
+    @apply rounded;
     @apply outline-0;
     @apply p-0;
     @apply ml-2;
@@ -213,9 +214,10 @@
     @apply justify-center;
     @apply items-center;
     @apply cursor-pointer;
+    @apply bg-transparent;
 
     span {
-      @apply text-color-brand;
+      @apply text-color-text-primary;
     }
 
     svg {
@@ -225,16 +227,20 @@
       @apply relative;
     }
 
-    &:hover {
-      @apply border-color-icon-primary;
+    &:not([disabled]):hover {
+      span {
+        @apply text-color-icon-hover;
+      }
 
       svg {
-        @apply fill-color-icon-primary;
+        @apply fill-color-icon-hover;
       }
     }
 
-    &:active {
-      @apply border-color-brand-active;
+    &:not([disabled]):active {
+      span {
+        @apply text-color-icon-active;
+      }
 
       svg {
         @apply fill-color-icon-active;
@@ -242,21 +248,14 @@
     }
 
     &[disabled] {
-      @apply bg-color-bg-4;
-
-      &,
-      &:hover {
-        @apply border-color-border;
-        @apply opacity-50;
-        @apply cursor-default;
-      }
+      @apply cursor-not-allowed;
 
       span {
-        @apply text-color-text-secondary;
+        @apply text-color-text-disabled;
       }
 
       svg {
-        @apply fill-color-icon-disabled;
+        @apply fill-color-border;
       }
     }
   }
@@ -268,7 +267,7 @@
 
   &__selector {
     &.@{popover-prefix-cls}.@{popper-prefix-cls} {
-      width: 90px;
+      @apply w-24;
       @apply p-0;
 
       &[x-placement^='bottom'] {
@@ -281,14 +280,14 @@
     }
 
     &-body {
-      max-height: 300px;
+      @apply ~"max-h-[theme('spacing.72')]";
       @apply overflow-y-auto;
       @apply overflow-x-hidden;
     }
 
     &-poplist {
       .list-item {
-        min-height: 32px;
+        @apply ~"min-h-[theme('spacing.8')]";
         @apply py-0 px-2;
         @apply leading-8;
         @apply ~"max-w-[100%]";
@@ -296,14 +295,18 @@
         @apply text-ellipsis;
         @apply text-center;
         @apply whitespace-nowrap;
+        @apply m-1;
+        @apply rounded;
 
         &:hover {
           @apply cursor-pointer;
-          @apply bg-color-bg-4;
+          @apply bg-color-bg-2;
+          @apply text-color-text-primary;
         }
 
         &.is-selected {
           @apply text-color-brand;
+          @apply bg-color-fill-6;
         }
       }
     }
@@ -317,6 +320,8 @@
   & .reference-wrapper-show {
     .@{pager-prefix-cls}__page-size {
       @apply border-color-border-focus;
+      @apply bg-color-fill-6;
+      @apply text-color-border-focus;
     }
 
     svg {
@@ -326,16 +331,15 @@
   }
 
   &__page-size {
-    min-width: 90px;
-    max-width: 200px;
+    @apply ~"min-w-[theme('spacing.18')]";
+    @apply ~"max-w-[theme('spacing.40')]";
     @apply relative;
-    @apply -top-px;
     @apply text-left;
     @apply h-7;
     @apply leading-7;
     @apply border border-solid border-color-border;
     @apply text-color-text-primary;
-    @apply rounded-sm;
+    @apply rounded;
     @apply bg-color-bg-1;
     @apply text-xs;
     @apply py-0;
@@ -348,12 +352,31 @@
     @apply box-border;
     .user-select(none);
 
-    &:hover {
-      @apply border-color-border-hover;
+    &:hover:not(.disabled) {
+      @apply bg-color-border-disabled;
+      @apply border-color-border;
     }
 
-    &:active {
+    &:active:not(.disabled) {
       @apply border-color-border-focus;
+      @apply bg-color-fill-6;
+      @apply text-color-brand;
+
+      svg {
+        @apply fill-color-brand;
+      }
+    }
+
+    &.disabled {
+      @apply bg-color-border-disabled;
+      @apply text-color-border;
+      @apply cursor-not-allowed;
+
+      div,
+      svg {
+        @apply fill-color-border;
+        @apply cursor-not-allowed;
+      }
     }
 
     span {

@@ -13,71 +13,151 @@
   <div ref="outerWrapper" :class="state.wrapperClasses">
     <div v-if="state.isHorizontal" :class="`${state.prefix}-horizontal`">
       <div
-        :style="{ right: state.collapsed ? '100%' : `${state.anotherOffset}%` }"
+        :style="{
+          right: `${state.anotherOffset}%`,
+          width: state.anotherOffset !== 100 && threeAreas ? `${state.leftTopPane}px` : ''
+        }"
         :class="state.paneClasses"
         class="left-pane"
       >
         <slot name="left" />
       </div>
       <div
-        :class="`${state.prefix}-trigger-con`"
-        :style="{ left: state.collapsed ? '2px' : `${state.offset}%` }"
+        :class="[
+          `${state.prefix}-trigger-con`,
+          `${state.prefix}-trigger-con-vertical`,
+          disabled ? `${state.prefix}-trigger-con-disabled` : ``,
+          state.isMoving ? `${state.prefix}-trigger-con-drag` : ``,
+          state.offset === 0 && triggerSimple ? `${state.prefix}-trigger-con-left-active` : ``,
+          triggerSimple ? `${state.prefix}-trigger-con-simple` : ``
+        ]"
+        :style="{ left: threeAreas ? `${state.leftTopPane}px` : `${state.offset}%` }"
         @mousedown="handleMousedown"
       >
         <slot name="trigger">
           <div :class="[`${state.prefix}-trigger`, `${state.prefix}-trigger-vertical`]">
-            <div :class="[`${state.prefix}-trigger-bar-con`, 'vertical']">
-              <i v-for="i in 3" v-once :class="`${state.prefix}-trigger-bar`" :key="`trigger-${i}`"></i>
-            </div>
+            <template v-if="!state.triggerBarConWithLine">
+              <div v-if="!triggerSimple" :class="[`${state.prefix}-trigger-bar-con`, 'vertical']">
+                <i v-for="i in 3" v-once :class="`${state.prefix}-trigger-bar`" :key="`trigger-${i}`"></i>
+              </div>
+            </template>
+            <template v-else>
+              <div v-if="!triggerSimple" :class="[`${state.prefix}-trigger-bar-con`, 'vertical']">
+                <IconStretchUpright />
+              </div>
+            </template>
           </div>
         </slot>
+        <div
+          :class="[
+            `${state.prefix}-trigger-button`,
+            `${state.prefix}-trigger-left-button`,
+            state.offset === 100 ? `${state.prefix}-trigger-button-active` : ``,
+            state.offset === 100 || collapseLeftTop ? `${state.prefix}-trigger-button-show` : ``
+          ]"
+          v-if="triggerSimple"
+          @mousedown="buttonMousedown"
+          @click="buttonLeftTopClick"
+        >
+          <icon-left-ward class="tiny-svg-size"></icon-left-ward>
+        </div>
+        <div
+          :class="[
+            `${state.prefix}-trigger-button`,
+            `${state.prefix}-trigger-right-button`,
+            state.offset === 0 ? `${state.prefix}-trigger-button-active` : ``,
+            state.offset === 0 || collapseRightBottom ? `${state.prefix}-trigger-button-show` : ``
+          ]"
+          v-if="triggerSimple"
+          @mousedown="buttonMousedown"
+          @click="buttonRightBottomClick"
+        >
+          <icon-right-ward class="tiny-svg-size"></icon-right-ward>
+        </div>
       </div>
       <div
-        v-if="collapsible"
-        :class="`${state.prefix}-collapse-bar`"
         :style="{
-          left: state.collapsed ? 0 : `calc(${state.offset}% - 2px)`
+          left: threeAreas ? `${state.leftTopPane}px` : `${state.offset}%`,
+          width: threeAreas ? `calc(100% - ${state.leftTopPane}px)` : ``
         }"
-        @click="handleCollapse"
+        :class="state.paneClasses"
+        class="right-pane"
       >
-        <icon-chevron-right :style="{ transform: `rotate(${state.collapsed ? '0deg' : '180deg'})` }" />
-      </div>
-      <div :style="{ left: state.collapsed ? '0' : `${state.offset}%` }" :class="state.paneClasses" class="right-pane">
         <slot name="right" />
       </div>
     </div>
     <div v-else :class="`${state.prefix}-vertical`">
       <div
-        :style="{ bottom: state.collapsed ? '100%' : `${state.anotherOffset}%` }"
+        :style="{
+          bottom: `${state.anotherOffset}%`,
+          height: state.anotherOffset !== 100 && threeAreas ? `${state.leftTopPane}px` : ''
+        }"
         :class="state.paneClasses"
         class="top-pane"
       >
         <slot name="top" />
       </div>
       <div
-        :class="`${state.prefix}-trigger-con`"
-        :style="{ top: state.collapsed ? '2px' : `${state.offset}%` }"
+        :class="[
+          `${state.prefix}-trigger-con`,
+          `${state.prefix}-trigger-con-horizontal`,
+          disabled ? `${state.prefix}-trigger-con-disabled` : ``,
+          state.isMoving ? `${state.prefix}-trigger-con-drag` : ``,
+          state.offset === 0 && triggerSimple ? `${state.prefix}-trigger-con-top-active` : ``,
+          triggerSimple ? `${state.prefix}-trigger-con-simple` : ``
+        ]"
+        :style="{ top: threeAreas ? `${state.leftTopPane}px` : `${state.offset}%` }"
         @mousedown="handleMousedown"
       >
         <slot name="trigger">
           <div :class="[`${state.prefix}-trigger`, `${state.prefix}-trigger-horizontal`]">
-            <div :class="[`${state.prefix}-trigger-bar-con`, 'horizontal']">
-              <i v-for="i in 3" v-once :class="`${state.prefix}-trigger-bar`" :key="`trigger-${i}`"></i>
-            </div>
+            <template v-if="!state.triggerBarConWithLine">
+              <div v-if="!triggerSimple" :class="[`${state.prefix}-trigger-bar-con`, 'horizontal']">
+                <i v-for="i in 3" v-once :class="`${state.prefix}-trigger-bar`" :key="`trigger-${i}`"></i>
+              </div>
+            </template>
+            <template v-else>
+              <div v-if="!triggerSimple" :class="[`${state.prefix}-trigger-bar-con`, 'horizontal']">
+                <IconStretchCrosswise />
+              </div>
+            </template>
           </div>
         </slot>
+        <div
+          :class="[
+            `${state.prefix}-trigger-button`,
+            `${state.prefix}-trigger-top-button`,
+            state.offset === 100 ? `${state.prefix}-trigger-button-active` : ``,
+            state.offset === 100 || collapseLeftTop ? `${state.prefix}-trigger-button-show` : ``
+          ]"
+          v-if="triggerSimple"
+          @mousedown="buttonMousedown"
+          @click="buttonLeftTopClick"
+        >
+          <icon-left-ward class="tiny-svg-size"></icon-left-ward>
+        </div>
+        <div
+          :class="[
+            `${state.prefix}-trigger-button`,
+            `${state.prefix}-trigger-bottom-button`,
+            state.offset === 0 ? `${state.prefix}-trigger-button-active` : ``,
+            state.offset === 0 || collapseRightBottom ? `${state.prefix}-trigger-button-show` : ``
+          ]"
+          v-if="triggerSimple"
+          @mousedown="buttonMousedown"
+          @click="buttonRightBottomClick"
+        >
+          <icon-right-ward class="tiny-svg-size"></icon-right-ward>
+        </div>
       </div>
       <div
-        v-if="collapsible"
-        :class="`${state.prefix}-collapse-bar`"
         :style="{
-          top: state.collapsed ? 0 : `calc(${state.offset}% - 2px)`
+          top: threeAreas ? `${state.leftTopPane}px` : `${state.offset}%`,
+          height: threeAreas ? `calc(100% - ${state.leftTopPane}px)` : ``
         }"
-        @click="handleCollapse"
+        :class="state.paneClasses"
+        class="bottom-pane"
       >
-        <icon-chevron-right :style="{ transform: `rotate(${state.collapsed ? '90deg' : '270deg'})` }" />
-      </div>
-      <div :style="{ top: state.collapsed ? '0' : `${state.offset}%` }" :class="state.paneClasses" class="bottom-pane">
         <slot name="bottom" />
       </div>
     </div>
@@ -87,14 +167,40 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/split/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
-import { iconChevronRight } from '@opentiny/vue-icon'
+import { IconLeftWard, IconRightward, IconStretchUpright, IconStretchCrosswise } from '@opentiny/vue-icon'
 
 export default defineComponent({
-  emits: ['moving', 'mousemove', 'mouseup', 'moveend', 'movestart', 'update:modelValue', 'collapsedChange'],
-  props: [...props, 'modelValue', 'mode', 'leftTopMin', 'rightBottomMin', 'collapsible'],
   components: {
-    IconChevronRight: iconChevronRight()
+    IconLeftWard: IconLeftWard(),
+    IconRightWard: IconRightward(),
+    IconStretchUpright: IconStretchUpright(), // 纵向
+    IconStretchCrosswise: IconStretchCrosswise() // 横向
   },
+  emits: [
+    'moving',
+    'mousemove',
+    'mouseup',
+    'moveend',
+    'movestart',
+    'update:modelValue',
+    'left-top-click',
+    'right-bottom-click'
+  ],
+  props: [
+    ...props,
+    'modelValue',
+    'mode',
+    'leftTopMin',
+    'rightBottomMin',
+    'disabled',
+    'triggerSimple',
+    'collapseLeftTop',
+    'collapseRightBottom',
+    'threeAreas',
+    'scrollable',
+    'border',
+    'rightBottomValue'
+  ],
   setup(props, context) {
     return setup({ props, context, renderless, api })
   }

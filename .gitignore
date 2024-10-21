@@ -8,19 +8,30 @@ dist-react/
 allDist/
 packages/**/runtime
 coverage/
+test-results
 
 /packages/vue/index.ts
 /packages/vue/pc.ts
 /packages/vue/mobile.ts
 /packages/vue/mobile-first.ts
 /packages/vue/app.ts
+/packages/vue-icon-saas/src
+/packages/vue-icon-saas/index.ts
+
+/packages/vue-runtime/pc.ts
+/packages/vue-runtime/mobile.ts
+/packages/vue-runtime/mobile-first.ts
+/packages/vue-runtime/all.ts
+/packages/vue-runtime/simple.ts
 
 /packages/react/index.ts
 /packages/react/pc.ts
 /packages/react/mobile.ts
 /packages/react/app.ts
+/packages/react/mobile-first.ts
 
 /examples/**/playwright-report
+/examples/**/test-results
 vite.config.ts.timestamp*
 vitest.config.ts.timestamp*
 
@@ -53,3 +64,19 @@ packages/theme/scripts/theme-result.txt
 packages/theme/scripts/themeExcel.xlsx
 
 packages/theme/src/theme/*-theme/component.js
+packages/theme/src/aurora-theme
+packages/theme/src/smb-theme
+
+pnpm-lock.yaml
+gulp/bundle.json
+
+# 屏蔽测试用例报告相关文件
+allure-report
+allure-results
+test-results
+
+# 本地构建的saas相关资源文件
+examples/sites/public/tiny-vue*.js
+examples/sites/public/tiny-vue*.mjs
+examples/sites/public/tailwind.css
+examples/sites/public/index.css

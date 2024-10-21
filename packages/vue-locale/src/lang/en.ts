@@ -15,10 +15,28 @@ export default {
   'zh-TW': '中国台湾',
   hello: 'Hello {name}',
   code: 'en-US',
+  yes: 'Yes',
+  no: 'No',
   ui: {
-    buttonMessage: {
-      cancel: 'Cancel',
-      confirm: 'Confirm'
+    input: {
+      close: 'Close',
+      more: 'More',
+      detail: 'Detailed Info'
+    },
+    numeric: {
+      equalTo: 'Equal to',
+      notEqualTo: 'Not equal to',
+      moreThan: 'More than',
+      moreThanOrEqualTo: 'More than or equal to',
+      lessThan: 'Less than',
+      lessThanOrEqualTo: 'Less than or equal to',
+      empty: 'Empty',
+      nonEmpty: 'Non-empty'
+    },
+    queryBuilder: {
+      addItem: 'Add Rule',
+      addGroup: 'Add Rule Group',
+      removeGroup: 'Del Rule Group'
     },
     wizard: {
       previousStep: 'LastStep',
@@ -46,10 +64,15 @@ export default {
     amount: {
       currency: 'Currency',
       amount: 'Amount',
-      date: 'Date'
-    },
-    actionMenu: {
-      moreText: 'more'
+      date: 'Date',
+      equalTo: 'Equal to',
+      notEqualTo: 'Not equal to',
+      moreThan: 'More than',
+      moreThanOrEqualTo: 'More than or equal to',
+      lessThan: 'Less than',
+      lessThanOrEqualTo: 'Less than or equal to',
+      empty: 'Empty',
+      nonEmpty: 'Non-empty'
     },
     base: {
       all: 'All',
@@ -58,11 +81,20 @@ export default {
       delete: 'Delete',
       edit: 'Edit',
       more: 'More',
-      reset: 'Reset'
+      reset: 'Reset',
+      clear: 'Clear',
+      comma: ','
     },
     button: {
       cancel: 'Cancel',
-      confirm: 'OK'
+      confirm: 'Confirm'
+    },
+    buttonGroup: {
+      noData: 'No data'
+    },
+    buttonMessage: {
+      cancel: 'Cancel',
+      confirm: 'Confirm'
     },
     cell: {
       placeholder: 'Select'
@@ -89,12 +121,16 @@ export default {
       history: 'History',
       empty: 'Empty'
     },
-    creditCardForm: {
-      submit: 'Submit'
-    },
     crop: {
-      cropImage: 'crop image',
-      croppedImage: 'Post-Crop Image'
+      choose: 'choose image',
+      zoomOut: 'zoom out 10%',
+      zoomIn: 'zoom in 10%',
+      rotate_45: 'rotate -45°',
+      rotate45: 'rotate 45°',
+      closeCropArea: 'hide selection',
+      reset: 'reset',
+      closeCrop: 'exit crop',
+      cropImage: 'select area'
     },
     datepicker: {
       clear: 'Clear',
@@ -152,7 +188,12 @@ export default {
       },
       timezone: 'selecting a timezone',
       year: '',
-      to: 'to'
+      hour: 'hour',
+      minute: 'minute',
+      second: 'second',
+      to: 'to',
+      yearMonth: '{year} / {month}',
+      yearMonthDay: '{year} / {month} / {day}'
     },
     richTextEditor: {
       bold: 'bold',
@@ -183,7 +224,9 @@ export default {
       img: 'img',
       color: 'color',
       table: 'table',
-      backgroundColor: 'backgroundColor'
+      backgroundColor: 'backgroundColor',
+      localResources: 'Local resources',
+      resourceLink: 'Resource Link'
     },
     calendar: {
       showType: {
@@ -205,15 +248,6 @@ export default {
       name: 'Name',
       search: 'Quick Search',
       selected: 'Selected'
-    },
-    detailpage: {
-      saveButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      localTips: 'Cannot hide all',
-      localTitle: 'Data',
-      valueTitle: 'Click to hide',
-      labelTitle: 'Title',
-      dialogTitle: 'Personalized title'
     },
     dialogBox: {
       confirm: 'confirm',
@@ -246,13 +280,15 @@ export default {
       folder: ' has more than five layers of folders. The file will not be uploaded',
       init: 'Service error. Please try again.',
       token: 'Perform EDM authentication first and obtain the token',
-      exceed: 'Failed to upload the file. The file size exceeds the upper limit ({maxSize} MB).',
-      largeFile: 'The file size exceeds the upper limit by 2 GB !!!',
-      fileSize: 'The file size of {name} cannot be less than ',
+      exceed: 'The file size exceeds the limit of {maxSize}.',
+      largeFile: 'The file size exceeds the upper limit by 2 GB !!',
+      fileSize: 'The file size is lower than the limit of {minSize}{sizeUnit}',
       deleteTip: 'Press delete to remove',
       downloadFile: 'DownLoad file',
       previewFile: 'Preview file',
       updateFile: 'Update file',
+      reUploadFile: 'refresh upload file',
+      cancelFile: 'Cancel Upload',
       deleteFile: 'Delete file',
       empty: 'is empty!',
       kiaScanTip:
@@ -262,14 +298,24 @@ export default {
       calcHash: 'Document is calculating encryption',
       uploadFile: 'Upload file',
       downloadAll: 'Download all',
-      onlySupport: 'Only support {type} file',
-      fileNotLessThan: 'The file cannot be less than',
-      fileNotMoreThan: 'The file cannot be more than',
-      notSupport: 'File upload failed: The format (.{format}) is not supported.',
+      onlySupport: 'Support {type} file',
+      fileNotLessThan: 'The size of single file cannot be less than ',
+      fileNotMoreThan: 'The size of single file cannot be more than ',
+      fileSizeRange: 'The size of a single file must range from {moreThan} to {lessThan}.',
+      notSupport: 'The format (.{format}) is not allowed.',
+      notSupportNoSuffix: 'Files without suffixes are not supported currently',
+      notSupportSpecialCharacters: 'The file name contains special characters, please rename the file and upload again',
       attachment: 'Attachment',
       uploadList: 'Upload List',
-      numberExceed:
-        'Failed to upload the file. The number of files to be uploaded in batches exceeds the upper limit ({number}).'
+      numberExceed: 'The number of files exceeds the limit of {number}',
+      numberLimit: 'Maximum upload of {number} files.',
+      encryptDialogTitle: 'Watermark and encryption settings',
+      addWatermark: 'Add Watermark',
+      encrypted: 'Encrypted',
+      docPreview: 'Document Preview',
+      networkError: 'Network Error',
+      pictureNetworkError: 'Network error, upload failed',
+      reUploadTip: '{number} files failed to upload!'
     },
     uploadList: {
       pictureUploading: 'Picture uploading',
@@ -285,7 +331,7 @@ export default {
       dragOrClickImport: 'Drag the file here, or click Import',
       shoot: 'Shoot',
       selectFromAlbum: 'Select from album',
-      uploadFailedAndReupload: 'Upload failed. Click Upload again'
+      uploadFailedAndReupload: 'Upload failed, click to reupload'
     },
     upload: {
       addPicture: 'Add picture',
@@ -323,7 +369,13 @@ export default {
         remoteMethod: '"remoteMethod" needs to be set for remote storage for personalized template management.',
         remoteSelectedMethod:
           '"remoteSelectedMethod" needs to be set for remote storage for personalized template management.',
-        chainCallError: 'There is a syntax error in the default slot for the column, please check.'
+        chainCallError: 'There is a syntax error in the default slot for the column, please check.',
+        renderParamError: 'Expect to configure a rendering method for generating a VNode.',
+        classComponentError: 'Class component rendering error.',
+        groupColumnFixedError: 'Different fixed types cannot be set in the same group.',
+        missingValueFormat:
+          'The renderer cannot format the date string. You should provide the "valueFormat" source date format configuration.',
+        clipboardWriteError: 'clipboard write error'
       },
       filter: {
         allFilter: 'All',
@@ -377,6 +429,8 @@ export default {
         reserveTemplateName: 'If the name is not filled in, the previous name will be retained',
         resetBtn: 'Reset',
         saveBtn: 'OK',
+        hideAll: 'Hide All',
+        showAll: 'Show All',
         tabs: {
           base: {
             title: 'Base Setting',
@@ -398,6 +452,7 @@ export default {
         switchapply: 'Apply',
         switchedit: 'Edit',
         switchdel: 'Delete',
+        switchdelconfirm: 'Deletion Confirmation',
         switchconfirm: 'Confirm',
         switchonlytemp: 'Save as template only',
         switchtempapply: 'Save as template and use',
@@ -419,7 +474,13 @@ export default {
       remark: 'Remarks'
     },
     imageViewer: {
-      loadErrorAlt: 'Load Error'
+      loadErrorAlt: 'Load Error',
+      save: 'Save picture',
+      del: 'Delete Picture',
+      thumbnail: 'Thumbnail',
+      menu: 'Menu',
+      hide: 'Hide Sidebar',
+      show: 'Show Sidebar'
     },
     navMenu: {
       moreText: 'more'
@@ -469,6 +530,13 @@ export default {
       uploadsButtonText: 'select files',
       errorTypeTips: 'Upload file type mismatch',
       errorSizeTips: 'Upload file size exceeds limit',
+      confirmDeleteTips: 'Are you sure you want to delete this file?',
+      delete: 'Delete',
+      waitUpload: 'Waiting for upload',
+      operation: 'Operation',
+      success: 'Upload successful',
+      listTip: 'There are a total of {0} pieces of data: ',
+      errorListTip: 'There are {0} errors in them. Please modify them and try again',
       limitUploadFileType: 'Upload file type is limited to',
       limitUploadFileNumber: 'Limit the number of uploaded files to',
       limitUploadFileSize: 'The size of the uploaded file does not exceed',
@@ -487,10 +555,25 @@ export default {
       loading: 'Loading',
       noData: 'No data',
       noMatch: 'No matching data',
-      placeholder: 'Select'
+      placeholder: 'Select',
+      pleaseSearch: 'Please search',
+      search: 'Search',
+      selected: 'Selected',
+      selectedNum: '{num} selected',
+      noSearchData: 'No search results. Please try again',
+      add: 'Add',
+      collapse: 'Collapse'
     },
     search: {
       placeholder: 'search'
+    },
+    signature: {
+      confirm: 'Confirm',
+      rewrite: 'Rewrite',
+      cancel: 'Cancel',
+      tips: 'Please sign by hand',
+      resign: 'Resign',
+      placeholder: 'Please sign here (required)'
     },
     tabs: {
       moreItem: 'more'
@@ -513,12 +596,16 @@ export default {
       titles: ['List 1', 'List 2']
     },
     tree: {
+      loading: 'Loading',
       emptyText: 'No data',
       switchText: 'check easily',
-      deleteTip: 'Data will be permanently deleted, are you sure you want to proceed with the deletion?',
-      preserveSubnodeTip: 'This node have child nodes, Would you like to preserve the data of the child nodes?',
-      preserveSubnodeData: 'To preserve child nodes\' data.',
-      newNodeTitle: 'Add Child Nodes'
+      edit: 'Edit',
+      delete: 'Delete',
+      addChild: 'Add Child',
+      newNodeTitle: 'Add Child Nodes',
+      deleteTip1: 'The deleted data cannot be restored. Are you sure you want to delete it?',
+      deleteTip2: 'This node has lower-level nodes. Do you want to retain the lower-level node data?',
+      deleteTip3: 'Retain the lower-level node data'
     },
     usercard: {
       address: 'Address',
@@ -599,6 +686,11 @@ export default {
       placeholder: 'Insert text here...',
       maxLength: 'Text Length exceeds the Limit, max Length config is '
     },
+    fluentEditor: {
+      undo: 'Undo',
+      redo: 'Redo',
+      lineheight: 'Line Height'
+    },
     steps: {
       done: 'Completed',
       doing: 'Ongoing',
@@ -625,7 +717,8 @@ export default {
     },
     currency: {
       defaultCurrency: 'Default currency',
-      setDefault: 'Set as default'
+      setDefault: 'Set as default',
+      chooseCurrency: 'Choose currency'
     },
     calendarBar: {
       week: { 0: 'SUN', 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT' },
@@ -660,6 +753,16 @@ export default {
         12: 'Dec'
       }
     },
+    calendarView: {
+      week: { 0: 'SUN', 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT' },
+      weekDays: { 0: 'SUN', 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT' },
+      backToday: 'back to today',
+      new: 'New',
+      noSchedule: 'No Schedule',
+      year: 'year',
+      month: 'month',
+      dateFormat: 'yyyy-MM'
+    },
     selectedBox: {
       select: 'Selected (%s)',
       allSelect: 'All selected (%s)',
@@ -674,6 +777,11 @@ export default {
     },
     dialogSelect: {
       treeSearch: 'Enter a keyword and press Enter'
+    },
+    loadList: {
+      errorText: 'Something went wrong.',
+      loadingText: 'Loading...',
+      finishedText: "There's no more."
     }
   },
   validation: {
@@ -691,20 +799,20 @@ export default {
     default: 'Validation error on field %s',
     enum: 'must be one of %s',
     number: {
-      len: 'must equal %s',
-      min: 'cannot be less than %s',
-      max: 'cannot be greater than %s',
-      range: 'must be between %s and %s'
+      len: '%s must equal %s',
+      min: '%s cannot be less than %s',
+      max: '%s cannot be greater than %s',
+      range: '%s must be between %s and %s'
     },
     pattern: {
       mismatch: 'value %s does not match pattern %s'
     },
     required: 'required',
     string: {
-      len: 'must be exactly %s characters',
-      min: 'must be at least %s characters',
-      max: 'cannot be longer than %s characters',
-      range: 'must be between %s and %s characters'
+      len: '%s must be exactly %s characters',
+      min: '%s must be at least %s characters',
+      max: '%s cannot be longer than %s characters',
+      range: '%s must be between %s and %s characters'
     },
     types: {
       acceptFile: 'not a valid %s',

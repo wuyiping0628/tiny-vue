@@ -9,8 +9,10 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-import { $props, $setup, $prefix, defineComponent } from '@opentiny/vue-common'
-import { iconOperationfaild } from '@opentiny/vue-icon'
+import type { PropType } from '@opentiny/vue-common'
+import { $setup, $prefix, defineComponent } from '@opentiny/vue-common'
+import { iconClose } from '@opentiny/vue-icon'
+import { api } from '@opentiny/vue-renderless/picker/vue'
 import template from 'virtual-template?pc|mobile'
 
 const currentYear = new Date().getFullYear()
@@ -51,10 +53,66 @@ const validator = (value) => {
   return result
 }
 
+const $props = {
+  'tiny_mode': String,
+  'tiny_mode_root': Boolean,
+  'tiny_template': [Function, Object],
+  'tiny_renderless': Function,
+  'tiny_theme': String,
+  'tiny_chart_theme': Object
+}
+
 export const datePickerProps = {
   ...$props,
-  type: {
+
+  tabindex: {
     type: String,
+    default: '0'
+  },
+  timeFormat: String,
+  suffixIcon: Object,
+  label: String,
+  shape: String,
+  tip: String,
+  changeOnConfirm: {
+    type: Boolean,
+    default: false
+  },
+  popperAppendToBody: {
+    type: Boolean,
+    default: true
+  },
+  isutc8: {
+    type: Boolean,
+    default: false
+  },
+  dbTimezone: Number,
+  timezoneOffset: Number,
+  iso8601: Boolean,
+  autoFormat: {
+    type: Boolean,
+    default: false
+  },
+  title: String,
+  blank: {
+    type: Boolean,
+    default: false
+  },
+
+  type: {
+    type: String as PropType<
+      | 'date'
+      | 'dates'
+      | 'daterange'
+      | 'week'
+      | 'month'
+      | 'monthrange'
+      | 'year'
+      | 'years'
+      | 'yearrange'
+      | 'datetime'
+      | 'datetimerange'
+    >,
     default: 'date'
   },
   _constants: {
@@ -62,6 +120,10 @@ export const datePickerProps = {
     default: () => $constants
   },
   timeArrowControl: Boolean,
+  timeEditable: {
+    type: Boolean,
+    default: true
+  },
   size: String,
   format: String,
   valueFormat: String,
@@ -73,7 +135,7 @@ export const datePickerProps = {
   clearIcon: {
     type: Object,
     default() {
-      return iconOperationfaild()
+      return iconClose()
     }
   },
   name: {
@@ -149,12 +211,37 @@ export const datePickerProps = {
     type: Boolean,
     default: false
   },
-  formatWeeks: Function
+  formatWeeks: Function,
+  changeCompat: {
+    type: Boolean,
+    default: false
+  },
+  nowClick: {
+    type: Function
+  }
 }
+
+const getWrapFunc = (name) =>
+  function (...args) {
+    const picker = this.$refs.modeTemplate
+    if (picker && picker[name]) {
+      return picker[name](...args)
+    }
+  }
 
 export default defineComponent({
   name: $prefix + 'DatePicker',
   props: datePickerProps,
+  created() {
+    // 解决三层组件导致第一层datePicker无法调用Picker方法（例如：handleFocus）的问题
+    api
+      .filter((item) => item !== 'state')
+      .forEach((method) => {
+        if (!this[method]) {
+          this[method] = getWrapFunc(method)
+        }
+      })
+  },
   setup(props, context) {
     return $setup({ props, context, template })
   }

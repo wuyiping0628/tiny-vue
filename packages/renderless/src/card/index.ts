@@ -8,7 +8,7 @@ export const handelIconClick =
   }
 
 export const getSliceNum =
-  ({ props }) =>
+  ({ state }) =>
   () => {
     const sliceNumMap = {
       'mini': 1,
@@ -16,11 +16,11 @@ export const getSliceNum =
       'medium': 3,
       'large': 5
     }
-    return sliceNumMap[props.size]
+    return sliceNumMap[state.size]
   }
 
 export const getIconNum =
-  ({ props }) =>
+  ({ state }) =>
   () => {
     const iconNumMap = {
       'mini': 2,
@@ -28,7 +28,7 @@ export const getIconNum =
       'medium': 4,
       'large': 6
     }
-    return iconNumMap[props.size]
+    return iconNumMap[state.size]
   }
 
 export const handleChange =
@@ -105,4 +105,21 @@ export const getItemChecked =
     } else {
       return state.model === props.label
     }
+  }
+
+export const cardClick =
+  ({ emit, state, props }) =>
+  (event) => {
+    if (props.checkMode !== 'normal' && !state.disabled) {
+      if (state.checkType === 'checkbox') {
+        if (state.model.includes(props.label)) {
+          state.model = state.model.filter((label) => label !== props.label)
+        } else {
+          state.model.push(props.label)
+        }
+      } else {
+        state.model = props.label
+      }
+    }
+    emit('click', event)
   }

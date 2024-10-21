@@ -36,7 +36,22 @@ export default defineConfig((config) => {
         include: [/\.vue$/, /\.md$/]
       }),
       vue3JsxPlugin(),
-      vue3SvgPlugin(),
+      vue3SvgPlugin({
+        defaultImport: 'component',
+        svgoConfig: {
+          plugins: [
+            {
+              name: 'preset-default',
+              params: {
+                overrides: {
+                  removeViewBox: false
+                }
+              }
+            },
+            'prefixIds'
+          ]
+        }
+      }),
       importPlugin([
         {
           libraryName: '@opentiny/vue'
@@ -76,6 +91,7 @@ export default defineConfig((config) => {
         'vue': path.resolve('node_modules/vue/dist/vue.esm-bundler.js'),
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
         '@': pathFromWorkspaceRoot('examples/docs/newsrc'),
+        '@opentiny/vue-renderless/types': pathFromWorkspaceRoot('packages/renderless/types'),
         '@tiptap/vue': '@tiptap/vue-3',
         ...getAlias(3, env.VITE_TINY_THEME)
       }

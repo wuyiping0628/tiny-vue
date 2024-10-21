@@ -23,9 +23,9 @@
  *
  */
 import { getFuncText, getDomNode } from '@opentiny/vue-renderless/grid/utils'
-import { h, $prefix } from '@opentiny/vue-common'
+import { h, $prefix, defineComponent } from '@opentiny/vue-common'
 
-export default {
+export default defineComponent({
   name: $prefix + 'GridContextMenuChild',
   props: {
     item: Object,
@@ -42,45 +42,43 @@ export default {
     return h(
       'ul',
       {
-        style: { left: '-9999999px' },
         class: ['tiny-grid-menu__clild-wrapper', { show }]
       },
       item.children.map((child, cIndex) =>
-        // prettier-ignore
         child.visible === false
           ? [null]
           : h(
-            'li',
-            {
-              class: { 'link__disabled': child.disabled, 'link__active': child === ctxMenuStore.selectChild },
-              key: `${gIndex}_${index}_${cIndex}`
-            },
-            [
-              h(
-                'a',
-                {
-                  class: `tiny-grid-menu__link ${toKebab(item.code)}`,
-                  on: {
-                    click(event) {
-                      tableInstance.ctxMenuLinkEvent(event, child)
-                    },
-                    mouseover(event) {
-                      tableInstance.ctxMenuMouseoverEvent(event, item, child)
-                    },
-                    mouseout(event) {
-                      if (!getEventTargetNode(event, document.body, toKebab(item.code)).flag) {
-                        tableInstance.ctxMenuMouseoutEvent(event, item, child)
+              'li',
+              {
+                class: { 'link__disabled': child.disabled, 'link__active': child === ctxMenuStore.selectChild },
+                key: `${gIndex}_${index}_${cIndex}`
+              },
+              [
+                h(
+                  'span',
+                  {
+                    class: `tiny-grid-menu__link ${toKebab(item.code)}`,
+                    on: {
+                      click(event) {
+                        tableInstance.ctxMenuLinkEvent(event, child)
+                      },
+                      mouseover(event) {
+                        tableInstance.ctxMenuMouseoverEvent(event, item, child)
+                      },
+                      mouseout(event) {
+                        if (!getEventTargetNode(event, document.body, toKebab(item.code)).flag) {
+                          tableInstance.ctxMenuMouseoutEvent(event, item, child)
+                        }
                       }
                     }
-                  }
-                },
-                [
-                  child.prefixIcon ? h(child.prefixIcon, { class: 'tiny-grid-menu__link-prefix' }) : [null],
-                  h('span', { class: 'tiny-grid-menu__link-content' }, getFuncText(child.name))
-                ]
-              )
-            ]
-          )
+                  },
+                  [
+                    child.prefixIcon ? h(child.prefixIcon, { class: 'tiny-grid-menu__link-prefix' }) : [null],
+                    h('span', { class: 'tiny-grid-menu__link-content' }, getFuncText(child.name))
+                  ]
+                )
+              ]
+            )
       )
     )
   },
@@ -110,4 +108,4 @@ export default {
       }
     }
   }
-}
+})

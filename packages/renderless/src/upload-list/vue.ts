@@ -1,3 +1,12 @@
+import type {
+  IUploadListState,
+  IUploadListApi,
+  IUploadListProps,
+  ISharedRenderlessParamHooks,
+  IUploadListRenderlessParamUtils,
+  IFileUploadModalVm,
+  IFileUploadConstants
+} from '@/types'
 import {
   parsePercentage,
   handleClick,
@@ -22,6 +31,7 @@ import {
   getNotSuccessFiles
 } from './index'
 import { getToken, initService } from '../file-upload'
+import { formatFileSize } from '../common/string'
 import { getApi } from '../file-upload/vue'
 
 export const api = [
@@ -43,31 +53,50 @@ export const api = [
   'reUpload',
   'remove',
   'handleTriggerClick',
-  'chooseFile'
+  'chooseFile',
+  'formatFileSize'
 ]
 
 export const renderless = (
-  props,
-  { reactive, onMounted, onUnmounted, watch, inject, computed },
-  { t, parent, mode, emit, service, vm, nextTick },
-  { Modal }
-) => {
-  const api = { getApi }
+  props: IUploadListProps,
+  { reactive, onMounted, onUnmounted, watch, inject, computed }: ISharedRenderlessParamHooks,
+  { t, parent, mode, emit, service, vm, nextTick, designConfig, useBreakpoint }: IUploadListRenderlessParamUtils,
+  { Modal }: IFileUploadModalVm
+): IUploadListApi => {
+  const api = { getApi } as IUploadListApi
   parent = inject('uploader').$children[0]
-  const constants = parent.$constants
+  const constants = parent.$constants as IFileUploadConstants
   const $service = initService({ props, service })
+  const { current } = useBreakpoint()
 
   const state = reactive({
     focusing: false,
     shows: false,
+    currentBreakpoint: current,
+    progressType: designConfig?.state?.progressType || 'line',
+    progressWidth:
+      designConfig?.state && Object.hasOwnProperty.call(designConfig.state, 'progressWidth')
+        ? designConfig.state.progressWidth
+        : '68',
+    progressStrokeWidth: designConfig?.state?.progressStrokeWidth || 4,
+    tooltipDisabled: designConfig?.state?.tooltipDisabled ?? false,
+    closeComponent: designConfig?.icons?.closeComponent || 'icon-del',
+    preViewComponent:
+      designConfig?.icons && Object.hasOwnProperty.call(designConfig.icons, 'preViewComponent')
+        ? designConfig.icons.preViewComponent
+        : 'icon-fullscreen-left',
+    failUploadFileCount: computed(() =>
+      props.files.reduce((total, item) => (total += item.status === 'fail' ? 1 : 0), 0)
+    ),
     startPostion: 0,
-    screenType: mode === 'mobile' ? true : false,
+    screenType: mode === 'mobile',
     showPanel: false,
     showTriggerPanel: false,
     triggerClickType: '',
     showAudioPanel: false,
-    files: computed(() => api.getNotSuccessFiles())
-  })
+    files: computed(() => api.getNotSuccessFiles()),
+    currentFile: null
+  }) as IUploadListState
 
   parent.getToken = getToken({ constants, props: parent, state: parent.state, t, Modal })
 
@@ -82,7 +111,7 @@ export const renderless = (
     pause: pause({ vm, props }),
     handleLoadedmetadata: handleLoadedmetadata({ vm }),
     handleTimeupdate: handleTimeupdate(),
-    destroyed: destroyed({ api, props, vm }),
+    destroyed: destroyed({ props, vm }),
     showOperatePanel: showOperatePanel({ state }),
     getFileType: getFileType(),
     getFileIcon: getFileIcon({ constants }),
@@ -93,7 +122,8 @@ export const renderless = (
     handleTriggerClick: handleTriggerClick({ state, props }),
     chooseFile: chooseFile({ state, constants }),
     calcVisible: calcVisible({ props, constants, emit }),
-    getNotSuccessFiles: getNotSuccessFiles({ props, constants })
+    getNotSuccessFiles: getNotSuccessFiles({ props, constants }),
+    formatFileSize
   })
 
   props.listType === constants.LIST_TYPE.DRAG_SINGLE &&

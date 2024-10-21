@@ -25,9 +25,23 @@ import 'crypto-js/sha256.js'
 import 'crypto-js/lib-typedarrays.js'
 import Streamsaver from 'streamsaver'
 import Button from '@opentiny/vue-button'
+import Input from '@opentiny/vue-input'
+import Switch from '@opentiny/vue-switch'
+import type { IFileUploadApi } from '@opentiny/vue-renderless/types/file-upload.type'
 
 export default defineComponent({
   inheritAttrs: false,
+  emits: [
+    'change',
+    'hash-progress',
+    'error',
+    'progress',
+    'success',
+    'remove',
+    'download',
+    'trigger-click',
+    'click-file-list'
+  ],
   props: [
     ...props,
     'edm',
@@ -67,14 +81,23 @@ export default defineComponent({
     'hwh5',
     'mode',
     'cacheToken',
-    'lockScroll'
+    'lockScroll',
+    'compact',
+    'encryptConfig',
+    'imageBgColor',
+    'promptTip'
   ],
-  emits: ['change', 'hash-progress', 'progress', 'success', 'error', 'remove', 'download'],
   setup(props, context) {
-    return setup({ props, context, renderless, api, extendOptions: { Modal, CryptoJS, Streamsaver } })
+    return setup({
+      props,
+      context,
+      renderless,
+      api,
+      extendOptions: { Modal, CryptoJS, Streamsaver }
+    }) as unknown as IFileUploadApi
   },
   components: {
-    Progress,
+    TinyProgress: Progress,
     UploadList,
     Upload,
     TinyDialogBox: DialogBox,
@@ -129,7 +152,6 @@ export default defineComponent({
       $attrs,
       a,
       t,
-      listType,
       showTitle,
       isFolderTitle,
       listOption,
@@ -157,9 +179,15 @@ export default defineComponent({
       handleTriggerClick,
       showFileList,
       mode,
-      lockScroll
+      lockScroll,
+      compact,
+      encryptConfig,
+      encryptDialogConfirm,
+      imageBgColor,
+      promptTip
     } = this
 
+    const listType = this.listType === 'saas' ? 'text' : this.listType
     const title = this.title || t('ui.fileUpload.attachment')
     const isDragSingle = listType === 'drag-single'
     const isText = listType === 'text'
@@ -190,14 +218,14 @@ export default defineComponent({
           </span>
         )
       } else {
-        let cls = 'text-sm text-color-text-primary font-bold '
+        let cls = 'text-sm text-color-text-primary font-bold leading-5.5 '
 
         if (listType !== 'text') {
           cls += 'hidden'
         } else if (!displayOnly && showTitle) {
           cls += 'hidden sm:block'
         } else {
-          !displayOnly || !showTitle ? (cls += 'hidden') : (cls += 'mt-4 mb-2 px-4')
+          !displayOnly || !showTitle ? (cls += 'hidden') : (cls += 'mt-4 mb-2')
         }
 
         defaultTitle =
@@ -210,34 +238,6 @@ export default defineComponent({
       }
 
       return defaultTitle
-    }
-
-    // 提示文本信息
-    const getTipMessage = ({ accept, fileSize }: { accept: string; fileSize: Number | Array<Number> }) => {
-      let acceptTip = accept
-        ? t('ui.fileUpload.onlySupport').replace(
-            /{type}/,
-            accept
-              .split(',')
-              .map((item) => item.trim().replace(/^\./, ''))
-              .join('，')
-          )
-        : ''
-      fileSize && (acceptTip += '，')
-
-      let fileSizeTip = ''
-      if (typeof fileSize === 'number') {
-        fileSizeTip = `${t('ui.fileUpload.fileNotLessThan')}${(fileSize / 1024).toFixed(2)}M`
-      } else if (Array.isArray(fileSize)) {
-        let minSize = (fileSize[0] as any) / 1024
-        minSize = Math.floor(minSize) === minSize ? minSize : Number(minSize.toFixed(2))
-        let maxSize = (fileSize[1] as any) / 1024
-        maxSize = Math.floor(maxSize) === maxSize ? maxSize : Number(maxSize.toFixed(2))
-
-        fileSizeTip += fileSize[0] ? `${t('ui.fileUpload.fileNotLessThan')}${minSize}M，` : ''
-        fileSizeTip += fileSize[1] ? `${t('ui.fileUpload.fileNotMoreThan')}${maxSize}M` : ''
-      }
-      return acceptTip + fileSizeTip
     }
 
     // 提示信息插槽
@@ -259,27 +259,27 @@ export default defineComponent({
       slots: any
     }) => {
       let defaultTip
-      const tipMsg = getTipMessage({ accept: isEdm ? accept : this.accept, fileSize })
+      const tipMsg = this.getTipMessage({
+        accept: isEdm ? accept : this.accept,
+        fileSize,
+        limit: this.limit
+      })
+      const popperConfig = { bubbling: true }
 
       if (listType === 'text') {
         defaultTip = (
           <div class="inline-block w-full sm:pl-4 text-color-none">
             <div class="block sm:hidden">
               {getDefaultTitle({ listType, title, showTitle, isInside: true })}
-              <tiny-tooltip effect="dark" content={tipMsg} placement="top">
+              <tiny-tooltip effect="dark" content={tipMsg} placement="top" popper-options={popperConfig}>
                 <icon-help-query class="-mt-0.5 fill-color-none-hover" />
               </tiny-tooltip>
-            </div>
-            <div title={tipMsg} class="hidden sm:block overflow-hidden text-ellipsis whitespace-nowrap">
-              {(slots.tip && slots.tip()) || tipMsg}
             </div>
           </div>
         )
       } else if (listType === 'drag-single') {
         defaultTip = (
-          <div
-            title={tipMsg}
-            class="leading-5 text-color-text-placeholder overflow-hidden text-ellipsis whitespace-nowrap">
+          <div title={tipMsg} class="leading-5 text-color-text-primary overflow-hidden text-ellipsis whitespace-nowrap">
             {(slots.tip && slots.tip()) || tipMsg}
           </div>
         )
@@ -291,19 +291,24 @@ export default defineComponent({
     }
 
     const getDisplayOnlyTip = ({ isEdm, fileSize }: { isEdm: boolean; fileSize: number }) => {
+      const popperConfig = { bubbling: true }
       return (
         <tiny-tooltip
           class="inline-block sm:hidden"
           effect="dark"
-          content={getTipMessage({ accept: isEdm ? accept : this.accept, fileSize })}
-          placement="top">
+          content={this.getTipMessage({
+            accept: isEdm ? accept : this.accept,
+            fileSize,
+            limit: this.limit
+          })}
+          placement="top"
+          popper-options={popperConfig}>
           <icon-help-query class="-mt-0.5  fill-color-none-hover" />
         </tiny-tooltip>
       )
     }
 
     // trigger插槽content
-
     const getTriggerContent = ({
       listType,
       t,
@@ -341,10 +346,12 @@ export default defineComponent({
         defaultContent = (
           <div class="inline-block">
             <tiny-button disabled={disabled} class="hidden sm:block">
-              <icon-plus class="align-top" />
-              <span class="ml-2">{t('ui.fileUpload.uploadFile')}</span>
+              <div class="flex items-center">
+                <icon-plus />
+                <span class="ml-2">{t('ui.fileUpload.uploadFile')}</span>
+              </div>
             </tiny-button>
-            <icon-plus-circle class="sm:hidden" />
+            <icon-plus-circle custom-class="sm:hidden w-5 h-5" />
           </div>
         )
       } else if (listType === 'drag-single') {
@@ -383,8 +390,10 @@ export default defineComponent({
         operateContent = downloadAll ? (
           <div class="hidden sm:inline-block align-middle">
             <tiny-button class="ml-2" onClick={() => downloadAll(uploadFiles)}>
-              <icon-download class="align-top" />
-              <span class="ml-2">{t('ui.fileUpload.downloadAll')}</span>
+              <div class="flex items-center">
+                <icon-download />
+                <span class="ml-2">{t('ui.fileUpload.downloadAll')}</span>
+              </div>
             </tiny-button>
           </div>
         ) : null
@@ -433,6 +442,14 @@ export default defineComponent({
       return childNodes
     }
 
+    const tipMessage =
+      (slots.tip && slots.tip()) ||
+      this.getTipMessage({
+        accept: isEdm ? accept : this.accept,
+        fileSize,
+        limit: this.limit
+      })
+
     const uploadData = {
       props: {
         type,
@@ -463,7 +480,12 @@ export default defineComponent({
         displayOnly,
         customClass,
         handleTriggerClick,
-        mode
+        mode,
+        showTitle,
+        isHwh5,
+        tipMessage,
+        promptTip,
+        showFileList
       },
       ref: 'upload-inner'
     }
@@ -498,7 +520,9 @@ export default defineComponent({
         isHwh5,
         triggerPlay: play,
         mode,
-        lockScroll
+        lockScroll,
+        compact,
+        imageBgColor
       },
       scopedSlots: {
         default: (props: any) => {
@@ -543,7 +567,7 @@ export default defineComponent({
           'tiny-modal',
           {
             props: {
-              modalBoxClass: 'sm:w-[theme(spacing.112)]',
+              customClass: 'sm:w-[theme(spacing.112)]',
               title: t('ui.fileUpload.uploadList'),
               position: 'bottom-right',
               mask: false,
@@ -561,6 +585,11 @@ export default defineComponent({
     }
 
     let previewComponent = null
+    let encryptDialogComponent = null
+
+    const notice = (this as any).slots.notice && (this as any).slots.notice()
+    let noticePC = this.state.current !== 'default' ? notice : ''
+    let noticeMF = this.state.current === 'default' ? notice : ''
 
     if (isEdm && isSuccess) {
       uploadData.props.accept = accept
@@ -592,14 +621,63 @@ export default defineComponent({
       })
     }
 
+    if (encryptConfig.enabled) {
+      encryptDialogComponent = h('tiny-dialog-box', {
+        style: '',
+        props: {
+          dataTag: 'encrypt-config-dialog',
+          lockScroll: true,
+          visible: this.state.encryptDialogConfig.show,
+          dragable: true,
+          title: this.t('ui.fileUpload.encryptDialogTitle'),
+          width: '380px',
+          height: 'auto',
+          'modal-append-to-body': false // tiny的dialogbox需要添加此属性，防止自动加到body下
+        },
+        on: {
+          'update:visible': (value) => (this.state.encryptDialogConfig.show = value)
+        },
+        scopedSlots: {
+          default: () => {
+            return (
+              <div data-tag="encrypt-config-dialog-body">
+                <div>{this.t('ui.fileUpload.addWatermark')}</div>
+                <div>
+                  <Input v-model={this.encryptConfig.watermark}></Input>
+                </div>
+                <p>&nbsp;</p>
+                <div>{this.t('ui.fileUpload.encrypted')}</div>
+                <div>
+                  <Switch v-model={this.encryptConfig.encrypt}></Switch>
+                </div>
+              </div>
+            )
+          },
+          footer: () => {
+            return [
+              <Button onClick={() => (this.state.encryptDialogConfig.show = false)}>{this.t('ui.base.cancel')}</Button>,
+              [
+                <Button type="primary" customClass="ml-2" onClick={() => encryptDialogConfirm()}>
+                  {this.t('ui.popupload.uploadButtonText')}
+                </Button>
+              ]
+            ]
+          }
+        }
+      })
+    }
+
     const attrs = a($attrs, ['^on[A-Z]'])
 
     return (
-      <div {...attrs} class={isDragSingle ? 'relative inline-block' : ''}>
+      <div {...attrs} data-tag="tiny-file-upload" class={isDragSingle ? 'relative inline-block' : ''}>
         {getDefaultTitle({ listType, title, showTitle, displayOnly, mode })}
+        {noticePC}
         {isText ? (slots.trigger ? [createUploadComponent()] : createUploadComponent()) : null}
+        {noticeMF}
         {uploadList}
         {previewComponent}
+        {encryptDialogComponent}
       </div>
     )
   }

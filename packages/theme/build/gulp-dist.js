@@ -2,16 +2,20 @@
  * 打包 theme 目录到 dist 目录
  */
 
-const gulp = require('gulp')
-const less = require('gulp-less')
-const cssmin = require('gulp-clean-css')
-const svgInline = require('gulp-svg-inline')
-const prefixer = require('gulp-autoprefixer')
-const fg = require('fast-glob')
-const fs = require('node:fs')
+import gulp from 'gulp'
+import less from 'gulp-less'
+import cssmin from 'gulp-clean-css'
+import svgInline from 'gulp-svg-inline'
+import prefixer from 'gulp-autoprefixer'
+import fg from 'fast-glob'
+import fs from 'node:fs'
+import { createTheme, removeDir } from './edit‐dir‐theme.js'
+import { buildSvg } from './build-svg-to-css.js'
 
 const source = '../src'
 const dist = '../dist'
+const distSmb = '../dist/smb-theme'
+const distAurora = '../dist/aurora-theme'
 const svgInlineOption = {
   maxImageSize: 1 * 1024 * 1024,
   extensions: [/\.svg/gi]
@@ -26,9 +30,18 @@ const importStr = fileList
 const note = fs.readFileSync('../src/index.less', { encoding: 'utf-8' }).match(/(^\/\*\*.+?\*\/)/s)[0]
 fs.writeFileSync('../src/index.less', `${note}\n\n${importStr}`)
 
+gulp.task('build-dir', createTheme)
+
+gulp.task('build-svg', buildSvg)
+
 gulp.task('compile', () => {
   return gulp
-    .src([`${source}/**/index.less`, `${source}/index.less`])
+    .src([
+      `${source}/**/index.less`,
+      `${source}/aurora-theme/**/index.less`,
+      `${source}/smb-theme/**/index.less`,
+      `${source}/index.less`
+    ])
     .pipe(svgInline(svgInlineOption))
     .pipe(less())
     .pipe(
@@ -57,4 +70,27 @@ gulp.task('copyimage', () => {
   return gulp.src([`${source}/images/**`]).pipe(gulp.dest(`${dist}/images`))
 })
 
-gulp.task('build', gulp.series('compile', 'copycssvar', 'copysvgs', 'copyimage'))
+gulp.task('copyimage-aurora', () => {
+  return gulp.src([`${source}/aurora-theme/images/**`]).pipe(gulp.dest(`${distAurora}/images`))
+})
+
+gulp.task('copyimage-smb', () => {
+  return gulp.src([`${source}/smb-theme/images/**`]).pipe(gulp.dest(`${distSmb}/images`))
+})
+
+gulp.task('remove-dir', removeDir)
+
+gulp.task(
+  'build',
+  gulp.series(
+    'build-dir',
+    // 'build-svg',
+    'compile',
+    'copycssvar',
+    'copysvgs',
+    'copyimage',
+    'copyimage-aurora',
+    'copyimage-smb',
+    'remove-dir'
+  )
+)

@@ -1,6 +1,6 @@
-import type { ComputedRef, ExtractPropTypes } from '@opentiny/vue-common'
-import { datePickerProps, $constants } from '@/date-picker/src'
-import { ISharedRenderlessFunctionParams, ISharedRenderlessParamUtils } from './shared.type'
+import type { ComputedRef, ExtractPropTypes } from 'vue'
+import type { datePickerProps, $constants } from '@/date-picker/src'
+import type { ISharedRenderlessFunctionParams, ISharedRenderlessParamUtils } from './shared.type'
 
 export type IDatePickerProps = ExtractPropTypes<typeof datePickerProps>
 
@@ -36,16 +36,12 @@ export interface IDatePickerApi {
   getDisplayValue: () => string
   showPickerAndLockScroll: () => void
   updateColumnValue: () => void
-  
 
   formatValue: (value: number) => Date
   getMonthEndDay: (year: number, month: number) => number
   hookMounted: () => void
 
-  getBoundary: ({ type, value }: {
-    type: string
-    value: Date
-  }) => {
+  getBoundary: ({ type, value }: { type: string; value: Date }) => {
     [x: string]: number
   }
   updateInnerValue: () => void

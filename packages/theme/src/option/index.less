@@ -14,96 +14,92 @@
 @import './vars.less';
 
 @option-prefix-cls: ~'@{css-prefix}option';
-@select-dropdown-prefix-cls: ~'@{css-prefix}select-dropdown';
-@checkbox-prefix-cls: ~'@{css-prefix}checkbox';
 
-.@{select-dropdown-prefix-cls} {
-  .component-css-vars-option();
-
-  &.is-multiple {
-    .@{option-prefix-cls} {
-      &.selected {
-        color: var(--ti-option-text-color);
-        background-color: var(--ti-option-bg-color-selected);
-
-        &:hover {
-          background-color: var(--ti-option-hover-bg-color-selected);
-        }
-
-        &.is-disabled {
-          color: var(--ti-option-disabled-text-color);
-
-          &:hover {
-            background-color: var(--ti-option-disabled-bg-color);
-          }
-        }
-      }
-    }
-  }
+.@{option-prefix-cls}[data-tag='tiny-option'] {
+  padding: var(--tv-Option-padding);
 }
 
 .@{option-prefix-cls} {
+  .component-css-vars-option();
+
+  color: var(--tv-Option-text-color);
+  font-size: var(--tv-Option-font-size);
+  height: var(--tv-Option-height);
+  line-height: var(--tv-Option-line-height);
   position: relative;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--ti-option-text-color);
-  font-size: var(--ti-option-font-size);
-  height: var(--ti-option-height);
   display: flex;
   align-items: center;
-  padding: var(--ti-option-padding-vertical) var(--ti-option-padding-horizontal);
   cursor: pointer;
-  line-height: 1.5;
 
-  &.is-disabled {
-    color: var(--ti-option-disabled-text-color);
-    cursor: not-allowed;
+  .tiny-svg {
+    font-size: var(--tv-Option-icon-size);
+    margin-right: var(--tv-Option-icon-margin-right);
+  }
+
+  // 复选框
+  .@{option-prefix-cls}__checkbox-wrap {
+    .tiny-svg {
+      fill: var(--tv-Option-icon-color-unchecked);
+    }
+  }
+
+  &.selected .tiny-svg,
+  .checked-sur.tiny-svg,
+  .halfselect.tiny-svg {
+    fill: var(--tv-Option-icon-color-checked);
+  }
+
+  // 文本区域
+  &-wrapper {
+    // aui 为display:inline-block  height: 100%;
+    // 100%会让元素不能对齐， 该div比前面的check-box高，所以去掉它。
+    // inline-block 会让业务的插槽传入的flex-basis不生效。 aui要求业务整改了。 回头改为 inline-block
+    display: flex;
+    align-items: center;
+
+    &.calc-width {
+      width: calc(100% - 24px);
+    }
+
+    &.full-width {
+      width: 100%;
+    }
+
+    .@{option-prefix-cls}-label {
+      display: inline-block;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   &.hover,
   &:hover {
-    background-color: var(--ti-option-hover-bg-color);
-
-    &.is-disabled {
-      background-color: var(--ti-option-disabled-bg-color);
-    }
+    background-color: var(--tv-Option-bg-color-hover);
   }
 
-  &:not(.is-disabled):not(.selected):hover {
-    .@{checkbox-prefix-cls}__inner {
-      border-color: var(--ti-option-checkbox-border-color-hover);
-    }
-  }
-
-  &.selected {
-    color: var(--ti-option-selected-text-color);
-    background-color: var(--ti-option-selected-bg-color);
-    font-weight: var(--ti-option-selected-font-weight);
-
-    &:hover {
-      background-color: var(--ti-option-selected-bg-color-hover);
-    }
-  }
-
-  .@{checkbox-prefix-cls} {
-    vertical-align: middle;
-    margin-right: 8px;
-    margin-bottom: 2px;
-  }
-
-  .checked-sur,
-  .halfselect {
-    .@{checkbox-prefix-cls}__label {
-      font-weight: var(--ti-option-selected-font-weight);
-    }
+  &:not(:has(.tiny-option__checkbox-wrap)).selected {
+    color: var(--tv-Option-text-color-selected);
   }
 
   &.memorize-highlight {
-    color: var(--ti-option-highlight-text-color);
+    color: var(--tv-Option-text-color-highlight);
   }
 
-  &.memorize-highlight.selected {
-    color: var(--ti-option-highlight-selected-text-color);
+  &.is-disabled {
+    color: var(--tv-Option-text-color-disabled);
+    cursor: not-allowed;
+
+    .tiny-svg {
+      fill: var(--tv-Option-icon-color-checked-disabled);
+
+      &.check {
+        path:first-of-type {
+          fill: var(--tv-Option-icon-bg-color-disabled);
+        }
+      }
+    }
   }
 }

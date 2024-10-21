@@ -24,6 +24,8 @@
     >
       <div class="tiny-picker-panel__body-wrapper">
         <slot name="sidebar" class="tiny-picker-panel__sidebar"></slot>
+
+        <!-- 快捷选项 -->
         <div class="tiny-picker-panel__sidebar" v-if="state.shortcuts">
           <button
             type="button"
@@ -31,11 +33,14 @@
             v-for="(shortcut, key) in state.shortcuts"
             :key="key"
             @click="handleShortcutClick(shortcut)"
+            :title="shortcut.text"
           >
             {{ shortcut.text }}
           </button>
         </div>
+
         <div class="tiny-picker-panel__body">
+          <!-- 时间选择输入框 -->
           <div class="tiny-date-picker__time-header" v-if="state.showTime">
             <span class="tiny-date-picker__editor-wrap">
               <tiny-input
@@ -55,19 +60,21 @@
                 size="small"
                 @update:modelValue="(val) => (state.userInputTime = val)"
                 @change="handleVisibleTimeChange"
+                :readonly="!timeEditable"
               />
               <time-picker
                 ref="timepicker"
                 :step="step"
                 :time-arrow-control="state.arrowControl"
                 :show="state.timePickerVisible"
-                v-if="state.timePickerVisible"
                 :value="state.date"
                 @pick="handleTimePick"
               >
               </time-picker>
             </span>
           </div>
+
+          <!-- 上一年/上一月/下一月/下一年 -->
           <div
             class="tiny-date-picker__header"
             :class="{
@@ -92,9 +99,9 @@
             >
               <icon-chevron-left></icon-chevron-left>
             </button>
-            <span @click="showYearPicker" role="button" class="tiny-date-picker__header-label">{{
-              state.yearLabel
-            }}</span>
+            <span @click="showYearPicker" role="button" class="tiny-date-picker__header-label">
+              {{ state.yearLabel }}
+            </span>
             <span
               @click="showMonthPicker"
               v-show="state.currentView === 'date'"
@@ -122,48 +129,52 @@
             </button>
           </div>
 
+          <!-- 日期表格 -->
           <div class="tiny-picker-panel__content">
-            <date-table
-              ref="dateTable"
-              v-if="state.currentView === 'date'"
-              @pick="handleDatePick"
-              :selection-mode="state.selectionMode"
-              :first-day-of-week="state.firstDayOfWeek"
-              :value="state.value"
-              :default-value="state.defaultValue ? new Date(state.defaultValue) : null"
-              :date="state.date"
-              :cell-class-name="state.cellClassName"
-              :disabled-date="state.disabledDate"
-              :show-week-number="showWeekNumber"
-              :format-weeks="formatWeeks"
-            >
-            </date-table>
-            <year-table
-              ref="yearTable"
-              v-if="['year', 'years', 'yearrange'].includes(state.currentView)"
-              :value="state.value"
-              :default-value="state.defaultValue ? new Date(state.defaultValue) : null"
-              :date="state.date"
-              :disabled-date="state.disabledDate"
-              :selection-mode="state.selectionMode"
-              :start-year="state.startYear"
-              @pick="handleYearPick"
-            >
-            </year-table>
-            <month-table
-              ref="monthTable"
-              v-if="state.currentView === 'month'"
-              @pick="handleMonthPick"
-              :value="state.value"
-              :default-value="state.defaultValue ? new Date(state.defaultValue) : null"
-              :date="state.date"
-              :disabled-date="state.disabledDate"
-            >
-            </month-table>
+            <div class="tiny-picker-panel__table">
+              <date-table
+                ref="dateTable"
+                v-if="state.currentView === 'date'"
+                @pick="handleDatePick"
+                :selection-mode="state.selectionMode"
+                :first-day-of-week="state.firstDayOfWeek"
+                :value="state.value"
+                :default-value="state.defaultValue ? new Date(state.defaultValue) : null"
+                :date="state.date"
+                :cell-class-name="state.cellClassName"
+                :disabled-date="state.disabledDate"
+                :show-week-number="showWeekNumber"
+                :format-weeks="formatWeeks"
+              >
+              </date-table>
+              <year-table
+                ref="yearTable"
+                v-if="['year', 'years', 'yearrange'].includes(state.currentView)"
+                :value="state.value"
+                :default-value="state.defaultValue ? new Date(state.defaultValue) : null"
+                :date="state.date"
+                :disabled-date="state.disabledDate"
+                :selection-mode="state.selectionMode"
+                :start-year="state.startYear"
+                @pick="handleYearPick"
+              >
+              </year-table>
+              <month-table
+                ref="monthTable"
+                v-if="state.currentView === 'month'"
+                @pick="handleMonthPick"
+                :value="state.value"
+                :default-value="state.defaultValue ? new Date(state.defaultValue) : null"
+                :date="state.date"
+                :disabled-date="state.disabledDate"
+              >
+              </month-table>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- 时区选择 -->
       <div
         class="tiny-picker-panel__timezone"
         v-if="state.isShowTz || state.timezone.isServiceTimezone"
@@ -199,17 +210,29 @@
         </div>
       </div>
 
-      <div class="tiny-picker-panel__footer" v-show="state.isShowFooter">
+      <!-- 此刻/确认 -->
+      <div
+        class="tiny-picker-panel__footer"
+        v-show="state.isShowFooter"
+        :style="{ justifyContent: !['dates', 'years'].includes(state.selectionMode) ? 'space-between' : 'right' }"
+      >
+        <slot>
+          <tiny-button
+            :size="state.buttonSize"
+            type="text"
+            class="tiny-picker-panel__link-btn"
+            @click="changeToNow"
+            v-show="!['dates', 'years'].includes(state.selectionMode)"
+          >
+            {{ t('ui.datepicker.now') }}
+          </tiny-button>
+        </slot>
         <tiny-button
-          size="mini"
-          type="text"
+          :type="state.buttonType"
+          :size="state.buttonSize"
           class="tiny-picker-panel__link-btn"
-          @click="changeToNow"
-          v-show="!['dates', 'years'].includes(state.selectionMode)"
+          @click="confirm"
         >
-          {{ t('ui.datepicker.now') }}
-        </tiny-button>
-        <tiny-button type="primary" size="mini" class="tiny-picker-panel__link-btn" @click="confirm">
           {{ t('ui.datepicker.confirm') }}
         </tiny-button>
       </div>
@@ -237,7 +260,6 @@ import {
   iconChevronUp
 } from '@opentiny/vue-icon'
 import Popup from '@opentiny/vue-popup'
-import '@opentiny/vue-theme/input/index.less'
 
 export default defineComponent({
   name: $prefix + 'DatePanel',
@@ -270,7 +292,14 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
-    formatWeeks: Function
+    formatWeeks: Function,
+    timeEditable: {
+      type: Boolean,
+      default: true
+    },
+    nowClick: {
+      type: Function
+    }
   },
   emits: ['pick', 'select-change', 'dodestroy'],
   setup(props, context) {
@@ -279,7 +308,6 @@ export default defineComponent({
       context,
       renderless,
       api,
-      mono: true,
       extendOptions: { language }
     })
   }

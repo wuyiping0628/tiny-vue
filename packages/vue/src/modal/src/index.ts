@@ -12,7 +12,7 @@
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
 import template from 'virtual-template?pc|mobile|mobile-first'
 
-const $constants = {
+export const $constants = {
   MODAL_STATUS: {
     INFO: 'info',
     SUCCESS: 'success',
@@ -31,70 +31,80 @@ const $constants = {
     WARNING: 'tiny-modal-svg__warning',
     ERROR: 'tiny-modal-svg__error',
     LOADING: 'tiny-modal-svg__refresh roll'
+  },
+  PC_SCROLL_LOCK_CLASS: 'dialog-box__scroll-lock',
+  MOBILE_FIRST_SCROLL_LOCK_CLASS: 'tiny-modal-lockscroll',
+  Mode: 'pc',
+  SCROLL_LOCK_CLASS(mode) {
+    return mode === this.Mode ? this.PC_SCROLL_LOCK_CLASS : this.MOBILE_FIRST_SCROLL_LOCK_CLASS
   }
+}
+
+export const modalProps = {
+  ...$props,
+  _constants: {
+    type: Object,
+    default: () => $constants
+  },
+  animat: { type: Boolean, default: () => true },
+  beforeClose: Function,
+  duration: { type: [Number, String], default: () => 3000 },
+  messageClosable: Boolean,
+  escClosable: Boolean,
+  events: Object,
+  fullscreen: Boolean,
+  height: [Number, String],
+  id: String,
+  isFormReset: {
+    type: Boolean,
+    default: true
+  },
+  lockScroll: Boolean,
+  lockView: { type: Boolean, default: () => true },
+  marginSize: { type: [Number, String], default: 10 },
+  mask: { type: Boolean, default: () => true },
+  maskClosable: Boolean,
+  message: [String, Function, Object],
+  minHeight: { type: [Number, String], default: () => 200 },
+  minWidth: { type: [Number, String], default: () => 340 },
+  modelValue: Boolean,
+  resize: Boolean,
+  showFooter: Boolean,
+  showHeader: { type: Boolean, default: true },
+  status: {
+    type: [String, Object],
+    default: ''
+  },
+  title: String,
+  top: { type: [Number, String], default: 80 },
+  type: { type: String, default: 'alert' },
+  vSize: String,
+  width: [Number, String],
+  zIndex: [Number, String],
+  description: String, // mf 属性
+  options: Array, // mf 属性
+  showClose: { type: Boolean, default: true }, // mf 属性
+  confirmContent: String,
+  cancelContent: String,
+  position: {
+    type: String, // mf 属性
+    default: '',
+    validator(val: string) {
+      return ['', 'bottom-right'].includes(val)
+    }
+  },
+  customClass: String, // mf 属性
+  confirmBtnProps: { type: Object, default: () => ({}) },
+  cancelBtnProps: { type: Object, default: () => ({}) },
+  footerDragable: Boolean,
+  tiny_theme: String,
+  slots: Object
 }
 
 export default defineComponent({
   name: $prefix + 'Modal',
   componentName: 'Modal',
-  props: {
-    ...$props,
-    _constants: {
-      type: Object,
-      default: () => $constants
-    },
-    animat: { type: Boolean, default: () => true },
-    beforeClose: Function,
-    duration: { type: [Number, String], default: () => 3000 },
-    escClosable: Boolean,
-    events: Object,
-    fullscreen: Boolean,
-    height: [Number, String],
-    id: String,
-    isFormReset: {
-      type: Boolean,
-      default: true
-    },
-    lockScroll: Boolean,
-    lockView: { type: Boolean, default: () => true },
-    marginSize: { type: [Number, String], default: 10 },
-    mask: { type: Boolean, default: () => true },
-    maskClosable: Boolean,
-    message: [String, Function, Object],
-    minHeight: { type: [Number, String], default: () => 200 },
-    minWidth: { type: [Number, String], default: () => 340 },
-    modelValue: Boolean,
-    resize: Boolean,
-    showFooter: Boolean,
-    showHeader: { type: Boolean, default: true },
-    status: {
-      type: [String, Object],
-      default: ''
-    },
-    title: String,
-    top: { type: [Number, String], default: 15 },
-    type: { type: String, default: 'alert' },
-    vSize: String,
-    width: [Number, String],
-    zIndex: [Number, String],
-    tiny_theme: String,
-    mode: null,
-    description: String,
-    options: Array,
-    showClose: { type: Boolean, default: true },
-    position: {
-      type: String,
-      default: '',
-      validator(val) {
-        return ['', 'bottom-right'].includes(val)
-      }
-    },
-    modalBoxClass: String,
-    confirmContent: String,
-    cancelContent: String,
-    confirmBtnProps: { type: Object, default: () => ({}) },
-    cancelBtnProps: { type: Object, default: () => ({}) }
-  },
+  props: modalProps,
   setup(props, context) {
     return $setup({ props, context, template })
   }

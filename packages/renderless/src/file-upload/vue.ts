@@ -9,8 +9,19 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
+import type {
+  IFileUploadState,
+  IFileUploadApi,
+  IFileUploadProps,
+  ISharedRenderlessParamHooks,
+  IFileUploadRenderlessParamUtils,
+  IFileUploadModalVm,
+  IFileUploadService,
+  IFileUploadStreamsaver
+} from '@/types'
 
 import { downloadFile as ordinaryDownload } from '../upload-list'
+import { formatFileSize } from '../common/string'
 
 import {
   initService,
@@ -34,11 +45,14 @@ import {
   handleSuccess,
   handleError,
   handleRemove,
+  handleReUpload,
+  handleReUploadTotal,
   onBeforeDestroy,
   submit,
   watchListType,
   watchFileList,
   handleClick,
+  handleFileClick,
   getFileUploadUrl,
   updateUrl,
   previewImage,
@@ -66,6 +80,7 @@ import {
   downloadFileSingle,
   downloadFileBatch,
   downloadFileSingleHwh5,
+  downloadAsyncPackage,
   validateDownloadStatus,
   mounted,
   handleChange,
@@ -78,7 +93,10 @@ import {
   handleClickFileList,
   computedSourcetype,
   getFileSourceType,
-  handleTriggerClick
+  encryptDialogConfirm,
+  handleTriggerClick,
+  closeRecordPanel,
+  getTipMessage
 } from './index'
 import { isEmptyObject } from '../common/type'
 
@@ -95,8 +113,11 @@ export const api = [
   'handleSuccess',
   'handleError',
   'handleRemove',
+  'handleReUpload',
+  'handleReUploadTotal',
   'submit',
   'handleClick',
+  'handleFileClick',
   'getFileUploadUrl',
   'updateUrl',
   'previewImage',
@@ -104,12 +125,30 @@ export const api = [
   'handleChange',
   'abortDownload',
   'handleClickFileList',
-  'handleTriggerClick'
+  'handleTriggerClick',
+  'closeRecordPanel',
+  'encryptDialogConfirm',
+  'formatFileSize',
+  'getTipMessage'
 ]
 
-const initState = ({ api, reactive, computed, inject, ref, vm, props, httpRequest, service }) => {
+const initState = ({
+  api,
+  reactive,
+  computed,
+  inject,
+  ref,
+  vm,
+  props,
+  httpRequest,
+  service,
+  useBreakpoint
+}): IFileUploadState => {
+  const { current } = useBreakpoint()
   const state = reactive({
     url: '',
+    updateId: '',
+    currentDownloadFiles: '',
     tempIndex: 1,
     draging: false,
     uploadFiles: [],
@@ -160,19 +199,25 @@ const initState = ({ api, reactive, computed, inject, ref, vm, props, httpReques
     types: computed(() => api.computedSourcetype()),
     triggerClickType: '',
     visible: false,
-    downloadParamsWhitelist: ['docId', 'wmType', 'docVersion']
+    downloadParamsWhitelist: ['docId', 'wmType', 'docVersion'],
+    encryptDialogConfig: {
+      show: false,
+      selectFileMethod: null
+    },
+    current
   })
 
   return state
 }
 
-const initApi = ({ api, state, props, constants, vm, $service, t, Modal }) => {
+const initApi = ({ api, state, props, constants, vm, $service, t, Modal, emit }) => {
   Object.assign(api, {
     state,
-    sliceChunk: sliceChunk({ state, props }),
+    sliceChunk: sliceChunk({ state }),
     getFormData: getFormData({ constants, props, state }),
     abort: abort({ constants, vm, state }),
     handleClick: handleClick({ constants, vm }),
+    handleFileClick: handleFileClick({ props, emit }),
     getFile: getFile(state),
     clearFiles: clearFiles(state),
     watchFileList: watchFileList({ constants, state, props, api }),
@@ -182,14 +227,14 @@ const initApi = ({ api, state, props, constants, vm, $service, t, Modal }) => {
     computedUploadingSize: computedUploadingSize({ state, constants }),
     getFileUploadUrl: getFileUploadUrl($service),
     getToken: getToken({ constants, props, state, t, Modal }),
-    getDialogConfigObj: getDialogConfigObj({ props, state }),
+    getDialogConfigObj: getDialogConfigObj({ props, state, t, constants }),
     computeDocChunkSize: computeDocChunkSize({ props, state, constants }),
     updateFile: updateFile({ constants, vm }),
     getPreviewUrlSync: getPreviewUrlSync({ constants, props, state }),
     ordinaryDownload: ordinaryDownload($service),
     clearUploadingFiles: clearUploadingFiles({ constants, state }),
     calcUploadingFilesInfo: calcUploadingFilesInfo({ state, constants }),
-    properFileSize: properFileSize({ props, state, constants, Modal, t }),
+    properFileSize: properFileSize({ props, state, api, constants, Modal, t }),
     mounted: mounted({ vm, state }),
     previewFileSingle: previewFileSingle({ api, state, props, constants, service: $service }),
     previewFileBatch: previewFileBatch({ service: $service, props, state, api }),
@@ -198,7 +243,10 @@ const initApi = ({ api, state, props, constants, vm, $service, t, Modal }) => {
     abortDownload: abortDownload({ state }),
     createDownloadCancelToken: createDownloadCancelToken({ state, service: $service }),
     computedSourcetype: computedSourcetype({ props, constants }),
-    getFileSourceType: getFileSourceType({ state, props, constants })
+    getFileSourceType: getFileSourceType({ state, props, constants }),
+    encryptDialogConfirm: encryptDialogConfirm({ state }),
+    getTipMessage: getTipMessage({ t, api, constants }),
+    formatFileSize
   })
 }
 
@@ -212,20 +260,22 @@ const mergeApi = ({ api, props, $service, state, constants, emit, mode, Modal, t
     previewImage: previewImage({ api, props, service: $service }),
     previewFile: previewFile({ api, props }),
     getNewTabPreviewUrl: getNewTabPreviewUrl({ api }),
-    submit: submit({ api, constants, Modal, vm, props, state, t }),
+    submit: submit({ api, constants, vm, props, state }),
     handleStart: handleStart({ api, constants, props, state, vm }),
     batchSegmentUpload: batchSegmentUpload({ api, constants, props, vm, state }),
     largeDocumentUpload: largeDocumentUpload({ api, Modal, state, emit, constants, t }),
     handleProgress: handleProgress({ api, constants, emit, state }),
-    handleSuccess: handleSuccess({ api, constants, emit, Modal, props, state }),
-    handleError: handleError({ api, constants, emit, state }),
+    handleSuccess: handleSuccess({ api, constants, emit, Modal, props, state, t }),
+    handleError: handleError({ api, constants, emit, state, props }),
     handleRemove: handleRemove({ api, emit, props, state, constants }),
-    updateUrl: updateUrl({ api, props, service: $service, state }),
+    handleReUpload: handleReUpload({ vm, constants }),
+    handleReUploadTotal: handleReUploadTotal(api),
+    updateUrl: updateUrl({ api, props, state }),
     startUpload: startUpload({ api, state, constants, vm, Modal, t }),
     beforeUpload: beforeUpload({ api, props, Modal, constants, t, state }),
     getDownloadFileInfo: getDownloadFileInfo({ api, props, state, service: $service }),
     largeDocumentDownload: largeDocumentDownload({ api, state }),
-    sliceDownloadChunk: sliceDownloadChunk({ api, state }),
+    sliceDownloadChunk: sliceDownloadChunk({ state }),
     batchSegmentDownload: batchSegmentDownload({ state, api }),
     downloadFileInner: downloadFileInner({ api, props, state }),
     setWriterFile: setWriterFile({ state, emit, Streamsaver }),
@@ -236,16 +286,18 @@ const mergeApi = ({ api, props, $service, state, constants, emit, mode, Modal, t
     downloadFileSingle: downloadFileSingle({ service: $service, constants, props, state, api, emit }),
     downloadFileBatch: downloadFileBatch({ api, service: $service, props, state, emit }),
     downloadFileSingleHwh5: downloadFileSingleHwh5({ state, props, emit, constants }),
+    downloadAsyncPackage: downloadAsyncPackage({ state, props, api, constants, service: $service }),
     validateDownloadStatus: validateDownloadStatus({ state, Modal }),
     handleChange: handleChange({ vm, constants }),
     handleClickFileList: handleClickFileList({ state, emit }),
-    handleTriggerClick: handleTriggerClick({ vm, state, constants, props, emit })
+    handleTriggerClick: handleTriggerClick({ vm, state, constants, props, emit }),
+    closeRecordPanel: closeRecordPanel({ vm, constants, state, props })
   })
 }
 
 const initWatch = ({ watch, state, api, props, $service }) => {
   watch(
-    () => props.edm.upload,
+    () => props.edm?.upload,
     (value) => value && api.getToken({ token: value.token, isinit: true }),
     { immediate: true, deep: true }
   )
@@ -277,20 +329,32 @@ const initWatch = ({ watch, state, api, props, $service }) => {
   watch(() => props.edm, api.computeDocChunkSize, { deep: true, immediate: true })
 }
 
-export let getApi = () => ({})
+// eslint-disable-next-line import/no-mutable-exports
+export let getApi = () => ({}) as { downloadFile: Function }
 
 export const renderless = (
-  props,
-  { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, onMounted },
-  { t, vm, parent, emit, service, mode, constants },
-  { Modal, CryptoJS, Streamsaver }
-) => {
-  let api = {}
-  const $service = initService({ props, service })
-  const httpRequest = $service.httpRequest
-  const state = initState({ reactive, computed, api, inject, ref, vm, props, httpRequest, service })
+  props: IFileUploadProps,
+  { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, onMounted }: ISharedRenderlessParamHooks,
+  { t, vm, parent, emit, service, mode, constants, useBreakpoint }: IFileUploadRenderlessParamUtils,
+  { Modal, CryptoJS, Streamsaver }: IFileUploadModalVm & { CryptoJS: object; Streamsaver: IFileUploadStreamsaver }
+): IFileUploadApi => {
+  let api = {} as IFileUploadApi
+  const $service: IFileUploadService = initService({ props, service })
+  const httpRequest: Function = $service.httpRequest
+  const state: IFileUploadState = initState({
+    reactive,
+    computed,
+    api,
+    inject,
+    ref,
+    vm,
+    props,
+    httpRequest,
+    service,
+    useBreakpoint
+  })
 
-  initApi({ api, state, props, constants, vm, $service, t, Modal })
+  initApi({ api, state, props, constants, vm, $service, t, Modal, emit })
   mergeApi({ api, props, $service, state, constants, emit, mode, Modal, t, vm, CryptoJS, Streamsaver })
   getApi = () => api
 
@@ -301,7 +365,7 @@ export const renderless = (
   // 注册生命周期函数必须要在（watch）异步函数/组件之前，否则会 Vue3 警告
   onBeforeUnmount(() => {
     api.onBeforeDestroy()
-    api = null
+    api = {} as IFileUploadApi
   })
 
   initWatch({ watch, state, api, props, $service })

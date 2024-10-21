@@ -12,16 +12,15 @@
 <template>
   <div class="tiny-ip-address">
     <ul
-      :class="{
-        active: state.active,
-        disabled: state.disabled,
-        'tiny-ip-address__input': true
-      }"
-      :style="state.heightStyle"
+      :class="[
+        state.active ? 'active' : '',
+        state.disabled ? 'disabled' : '',
+        'tiny-ip-address__input',
+        state.size ? `${state.size}` : 'default'
+      ]"
     >
-      <li v-for="(item, index) of state.address" :key="index" :style="state.lineHeightStyle">
+      <li v-for="(item, index) of state.address" :key="index">
         <input
-          :style="state.allHeightStyle"
           ref="inputs"
           :readonly="readonly"
           :disabled="state.disabled"
@@ -38,8 +37,9 @@
         />
         <template v-if="index < state.address.length - 1">
           <slot :slot-scope="{ state, index, item }">
-            <span v-if="type === 'IPv6' && delimiter === 'icon-dot-ipv4'"
-              class="tiny-ip-address__input__ipv6-delimiter">:</span>
+            <span v-if="type === 'IPv6' && delimiter === 'icon-dot-ipv4'" class="tiny-ip-address__input__ipv6-delimiter"
+              >:</span
+            >
             <component v-else :is="delimiter" class="tiny-svg-size" />
           </slot>
         </template>
@@ -55,7 +55,7 @@ import { iconDotIpv4 } from '@opentiny/vue-icon'
 
 export default defineComponent({
   props: [...props, 'size', 'modelValue', 'type', 'readonly', 'disabled', 'delimiter'],
-  emits: ['update:modelValue', 'change', 'blur', 'focus', 'select', 'inputEvent'],
+  emits: ['update:modelValue', 'change', 'blur', 'focus', 'select', 'input'],
   components: {
     IconDotIpv4: iconDotIpv4()
   },

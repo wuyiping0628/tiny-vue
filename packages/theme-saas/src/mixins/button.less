@@ -2,7 +2,7 @@
   min-width: @min-width;
   max-width: @max-width;
   height: @height;
-  line-height: @height - 2;
+  line-height: calc(@height - theme('borderWidth.DEFAULT') * 2);
   font-size: @font-size;
   padding: 0 @padding;
 
@@ -100,11 +100,20 @@
   }
 }
 
-.button-text(@color, @hover-color, @active-color, @disabled-color) {
+.button-text(@color, @hover-color, @active-color, @disabled-color, @has-icon-color, @has-icon-disabled-color) {
   color: @color;
   @apply text-sm;
   @apply border-transparent;
   @apply bg-transparent;
+  @apply p-0;
+  min-width: auto;
+
+  &.is-icon {
+    color: @has-icon-color;
+    & > svg {
+      @apply mt-0;
+    }
+  }
 
   &:hover {
     color: @hover-color;
@@ -138,6 +147,13 @@
 
     & > svg {
       fill: @disabled-color;
+    }
+    &.is-icon,
+    &.is-only-icon {
+      color: @has-icon-disabled-color;
+      & > svg {
+        fill: @has-icon-disabled-color;
+      }
     }
   }
 }

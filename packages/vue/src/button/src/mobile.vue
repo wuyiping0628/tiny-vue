@@ -20,15 +20,23 @@
       size ? 'tiny-mobile-button--' + size : '',
       {
         'is-disabled': state.buttonDisabled,
-        'is-loading': loading,
-        'is-plain': state.plain,
-        'is-round': round
+        'is-loading': loading
       }
     ]"
     v-bind="a($attrs, ['class', 'style'], true)"
   >
-    <icon-loading v-if="loading" class="tiny-icon-loading" />
-    <component v-if="icon && !loading" :is="icon" class="tiny-icon is-icon" />
+    <template v-if="loading">
+      <div
+        :class="[
+          'tiny-mobile-button-loading',
+          'tiny-mobile-button-loading-' + (type === 'primary' ? 'white' : 'black')
+        ]"
+      >
+        <div class="tiny-mobile-button-loading-inner"></div>
+      </div>
+    </template>
+    <component v-if="icon && !loading" :is="icon" :class="['tiny-icon', 'is-icon', text ? 'small' : null]" />
+
     <slot>
       <span :style="{ marginLeft: text && (icon || loading) ? '4px' : 0 }">{{ text }}</span>
     </slot>
@@ -38,14 +46,12 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/button/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
-import { iconLoading } from '@opentiny/vue-icon'
 import '@opentiny/vue-theme-mobile/button/index.less'
 
 export default defineComponent({
-  inheritAttrs: false,
-  emits: ['hook-updated', 'click'],
-  props: [...props, 'type', 'text', 'size', 'icon', 'resetTime', 'nativeType', 'loading', 'disabled', 'plain', 'round'],
-  components: { IconLoading: iconLoading() },
+  emits: ['click'],
+  props: [...props, 'type', 'text', 'size', 'icon', 'resetTime', 'nativeType', 'loading', 'disabled', 'customClass'],
+  components: {},
   setup(props, context) {
     return setup({ props, context, renderless, api })
   }

@@ -27,7 +27,8 @@ import {
   decrease,
   modifyDateField,
   handleClick,
-  emitSelectRange
+  emitSelectRange,
+  selectDateScroll
 } from './index'
 import { getRangeHours, getRangeMinutes } from '../common/deps/date-util'
 
@@ -78,7 +79,11 @@ const initState = ({ reactive, computed, props, api }) => {
   return state
 }
 
-export const renderless = (props, { computed, onMounted, reactive, watch, nextTick }, { emit, vm, constants }) => {
+export const renderless = (
+  props,
+  { computed, onMounted, reactive, watch, nextTick },
+  { emit, vm, designConfig, constants }
+) => {
   const api = {}
   const state = initState({ reactive, computed, props, api })
 
@@ -89,7 +94,7 @@ export const renderless = (props, { computed, onMounted, reactive, watch, nextTi
   Object.assign(api, {
     state,
     amPm: amPm(props),
-    typeItemHeight: typeItemHeight({ vm }),
+    typeItemHeight: typeItemHeight({ vm, designConfig }),
     scrollBarHeight: scrollBarHeight(vm),
     getArrowHourList: getArrowHourList(state),
     getArrowSecondList: getArrowSecondList(state),
@@ -97,14 +102,15 @@ export const renderless = (props, { computed, onMounted, reactive, watch, nextTi
     emitSelectRange: emitSelectRange({ emit, state }),
     modifyDateField: modifyDateField({ emit, props, state }),
     bindScrollEvent: bindScrollEvent({ api, vm }),
-    adjustSpinners: adjustSpinners({ api, state }),
+    adjustSpinners: adjustSpinners({ api, state, vm }),
     adjustSpinner: adjustSpinner({ api, props, vm, state }),
     increase: increase({ api, state }),
     decrease: decrease({ api, state }),
     handleClick: handleClick(api),
     scrollDown: scrollDown({ api, state }),
     handleScroll: handleScroll({ api, vm, state }),
-    adjustCurrentSpinner: adjustCurrentSpinner({ api, state })
+    adjustCurrentSpinner: adjustCurrentSpinner({ api, state }),
+    selectDateScroll: selectDateScroll({ state, props })
   })
 
   watch(

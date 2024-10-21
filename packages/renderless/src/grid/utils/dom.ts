@@ -24,7 +24,8 @@
  */
 
 import { getRowid } from './common'
-import { hasClass } from '../../common/deps/dom'
+import { hasClass, getDomNode } from '../../common/deps/dom'
+import { getActualTarget } from '../../common/event'
 import { arrayIndexOf } from '../static'
 
 const ATTR_NAME = 'data-rowid'
@@ -85,20 +86,46 @@ function getFixedLeft($table, from, column, body, offset) {
   return scrollLeft
 }
 
-function setBodyLeft(body, td, $table, column, move) {
-  const { isLeftArrow, isRightArrow, from } = move || {}
-  const bodyWidth = body.clientWidth
-  const bodySrcollLeft = body.scrollLeft
-  const tdOffsetLeft = td.offsetLeft + (td.offsetParent ? td.offsetParent.offsetLeft : 0)
-  const tdWidth = td.clientWidth
+// 计算水平滚动位置（考虑存在冻结表的情况）
+function computeScrollLeft($table, td) {
+  const { tableBody } = $table.$refs
+  const { visibleColumn } = $table
+  const { scrollLeft: bodyLeft, clientWidth: bodyWidth } = tableBody.$el
+  // Tiny表格冻结列采用sticky，需遍历计算整体宽度
+  let leftWidth = 0
+  let rightWidth = 0
+  visibleColumn.forEach((column) => {
+    if (column.fixed === 'left') {
+      leftWidth += column.renderWidth
+    } else if (column.fixed === 'right') {
+      rightWidth += column.renderWidth
+    }
+  })
+  const tdLeft = td._accumulateRenderWidth || td.offsetLeft + (td.offsetParent ? td.offsetParent.offsetLeft : 0)
+  const tdWidth = td._renderWidth || td.clientWidth
 
-  if (tdOffsetLeft < bodySrcollLeft || tdOffsetLeft > bodySrcollLeft + bodyWidth) {
-    // 如果跨列滚动
-    from !== column && (body.scrollLeft = tdOffsetLeft)
-  } else if (tdOffsetLeft + tdWidth >= bodyWidth + bodySrcollLeft) {
-    body.scrollLeft = bodySrcollLeft + tdWidth
+  let scrollLeft
+
+  // 列元素在主表体可视区左侧（包括被左冻结表部分遮挡的情况）
+  if (tdLeft < bodyLeft + leftWidth) {
+    scrollLeft = tdLeft - leftWidth
+  } else if (tdLeft + tdWidth > bodyLeft + bodyWidth - rightWidth) {
+    // 列元素在主表体可视区右侧（包括被右冻结表部分遮挡的情况）
+    scrollLeft = tdLeft + tdWidth - bodyWidth + rightWidth
+  } else {
+    // 列元素在主表体可视区内
+    scrollLeft = bodyLeft
   }
 
+  return scrollLeft
+}
+
+function setBodyLeft(body, td, $table, column, move) {
+  const { isLeftArrow, isRightArrow, from } = move || {}
+
+  const bodyScollLeft = computeScrollLeft($table, td)
+  $table.scrollTo(bodyScollLeft)
+  $table.lastScrollLeft = bodyScollLeft
   if (from) {
     const direction = isLeftArrow ? 'left' : isRightArrow ? 'right' : null
     const fixedDom = $table.elemStore[`${direction}-body-list`]
@@ -144,29 +171,29 @@ export const colToVisible = ($table, column, move) => {
         scrollLeft += visibleColumn[index].renderWidth
       }
 
-      gridbodyEl.scrollLeft = scrollLeft
+      gridbodyEl.scrollLeft = computeScrollLeft($table, {
+        _accumulateRenderWidth: scrollLeft,
+        _renderWidth: column.renderWidth
+      })
     }
   })
 }
 
-export const getDomNode = () => {
-  const documentElement = document.documentElement
-  const bodyElement = document.body
-
-  return {
-    scrollTop: documentElement.scrollTop || bodyElement.scrollTop,
-    scrollLeft: documentElement.scrollLeft || bodyElement.scrollLeft,
-    visibleHeight: documentElement.clientHeight || bodyElement.clientHeight,
-    visibleWidth: documentElement.clientWidth || bodyElement.clientWidth
+export const hasDataTag = (el, value) => {
+  // el可能为shadow-root，shadow-root没有getAttribute方法
+  if (!el || !value || !el.getAttribute) {
+    return false
   }
+
+  return (' ' + el.getAttribute('data-tag') + ' ').includes(' ' + value + ' ')
 }
 
 export const getEventTargetNode = (event, container, queryCls) => {
   let targetEl
-  let target = event.target
+  let target = getActualTarget(event)
 
   while (target && target.nodeType && target !== document) {
-    if (queryCls && hasClass(target, queryCls)) {
+    if (queryCls && (hasClass(target, queryCls) || hasDataTag(target, queryCls))) {
       targetEl = target
     } else if (target === container) {
       return {
@@ -283,3 +310,5 @@ export const getCell = ($table, { row, column }) =>
       )
     })
   })
+
+export { getDomNode }

@@ -32,13 +32,28 @@ import {
   hideTip,
   autoSlider,
   customBeforeAppearHook,
+  customAppearHook,
   customAfterAppearHook,
   watchActiveValue,
   watchModelValue,
   getPoints,
   getLabels,
-  inputValueChange
+  inputValueChange,
+  inputOnChange,
+  handleSlotInputFocus,
+  handleSlotInputBlur,
+  handleSlotInput,
+  getMarkList,
+  updateSlotValue
 } from './index'
+
+import type {
+  ISliderProps,
+  ISliderState,
+  ISharedRenderlessParamHooks,
+  ISliderApi,
+  ISliderRenderlessParamUtils
+} from '@/types'
 
 export const api = [
   'state',
@@ -63,16 +78,25 @@ export const api = [
   'hideTip',
   'autoSlider',
   'customBeforeAppearHook',
+  'customAppearHook',
   'customAfterAppearHook',
-  'inputValueChange'
+  'inputValueChange',
+  'inputOnChange',
+  'handleSlotInputFocus',
+  'handleSlotInputBlur',
+  'handleSlotInput'
 ]
 
-const initState = ({ reactive, computed, props, api, parent }) => {
-  const state = reactive({
+const initState = ({ reactive, computed, props, api, parent, inject }) => {
+  const state: ISliderState = reactive({
+    showAutoWidth: inject('showAutoWidth', null),
     tipStyle: {},
     barStyle: {},
     moveStyle: [],
-    isInit: true,
+    points: [],
+    labels: [],
+    markList: computed(() => api.getMarkList()),
+    inputValue: [0, 0],
     isDrag: false,
     sliderSize: 0,
     showTip: false,
@@ -89,23 +113,26 @@ const initState = ({ reactive, computed, props, api, parent }) => {
     rightBtnPercent: 0,
     rightBtnShow: false,
     innerTrigger: false,
+    changeCompat: computed(() => props.changeCompat),
     rangeDiff: computed(() => props.max - props.min),
     tipValue: computed(() => api.formatTipValue(state.activeValue)),
     formDisabled: computed(() => (parent.tinyForm || {}).disabled),
-    disabled: computed(() => props.disabled || state.formDisabled)
+    disabled: computed(() => props.disabled || state.formDisabled),
+    slotValue: '',
+    isSlotTyping: false,
+    mouseOuterBtn: false
   })
 
   return state
 }
 
 export const renderless = (
-  props,
-  { computed, onBeforeUnmount, onMounted, reactive, watch, inject },
-  { parent, constants, nextTick, emit, mode }
+  props: ISliderProps,
+  { computed, onBeforeUnmount, onMounted, reactive, watch, inject }: ISharedRenderlessParamHooks,
+  { vm, parent, constants, nextTick, emit, mode }: ISliderRenderlessParamUtils
 ) => {
-  const api = {}
-  const state = initState({ reactive, computed, props, api, parent })
-
+  const api = {} as ISliderApi
+  const state: ISliderState = initState({ reactive, computed, props, api, parent, inject })
   parent.tinyForm = parent.tinyForm || inject('form', null)
 
   Object.assign(api, {
@@ -114,32 +141,53 @@ export const renderless = (
     formatTipValue: formatTipValue(props),
     setBarStyle: setBarStyle({ props, state }),
     changeActiveValue: changeActiveValue(state),
-    bindResize: bindResize({ parent, props, state }),
+    bindResize: bindResize({ vm, props, state }),
     setButtonStyle: setButtonStyle({ props, state }),
-    calculateValue: calculateValue({ props, state }),
+    calculateValue: calculateValue({ vm, props, state }),
     getActiveButtonValue: getActiveButtonValue(state),
     getActiveButtonIndex: getActiveButtonIndex({ constants, mode, state }),
-    setTipStyle: setTipStyle({ constants, mode, emit, parent, props, state }),
+    setTipStyle: setTipStyle({ vm, constants, mode, props, state }),
     customAfterAppearHook: customAfterAppearHook({ state, props }),
     customBeforeAppearHook: customBeforeAppearHook(props),
+    customAppearHook: customAppearHook(),
     bindEvent: bindEvent(api),
     autoSlider: autoSlider(api),
     unBindEvent: unBindEvent(api),
     displayTip: displayTip({ api, nextTick, state }),
     bindKeyDown: bindKeyDown({ api, props, state }),
-    bindMouseUp: bindMouseUp({ api, emit, state }),
+    bindMouseUp: bindMouseUp({ api, emit, state, props }),
     bindMouseMove: bindMouseMove({ api, nextTick, state }),
-    bindMouseDown: bindMouseDown({ api, constants, mode, emit, state }),
+    bindMouseDown: bindMouseDown({ api, constants, mode, emit, state, props }),
     setActiveButtonValue: setActiveButtonValue({ api, emit, props, state }),
     initSlider: initSlider({ api, props, state }),
     watchModelValue: watchModelValue({ api, state }),
     watchActiveValue: watchActiveValue({ api, emit, props, state }),
     getPoints: getPoints({ props, state }),
     getLabels: getLabels({ props, state }),
-    inputValueChange: inputValueChange({ props, api, state })
+    inputValueChange: inputValueChange({ props, api, state, emit }),
+    handleSlotInputFocus: handleSlotInputFocus(state),
+    handleSlotInputBlur: handleSlotInputBlur({ state, api }),
+    handleSlotInput: handleSlotInput({ state, api }),
+    getMarkList: getMarkList({ props }),
+    updateSlotValue: updateSlotValue({ state }),
+    inputOnChange: inputOnChange({ api, emit, props, state })
   })
 
-  watch(() => props.modelValue, api.watchModelValue, { immediate: true })
+  watch(
+    () => props.modelValue,
+    (value) => {
+      if (props.max < props.min) {
+        throw new Error('Slider min should not be greater than max.')
+      }
+      api.watchModelValue(value)
+    },
+    { immediate: true }
+  )
+
+  props.changeCompat && watch(() => state.activeValue, api.watchActiveValue, { immediate: true })
+
+  watch(() => state.activeValue, api.watchActiveValue, { immediate: true })
+
   watch(
     () => props.min,
     (min) => {
@@ -156,14 +204,27 @@ export const renderless = (
       api.setActiveButtonValue(value)
     }
   )
-  watch(() => state.activeValue, api.watchActiveValue, { immediate: true })
+
+  watch(
+    () => state.leftBtnValue,
+    (newVal) => {
+      state.inputValue[0] = newVal
+    },
+    { immediate: true }
+  )
+  watch(
+    () => state.rightBtnValue,
+    (newVal) => {
+      state.inputValue[1] = newVal
+    },
+    { immediate: true }
+  )
 
   onMounted(() => {
     api.bindEvent()
     api.getPoints()
     api.getLabels()
   })
-
   onBeforeUnmount(api.unBindEvent)
 
   return api

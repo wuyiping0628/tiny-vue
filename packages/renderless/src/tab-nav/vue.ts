@@ -9,7 +9,13 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-
+import type {
+  ITabNavState,
+  ITabNavApi,
+  ITabNavProps,
+  ISharedRenderlessParamHooks,
+  ITabNavRenderlessParamUtils
+} from '@/types'
 import {
   computedNavStyle,
   computedSizeName,
@@ -33,7 +39,9 @@ import {
   sortableEvent,
   handleTabDragStart,
   handleTabDragEnd,
-  watchCurrentName
+  watchCurrentName,
+  handleTitleMouseenter,
+  handleTitleMouseleave
 } from './index'
 
 export const api = [
@@ -49,24 +57,32 @@ export const api = [
   'expandTabShow',
   'expandTabHide',
   'computedHeaderStyle',
-  'swiperHandle'
+  'swiperHandle',
+  'updated',
+  'handleTitleMouseenter',
+  'handleTitleMouseleave'
 ]
 
 export const renderless = (
-  props,
-  { computed, inject, onBeforeUnmount, onMounted, onUpdated, reactive, markRaw },
-  { parent, nextTick, refs, mode: tinyMode, emit }
-) => {
-  const api = { mounted, beforeUnmount, computedNavStyle, computedSizeName }
+  props: ITabNavProps,
+  { computed, inject, onBeforeUnmount, onMounted, onUpdated, reactive, markRaw }: ISharedRenderlessParamHooks,
+  { parent, vm, nextTick, mode: tinyMode, emit }: ITabNavRenderlessParamUtils
+): ITabNavApi => {
+  const api = { mounted, beforeUnmount, computedNavStyle, computedSizeName } as ITabNavApi
   const state = reactive({
     dragging: false,
     navOffset: 0,
-    lineOffset: 0,
+    lineStyle: {
+      width: 20,
+      offset: 0
+    },
     scrollable: false,
     isFocus: false,
     focusable: false,
     showMoreItem: false,
     isActive: false,
+    tooltipVisible: false,
+    tooltipContent: '',
     showMoreTabs: props.showMoreTabs,
     showExpandItem: false,
     showExpandTabs: props.showExpandTabs,
@@ -74,8 +90,11 @@ export const renderless = (
     mode: props._mode || parent.$mode || tinyMode || 'pc',
     rootTabs: inject('rootTabs'),
     sizeName: computed(() => api.computedSizeName(state)),
-    navStyle: computed(() => api.computedNavStyle(state))
-  })
+    navStyle: computed(() => api.computedNavStyle(state)),
+    navSortableObj: {},
+    separator: inject('separator', null)
+  }) as ITabNavState
+
   Object.assign(api, {
     state,
     setFocus: setFocus(state),
@@ -83,21 +102,23 @@ export const renderless = (
     moreTabShow: moreTabShow(state),
     expandTabShow: expandTabShow({ api, state }),
     expandTabHide: expandTabHide(state),
-    scrollPrev: scrollPrev({ refs, state }),
-    scrollNext: scrollNext({ refs, state }),
+    scrollPrev: scrollPrev({ vm, state }),
+    scrollNext: scrollNext({ vm, state }),
     windowBlurHandler: windowBlurHandler(state),
     windowFocusHandler: windowFocusHandler(state),
     visibilityChangeHandler: visibilityChangeHandler(state),
-    scrollToActiveTab: scrollToActiveTab({ parent, refs, state }),
-    scrollIntoView: scrollIntoView({ parent, refs, state }),
-    computedHeaderStyle: computedHeaderStyle({ refs, state }),
-    watchCurrentName: watchCurrentName({ nextTick, refs, state }),
-    handleTabDragStart: handleTabDragStart({ state, refs, emit }),
-    handleTabDragEnd: handleTabDragEnd({ state, refs, nextTick }),
-    sortableEvent: sortableEvent({ api, props, state, refs, emit, markRaw })
+    scrollToActiveTab: scrollToActiveTab({ parent, vm, state }),
+    scrollIntoView: scrollIntoView({ parent, vm, state }),
+    computedHeaderStyle: computedHeaderStyle({ vm, state }),
+    watchCurrentName: watchCurrentName({ nextTick, vm, state }),
+    handleTabDragStart: handleTabDragStart({ state, vm, emit }),
+    handleTabDragEnd: handleTabDragEnd({ state, vm, nextTick }),
+    sortableEvent: sortableEvent({ api, props, state, vm, emit, markRaw }),
+    handleTitleMouseenter: handleTitleMouseenter({ state, vm, props }),
+    handleTitleMouseleave: handleTitleMouseleave({ state })
   })
 
-  Object.assign(api, { updated: updated({ api, refs, state }), changeTab: changeTab(api) })
+  Object.assign(api, { updated: updated({ api, vm, state }), changeTab: changeTab(api) })
   onUpdated(() => api.updated())
   onMounted(() => api.mounted({ api, parent }))
   onBeforeUnmount(() => api.beforeUnmount({ api, parent }))

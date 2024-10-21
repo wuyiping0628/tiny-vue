@@ -1,6 +1,6 @@
 {
   "name": "@opentiny/vue-date-picker",
-  "version": "3.7.0",
+  "version": "3.18.0",
   "description": "",
   "main": "lib/index.js",
   "module": "index.ts",
@@ -16,7 +16,12 @@
   },
   "dependencies": {
     "@opentiny/vue-renderless": "workspace:~",
-    "@opentiny/vue-picker": "workspace:~"
+    "@opentiny/vue-common": "workspace:~",
+    "@opentiny/vue-picker": "workspace:~",
+    "@opentiny/vue-mini-picker": "workspace:~",
+    "@opentiny/vue-input": "workspace:~",
+    "@opentiny/vue-icon": "workspace:~",
+    "@opentiny/vue-theme": "workspace:~"
   },
   "license": "MIT"
 }

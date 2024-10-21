@@ -10,17 +10,18 @@
  *
  */
 
+import type { IImageProps, IImageRenderlessParams, IImageState } from '@/types'
 import { on, off, getScrollContainer, isInContainer } from '../common/deps/dom'
 import { typeOf } from '../common/type'
-import '../common/deps/requestAnimationFrame'
 import { rafThrottle } from '../image-viewer'
+import { xss } from '../common/xss'
 
 const isSupportObjectFit = () => document.documentElement.style.objectFit !== undefined
 
-const isHtmlElement = (node) => node && node.nodeType === Node.ELEMENT_NODE
+const isHtmlElement = (node: any): boolean => node && node.nodeType === Node.ELEMENT_NODE
 
 export const computedGetImageStyle =
-  ({ props, api }) =>
+  ({ props, api }: Pick<IImageRenderlessParams, 'props' | 'api'>) =>
   () => {
     const { fit } = props
 
@@ -36,15 +37,14 @@ export const computedGetAlignCenter =
   () =>
     !isSupportObjectFit() && props.fit !== constants.FILL
 
-export const computedGetPreview = (props) => () =>
+export const computedGetPreview = (props: IImageProps) => () =>
   Array.isArray(props.previewSrcList) && props.previewSrcList.length > 0
 
 export const loadImage =
-  ({ state, api, attrs, props }) =>
+  ({ state, api, attrs, props }: Pick<IImageRenderlessParams, 'api' | 'state' | 'props' | 'attrs'>) =>
   () => {
     state.loading = true
     state.error = false
-
     const img = new Image()
 
     img.onload = (event) => api.handleLoad(event, img)
@@ -57,53 +57,59 @@ export const loadImage =
       }
     })
 
-    img.src = props.src
+    img.src = props.src || ''
   }
 
 export const handleLoad =
-  ({ state, emit }) =>
-  (event, img) => {
+  ({ state, emit }: Pick<IImageRenderlessParams, 'emit' | 'state'>) =>
+  (event: Event, img: HTMLImageElement) => {
     state.imageWidth = img.width
     state.imageHeight = img.height
     state.loading = false
-
     emit('load', event)
   }
 
-export const deleteHander = (emit) => (event) => {
+/** 仅mobile-first使用, event 是image-viewer的delete事件参数。 但未从image-viewer中找到delete事件  */
+export const deleteHander = (emit: IImageRenderlessParams['emit']) => (event: any) => {
   emit('delete', event)
 }
 
 export const handleError =
-  ({ state, emit }) =>
-  (event) => {
+  ({ state, emit }: Pick<IImageRenderlessParams, 'emit' | 'state'>) =>
+  (event: any) => {
     state.loading = false
     state.error = true
 
     emit('error', event)
   }
 
+export const handleSwitch =
+  ({ emit }: Pick<IImageRenderlessParams, 'emit'>) =>
+  (index) => {
+    emit('change-index', index)
+  }
+
 export const handleLazyLoad =
-  ({ state, api, vm, nextTick }) =>
+  ({ state, api, vm, nextTick }: Pick<IImageRenderlessParams, 'api' | 'state' | 'nextTick' | 'vm'>) =>
   () => {
-    if (isInContainer(vm.$el, state._scrollContainer)) {
+    if (isInContainer(vm.$el, state._scrollContainer as HTMLElement)) {
       nextTick(() => (state.show = true))
       api.removeLazyLoadListener()
     }
   }
 
 export const addLazyLoadListener =
-  ({ props, state, api, vm }) =>
+  ({ props, state, api, vm }: Pick<IImageRenderlessParams, 'api' | 'state' | 'props' | 'vm'>) =>
   () => {
     const { scrollContainer } = props
-    let _scrollContainer = null
+    let _scrollContainer: HTMLElement = null as unknown as HTMLElement
 
     if (isHtmlElement(scrollContainer)) {
-      _scrollContainer = scrollContainer
+      _scrollContainer = scrollContainer as HTMLElement
     } else if (typeOf(scrollContainer) === 'string') {
-      _scrollContainer = document.querySelector(scrollContainer)
+      _scrollContainer = document.querySelector(scrollContainer as string)!
     } else {
-      _scrollContainer = getScrollContainer(vm.$el)
+      _scrollContainer = getScrollContainer(vm.$el) as HTMLElement
     }
 
     if (_scrollContainer) {
@@ -114,7 +120,7 @@ export const addLazyLoadListener =
     }
   }
 
-export const removeLazyLoadListener = (state) => () => {
+export const removeLazyLoadListener = (state: IImageState) => () => {
   const { _scrollContainer, _lazyLoadHandler } = state
 
   if (!_scrollContainer || !_lazyLoadHandler) {
@@ -130,7 +136,7 @@ export const removeLazyLoadListener = (state) => () => {
  * simulate object-fit behavior to compatible with IE11 and other browsers which not support object-fit
  */
 export const getImageStyle =
-  ({ state, vm, constants }) =>
+  ({ state, vm, constants }: Pick<IImageRenderlessParams, 'state' | 'vm' | 'constants'>) =>
   (fit) => {
     const { imageWidth, imageHeight } = state
     const { clientWidth: containerWidth, clientHeight: containerHeight } = vm.$el
@@ -161,12 +167,15 @@ export const getImageStyle =
     return {}
   }
 
-export const clickHandler = (state) => () => (state.showViewer = true)
+export const clickHandler = (state: IImageState) => () => {
+  state.showViewer = true
+  state.mfPreviewVisible = true
+}
 
-export const closeViewer = (state) => () => (state.showViewer = false)
+export const closeViewer = (state: IImageState) => () => (state.showViewer = false)
 
 export const mounted =
-  ({ props, api }) =>
+  ({ props, api }: Pick<IImageRenderlessParams, 'props' | 'api'>) =>
   () => {
     if (props.lazy) {
       api.addLazyLoadListener()
@@ -174,3 +183,9 @@ export const mounted =
       api.loadImage()
     }
   }
+
+export const filterImageUrl = (props) => () => {
+  const isBase64 = /^data:image\/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})/
+
+  return isBase64.test(props.src) ? props.src : xss.filterUrl(props.src)
+}

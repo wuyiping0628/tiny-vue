@@ -10,16 +10,26 @@
  *
  */
 
+import type {
+  ICascaderMenuState,
+  ICascaderMenuProps,
+  ISharedRenderlessParamHooks,
+  ICascaderMenuApi,
+  ICascaderMenuRenderlessParamUtils
+} from '@/types'
 import { handleExpand, handleMouseMove, clearHoverZone } from './index'
 import { CASCADER } from '../common'
 import { random } from '../common/string'
 
 export const api = ['state', 'handleMouseMove', 'handleExpand']
 
-export const renderless = (props, { computed, reactive }, { vm, parent }) => {
-  const refs = vm.$refs
-  const api = {}
-  const state = reactive({
+export const renderless = (
+  props: ICascaderMenuProps,
+  { computed, reactive }: ISharedRenderlessParamHooks,
+  { vm, parent }: ICascaderMenuRenderlessParamUtils
+): ICascaderMenuApi => {
+  const api = {} as ICascaderMenuApi
+  const state: ICascaderMenuState = reactive({
     activeNode: null,
     hoverTimer: null,
     id: Math.floor(random() * 10000),
@@ -29,9 +39,9 @@ export const renderless = (props, { computed, reactive }, { vm, parent }) => {
 
   Object.assign(api, {
     state,
-    clearHoverZone: clearHoverZone(refs),
+    clearHoverZone: clearHoverZone({ vm }),
     handleExpand: handleExpand(state),
-    handleMouseMove: handleMouseMove({ api, parent, refs, state, svg: CASCADER.SvgStr })
+    handleMouseMove: handleMouseMove({ api, parent, vm, state, svg: CASCADER.SvgStr })
   })
 
   return api

@@ -20,7 +20,7 @@
   >
     <slot>
       <template v-if="type === 'radio'">
-        <radio v-for="(item, index) in options" :key="index" v-bind="item"></radio>
+        <radio v-for="(item, index) in options" :display-only="displayOnly" :key="index" v-bind="item"></radio>
       </template>
       <template v-if="type === 'button'">
         <radio-button v-for="(item, index) in options" :key="index" v-bind="item"></radio-button>
@@ -34,6 +34,7 @@ import { renderless, api } from '@opentiny/vue-renderless/radio-group/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
 import Radio from '@opentiny/vue-radio'
 import RadioButton from '@opentiny/vue-radio-button'
+import type { IRadioGroupApi } from '@opentiny/vue-renderless/types/radio-group.type'
 
 export default defineComponent({
   components: {
@@ -41,9 +42,20 @@ export default defineComponent({
     RadioButton
   },
   emits: ['change', 'update:modelValue'],
-  props: [...props, 'options', 'modelValue', 'type', 'size', 'fill', 'textColor', 'disabled', 'vertical'],
+  props: [
+    ...props,
+    'options',
+    'modelValue',
+    'type',
+    'size',
+    'fill',
+    'textColor',
+    'disabled',
+    'vertical',
+    'displayOnly'
+  ],
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IRadioGroupApi
   }
 })
 </script>

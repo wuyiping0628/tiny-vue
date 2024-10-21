@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="125px" height="125px" viewBox="0 0 125 125" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>SlideBar 滚动块</title>
+    <defs>
+        <path d="M80.9909047,39 L45.0023935,39 C43.347056,39 42,40.5069389 42,42.3587494 L42,82.6412506 C42,84.5005583 43.347056,86 45.0023935,86 L80.9976065,86 C82.652944,86 84,84.5005583 84,82.6412506 L84,42.3587494 C83.9932982,40.5069389 82.652944,39 80.9909047,39 Z" id="path-1"></path>
+        <filter x="-9.5%" y="-4.3%" width="119.0%" height="117.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.368627451   0 0 0 0 0.48627451   0 0 0 0 0.878431373  0 0 0 0.349865467 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-3" x="48" y="61" width="30" height="4" rx="2"></rect>
+        <filter x="-13.3%" y="-50.0%" width="126.7%" height="300.0%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.368627451   0 0 0 0 0.48627451   0 0 0 0 0.878431373  0 0 0 0.349865467 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-5" x="48" y="73" width="30" height="4" rx="2"></rect>
+        <filter x="-13.3%" y="-50.0%" width="126.7%" height="300.0%" filterUnits="objectBoundingBox" id="filter-6">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.368627451   0 0 0 0 0.48627451   0 0 0 0 0.878431373  0 0 0 0.349865467 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <linearGradient x1="47.5828693%" y1="86.8386573%" x2="82.2735745%" y2="-43.8247114%" id="linearGradient-7">
+            <stop stop-color="#5073E5" offset="0%"></stop>
+            <stop stop-color="#5E7CE0" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Tiny-Vue" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="-TinyUI-Vue-组件总览1" transform="translate(-1870.000000, -2584.000000)">
+            <g id="组件" transform="translate(596.000000, 311.000000)">
+                <g id="编组-25备份-17" transform="translate(1175.000000, 2240.000000)">
+                    <g id="SlideBar-滚动块" transform="translate(99.000000, 33.000000)">
+                        <g id="编组"></g>
+                        <g id="路径备份-2">
+                            <use fill="black" fill-opacity="1" filter="url(#filter-2)" xlink:href="#path-1"></use>
+                            <use fill="#5073E5" fill-rule="evenodd" xlink:href="#path-1"></use>
+                        </g>
+                        <g id="矩形备份-6">
+                            <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                            <use fill-opacity="0.6" fill="#D6DEF9" fill-rule="evenodd" xlink:href="#path-3"></use>
+                        </g>
+                        <g id="矩形备份-20">
+                            <use fill="black" fill-opacity="1" filter="url(#filter-6)" xlink:href="#path-5"></use>
+                            <use fill-opacity="0.6" fill="#D6DEF9" fill-rule="evenodd" xlink:href="#path-5"></use>
+                        </g>
+                        <rect id="矩形备份-21" fill="#FFFFFF" fill-rule="nonzero" x="48" y="49" width="19.2747813" height="4" rx="2"></rect>
+                        <path d="M36.853678,50 L23.1437689,50 C22.5131642,50 22,50.8015632 22,51.7865688 L22,73.2134312 C22,74.2024246 22.5131642,75 23.1437689,75 L36.8562311,75 C37.4868358,75 38,74.2024246 38,73.2134312 L38,51.7865688 C37.9974469,50.8015632 37.4868358,50 36.853678,50 Z" id="路径备份-3" fill="url(#linearGradient-7)" opacity="0.604724702"></path>
+                        <path d="M102.853678,50 L89.1437689,50 C88.5131642,50 88,50.8015632 88,51.7865688 L88,73.2134312 C88,74.2024246 88.5131642,75 89.1437689,75 L102.856231,75 C103.486836,75 104,74.2024246 104,73.2134312 L104,51.7865688 C103.997447,50.8015632 103.486836,50 102.853678,50 Z" id="路径备份-4" fill="url(#linearGradient-7)" opacity="0.604724702"></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

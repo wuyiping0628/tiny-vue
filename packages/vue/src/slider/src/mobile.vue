@@ -47,7 +47,7 @@
     <template v-if="showInput && !state.isDouble">
       <div class="tiny-mobile-slider__input">
         <slot :slot-scope="state.activeValue">
-          <input type="text" v-model="state.activeValue" :disabled="disabled" />
+          <input type="text" v-model="state.activeValue" :disabled="disabled" @change="inputOnChange" />
           <span class="tiny-mobile-slider__per">%</span>
         </slot>
       </div>
@@ -58,6 +58,7 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/slider/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
+import type { ISliderApi } from '@opentiny/vue-renderless/types/slider.type'
 import '@opentiny/vue-theme-mobile/slider/index.less'
 
 export default defineComponent({
@@ -75,10 +76,11 @@ export default defineComponent({
     'showInput',
     'height',
     'range',
-    'formatTooltip'
+    'formatTooltip',
+    'changeCompat'
   ],
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as ISliderApi
   }
 })
 </script>

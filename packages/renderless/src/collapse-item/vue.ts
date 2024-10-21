@@ -10,31 +10,54 @@
  *
  */
 
-import { handleFocus, handleEnterClick, handleHeaderClick } from './index'
+import type {
+  ICollapseItemProps,
+  ICollapseItemState,
+  ICollapseItemApi,
+  ISharedRenderlessParamHooks,
+  ICollapseItemRenderlessParamUtils
+} from '@/types'
+import { handleFocus, handleEnterClick, handleHeaderClick, handleHeaderContainerClick } from './index'
 import { guid } from '../common/string'
 
-export const api = ['state', 'isActive', 'handleFocus', 'handleEnterClick', 'handleHeaderClick']
+export const api = [
+  'state',
+  'isActive',
+  'handleFocus',
+  'handleEnterClick',
+  'handleHeaderClick',
+  'handleHeaderContainerClick'
+]
 
-export const renderless = (props, { computed, reactive }, { parent, constants, dispatch }) => {
+export const renderless = (
+  props: ICollapseItemProps,
+  { computed, reactive }: ISharedRenderlessParamHooks,
+  { parent, constants, dispatch, designConfig }: ICollapseItemRenderlessParamUtils
+) => {
   const _constants = parent.collapse._constants
   const componentName = _constants.COMPONENT_NAME.Collapse
   const eventName = _constants.EVENT_NAME.CollapseItemClick
 
-  const state = reactive({
+  const state: ICollapseItemState = reactive({
     id: guid(),
     isClick: false,
     focusing: false,
     contentHeight: 0,
     contentWrapStyle: { height: 'auto', display: 'block' },
-    isActive: computed(() => parent.collapse.state.activeNames.includes(props.name))
+    isActive: computed(() => parent.collapse.state.activeNames.includes(props.name)),
+    arrowIcon: props.expandIcon || designConfig?.icons?.arrowIcon || 'IconChevronRight'
   })
 
-  const api = {
+  const api: ICollapseItemApi = {
     state,
     handleFocus: handleFocus({ state, interval: constants.INTERVAL }),
     handleEnterClick: handleEnterClick({ componentName, dispatch, eventName, parent }),
     handleHeaderClick: handleHeaderClick({ componentName, dispatch, eventName, props, parent, state })
   }
+
+  Object.assign(api, {
+    handleHeaderContainerClick: handleHeaderContainerClick({ api })
+  })
 
   return api
 }

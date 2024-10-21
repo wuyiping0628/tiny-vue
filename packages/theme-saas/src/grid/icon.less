@@ -2,9 +2,9 @@
 @import './mixins/icon.less';
 @import '../custom.less';
 
-@grid-icon-prefix-cls: ~'@{css-prefix}grid-icon';
+@icon-prefix-cls: ~'@{css-prefix}icon';
 
-[class*=~'@{css-prefix}grid-icon__'] {
+[class*=~'@{css-prefix}icon__'] {
   @apply inline-block;
   @apply align-middle;
   @apply relative;
@@ -12,7 +12,7 @@
   font-family: Helvetica, Arial, 'Microsoft YaHei', sans-serif;
 }
 
-.@{grid-icon-prefix-cls} {
+.@{icon-prefix-cls} {
   &__zoomin {
     width: 0.8em;
     height: 0.8em;
@@ -81,7 +81,7 @@
   }
 
   &__caret-left {
-    @apply ~"-rotate-90";
+    @apply ~'-rotate-90';
   }
 
   &__caret-right {
@@ -91,7 +91,7 @@
   &__arrow-top {
     .DefaultWidthHeight();
     .BeforeArrowTop();
-    @apply ~"-rotate-45";
+    @apply ~'-rotate-45';
   }
 
   &__arrow-bottom {
@@ -116,7 +116,7 @@
     .DefaultWidthHeight();
     .BeforeDArrowTop();
     .AfterDArrowTop();
-    @apply ~"-rotate-45";
+    @apply ~'-rotate-45';
   }
 
   &__d-arrow-bottom {
@@ -197,7 +197,7 @@
       border-width: 0 0 0.15em 0;
       @apply border-solid;
       border-color: inherit;
-      @apply ~"-rotate-45";
+      @apply ~'-rotate-45';
     }
   }
 
@@ -251,7 +251,7 @@
     &:before {
       @apply ~'left-1/2';
       @apply top-0;
-      @apply ~"translate-x-1/2" ~"-rotate-45";
+      @apply ~'translate-x-1/2' ~'-rotate-45';
     }
 
     &:after {

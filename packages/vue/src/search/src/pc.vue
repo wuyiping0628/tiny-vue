@@ -11,7 +11,13 @@
  -->
 <template>
   <div
-    :class="['tiny-search', { mini }, { collapse: state.collapse }]"
+    :class="[
+      'tiny-search',
+      { mini },
+      { collapse: state.collapse },
+      state.searchSize ? 'tiny-search--' + state.searchSize : '',
+      { 'is-disabled': disabled }
+    ]"
     @mouseenter="state.hovering = true"
     @mouseleave="state.hovering = false"
   >
@@ -31,7 +37,9 @@
       </transition>
       <input
         ref="input"
+        v-bind="a($attrs, ['type', 'class', 'style', '^on[A-Z]', 'id', 'clearable'])"
         v-model="state.currentValue"
+        :disabled="disabled"
         :style="
           transparent
             ? {
@@ -43,7 +51,7 @@
         :placeholder="placeholder"
         type="text"
         class="tiny-search__input"
-        @keyup.enter="searchEnterKey"
+        @keyup.enter="searchEnterKey($event)"
         @change="handleChange"
         @input="handleInput"
         @focus="state.focus = true"
@@ -52,7 +60,7 @@
         :tabindex="tabindex"
       />
       <transition name="tiny-transition-icon-scale-in">
-        <div class="tiny-search__input-btn" v-if="state.showClear && !state.collapse">
+        <div class="tiny-search__input-btn tiny-icon-close" v-if="state.showClear && !state.collapse">
           <a @click="clear($event)">
             <icon-close @mousedown.prevent class="tiny-svg-size" />
           </a>
@@ -91,6 +99,7 @@ import { renderless, api } from '@opentiny/vue-renderless/search/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
 import { iconChevronDown, iconSearch, iconClose } from '@opentiny/vue-icon'
 import '@opentiny/vue-theme/search/index.less'
+import type { ISearchApi } from '@opentiny/vue-renderless/types/search.type'
 
 export default defineComponent({
   props: [
@@ -102,7 +111,10 @@ export default defineComponent({
     'modelValue',
     'tabindex',
     'clearable',
-    'isEnterSearch'
+    'isEnterSearch',
+    'typeValue',
+    'size',
+    'disabled'
   ],
   emits: ['change', 'search', 'update:modelValue', 'clear', 'select', 'input'],
   components: {
@@ -111,7 +123,7 @@ export default defineComponent({
     IconClose: iconClose()
   },
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as ISearchApi
   }
 })
 </script>

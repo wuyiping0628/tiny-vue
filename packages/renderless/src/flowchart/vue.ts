@@ -2,7 +2,6 @@ import {
   compute,
   computeMf,
   isMf,
-  drawArrow,
   buildAfterNode,
   buildAfterLink,
   drawAfterLink,
@@ -20,18 +19,47 @@ import {
   clearHoverAfterLink,
   clickNode,
   clearDropdown,
-  antialiasing
+  antialiasing,
+  getNodeDef,
+  getNode,
+  clickGroup,
+  setAdjustY,
+  runAdjustYTask
 } from './index'
+import throttle from '../common/deps/throttle'
 
-export const api = ['state', 'clearHoverAfterLink', 'clickNode', 'getVars', 'omitText', 'refresh', 'clearDropdown']
+export const api = [
+  'state',
+  'clearHoverAfterLink',
+  'clickNode',
+  'getVars',
+  'omitText',
+  'refresh',
+  'clearDropdown',
+  'clickGroup'
+]
 
-export const renderless = (props, { reactive, markRaw, onMounted, onBeforeUnmount }, { vm, nextTick, emit, mode }) => {
+export const renderless = (
+  props,
+  { reactive, markRaw, onMounted, onBeforeUnmount, provide },
+  { vm, nextTick, emit, mode },
+  { emitter }
+) => {
   const state = reactive({
     afterData: null,
     refreshKey: 0,
     wrapperStyle: '',
     dropdowns: {}
   })
+
+  state.temporary = {
+    graphWidth: 0,
+    adjustX: 0,
+    emitter: emitter(),
+    customLinks: [],
+    lastRowAfterNodes: [],
+    adjustY: 0
+  }
 
   const api = {
     state,
@@ -46,8 +74,9 @@ export const renderless = (props, { reactive, markRaw, onMounted, onBeforeUnmoun
     buildHoverState: buildHoverState(props),
     removeListeners: removeListeners({ state, vm }),
     isMf: isMf(mode),
-    drawArrow: drawArrow({ state, vm, props }),
-    antialiasing: antialiasing(vm)
+    antialiasing: antialiasing(vm),
+    getNodeDef: getNodeDef(props),
+    clickGroup: clickGroup(emit)
   }
 
   Object.assign(api, {
@@ -58,9 +87,15 @@ export const renderless = (props, { reactive, markRaw, onMounted, onBeforeUnmoun
     addListeners: addListeners({ api, state, vm }),
     setListeners: setListeners({ api, emit, props, state, vm }),
     hitTest: hitTest({ api, state, vm }),
-    clearHoverAfterLink: clearHoverAfterLink({ api, state, vm }),
-    clickNode: clickNode({ api, emit })
+    clearHoverAfterLink: throttle(10, clearHoverAfterLink({ api, state, vm })),
+    clickNode: clickNode({ api, emit }),
+    getNode: getNode(api),
+    setAdjustY: setAdjustY({ api, state }),
+    runAdjustYTask: runAdjustYTask({ api, state })
   })
+
+  provide('graphEmitter', state.temporary.emitter)
+  provide('graphInstance', { setAdjustY: api.setAdjustY })
 
   if (api.isMf()) {
     api.computeMf()

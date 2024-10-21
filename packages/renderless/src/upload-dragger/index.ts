@@ -9,15 +9,16 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
+import type { IUploadDraggerRenderlessParams } from '@/types'
 
 export const onDragOver =
-  ({ props, state }) =>
-  () =>
+  ({ props, state }: Pick<IUploadDraggerRenderlessParams, 'props' | 'state'>) =>
+  (): boolean =>
     !props.disabled && (state.dragover = true)
 
 export const onDrop =
-  ({ emit, props, state }) =>
-  (event) => {
+  ({ emit, props, state }: Pick<IUploadDraggerRenderlessParams, 'emit' | 'props' | 'state'>) =>
+  (event: DragEvent): null | boolean | undefined => {
     if (props.disabled || !state.uploader) {
       return
     }
@@ -26,52 +27,55 @@ export const onDrop =
 
     state.dragover = false
 
-    const files = event.dataTransfer.files
+    const files = event.dataTransfer?.files
 
     if (!accept) {
       emit('file', files)
       return
     }
 
-    const notAcceptedFiles = []
+    const notAcceptedFiles = [] as File[]
 
-    const filteredFile = [].slice.call(files).filter((file) => {
-      const { type, name } = file
-      const extension = name.includes('.') ? `.${name.split('.').pop()}` : ''
-      const baseType = type.replace(/\/.*$/, '')
+    // 这里用来判断拖拽的文件是否要抛出drop-error事件，并非用来判断accept过滤非法文件，在beforeUpload中处理accept过滤
+    if (files) {
+      Array.from(files).filter((file: File) => {
+        const { type, name } = file
+        const extension = name.includes('.') ? `.${name.split('.').pop()}` : ''
+        const baseType = type.replace(/\/.*$/, '')
 
-      let isValid = accept
-        .split(',')
-        .map((type) => type.trim())
-        .filter((type) => type)
-        .some((type) => {
-          if (/\..+$/.test(type)) {
-            return extension === type
-          }
+        let isValid = accept
+          .split(',')
+          .map((type) => type.trim())
+          .filter((type) => type)
+          .some((type) => {
+            if (/\..+$/.test(type)) {
+              return extension === type
+            }
 
-          if (/\/\*$/.test(type)) {
-            return baseType === type.replace(/\/\*$/, '')
-          }
+            if (/\/\*$/.test(type)) {
+              return baseType === type.replace(/\/\*$/, '')
+            }
 
-          if (/^[^/]+\/[^/]+$/.test(type)) {
-            return true
-          }
+            if (/^[^/]+\/[^/]+$/.test(type)) {
+              return true
+            }
 
-          return false
-        })
+            return false
+          })
 
-      !isValid && notAcceptedFiles.push(file)
+        !isValid && notAcceptedFiles.push(file)
 
-      return isValid
-    })
+        return isValid
+      })
 
-    notAcceptedFiles.length && state.uploader.$emit('drop-error', notAcceptedFiles)
+      notAcceptedFiles.length && state.uploader.$emit('drop-error', notAcceptedFiles)
+    }
 
-    emit('file', filteredFile)
+    emit('file', files)
   }
 
 export const watchDragover =
-  ({ state, constants }) =>
+  ({ state, constants }: Pick<IUploadDraggerRenderlessParams, 'state' | 'constants'>) =>
   () => {
     state.uploader.$refs[constants.FILE_UPLOAD_INNER_TEMPLATE].$emit('drag-over', state.dragover)
   }

@@ -9,15 +9,19 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
+import type { IUploadListRenderlessParams, IFileUploadFile, IUploadListVideoParam } from '@/types'
 
 import { xss } from '../common/xss'
 import { addResizeListener, removeResizeListener } from '../common/deps/resize-event'
 
-export const parsePercentage = () => (val) => parseInt(val, 10)
+export const parsePercentage =
+  () =>
+  (val: string): number =>
+    parseInt(val, 10)
 
 export const handleClick =
-  ({ props, api, parent }) =>
-  (e, file) => {
+  ({ props, api, parent }: Pick<IUploadListRenderlessParams, 'props' | 'api' | 'parent'>) =>
+  (e: Event, file: IFileUploadFile): Function => {
     e.preventDefault()
     if (parent.state.isEdm) {
       const { downloadFile } = api.getApi()
@@ -29,13 +33,14 @@ export const handleClick =
     return props.handlePreview && props.handlePreview(file)
   }
 
-export const downloadFile = (service) => (file) => {
+export const downloadFile = (service: IUploadListRenderlessParams['service']) => (file: IFileUploadFile) => {
   const data = file && file.response && file.response.data
 
   let responseFile
   if (Array.isArray(data)) {
     responseFile = data[0]
   } else if (data && typeof data === 'object') {
+    // eslint-disable-next-line no-unreachable-loop
     for (let key in data) {
       responseFile = data[key]
       break
@@ -53,37 +58,38 @@ export const downloadFile = (service) => (file) => {
   }
 }
 
-export const picturefilePreview = (state) => (index) => {
+export const picturefilePreview = (state: IUploadListRenderlessParams['state']) => (index: number) => {
   state.startPostion = index
   state.shows = true
 }
 
-export const getDeleteData = (emit) => (data) => {
+export const getDeleteData = (emit: IUploadListRenderlessParams['emit']) => (data: string[]) => {
   emit('remove', data)
 }
 
 export const showOperatePanel =
-  ({ state }) =>
-  ({ file }) => {
+  ({ state }: Pick<IUploadListRenderlessParams, 'state'>) =>
+  ({ file }: { file: IFileUploadFile }) => {
     state.currentFile = file
     state.showPanel = true
   }
 
 export const reUpload =
-  ({ emit, props, parent }) =>
-  (file) => {
+  ({ emit, props, parent }: Pick<IUploadListRenderlessParams, 'emit' | 'props' | 'parent'>) =>
+  (file: IFileUploadFile) => {
     parent.state.isEdm
       ? emit('start', [file && file.raw], '', true)
       : props.handleReUpload && props.handleReUpload(file)
   }
 
-const addPlayEventListener = ({ type, el }, fn) => el && el.addEventListener(type, fn)
+const addPlayEventListener = ({ type, el }: IUploadListVideoParam, fn: Function) => el && el.addEventListener(type, fn)
 
-const removePlayEventListener = ({ type, el }, fn) => el && el.removeEventListener(type, fn)
+const removePlayEventListener = ({ type, el }: IUploadListVideoParam, fn: Function) =>
+  el && el.removeEventListener(type, fn)
 
 export const play =
-  ({ vm, api, props }) =>
-  ({ file, index, type }) => {
+  ({ vm, api, props }: Pick<IUploadListRenderlessParams, 'vm' | 'api' | 'props'>) =>
+  ({ file, index, type }: { file: IFileUploadFile; index: number; type: string }) => {
     if (props.isHwh5) {
       return props.triggerPlay(file, type, 'play')
     }
@@ -105,8 +111,8 @@ export const play =
   }
 
 export const pause =
-  ({ vm, props }) =>
-  ({ file, index, type }) => {
+  ({ vm, props }: Pick<IUploadListRenderlessParams, 'vm' | 'props'>) =>
+  ({ file, index, type }: { file: IFileUploadFile; index: number; type: string }) => {
     if (props.isHwh5) {
       return props.triggerPlay(file, type, 'pause')
     }
@@ -119,67 +125,67 @@ export const pause =
   }
 
 export const handleLoadedmetadata =
-  ({ vm }) =>
-  ({ e, file }) => {
-    vm.$set(file, 'totalSecond', parseInt(e.target.duration))
-    vm.$set(file, 'currentSecond', parseInt(e.target.currentTime))
+  ({ vm }: Pick<IUploadListRenderlessParams, 'vm'>) =>
+  ({ e, file }: { e: Event; file: IFileUploadFile }) => {
+    vm.$set(file, 'totalSecond', parseInt(e.target?.duration))
+    vm.$set(file, 'currentSecond', parseInt(e.target?.currentTime))
   }
 
 export const handleTimeupdate =
   () =>
-  ({ e, file }) => {
-    file.currentSecond = parseInt(e.target.currentTime)
+  ({ e, file }: { e: Event; file: IFileUploadFile }) => {
+    file.currentSecond = parseInt(e.target?.currentTime)
   }
 
 export const getFileType =
   () =>
-  ({ file }) =>
+  ({ file }: { file: IFileUploadFile }): string =>
     file.name && file.name.split('.')[file.name.split('.').length - 1].toLowerCase()
 
 export const getFileIcon =
-  ({ constants }) =>
-  ({ type }) => {
+  ({ constants }: Pick<IUploadListRenderlessParams, 'constants'>) =>
+  ({ type }: { type: string }): { name: string; color: string } => {
     const { EXCEL, FILE, PDF, PICTURE, PPT, TEXT, WORD, ZIP, VIDEO, AUDIO } = constants.FILE_TYPE
     let iconTypes = {
       [EXCEL]: {
         name: 'icon-excel-type',
-        color: '#00A2B5'
+        color: '#09AA71'
       },
       [FILE]: {
         name: 'icon-file-type',
-        color: '#71C14C'
+        color: '#09AA71'
       },
       [PDF]: {
         name: 'icon-pdf-type',
-        color: '#FC916E'
+        color: '#E02128'
       },
       [PICTURE]: {
         name: 'icon-picture-type',
-        color: '#2E94FF'
+        color: '#5531EB'
       },
       [PPT]: {
         name: 'icon-ppt-type',
-        color: '#F46087'
+        color: '#E02128'
       },
       [TEXT]: {
         name: 'icon-text-type',
-        color: '#9185F0'
+        color: '#2CB8C9'
       },
       [WORD]: {
         name: 'icon-word-type',
-        color: '#2070F3'
+        color: '#0067D1'
       },
       [ZIP]: {
         name: 'icon-zip-type',
-        color: '#FDC000'
+        color: '#2CB8C9'
       },
       [VIDEO]: {
         name: 'icon-video-type',
-        color: '#2E94FF'
+        color: '#0067D1'
       },
       [AUDIO]: {
         name: 'icon-audio',
-        color: '#2E94FF'
+        color: '#5531EB'
       },
       default: {
         name: 'icon-other-type',
@@ -195,26 +201,26 @@ export const getFileIcon =
       }
     }
 
-    return iconTypes[type] || iconTypes['default']
+    return iconTypes[type] || iconTypes.default
   }
 
 export const remove =
-  ({ emit }) =>
-  ({ file }) =>
+  ({ emit }: Pick<IUploadListRenderlessParams, 'emit'>) =>
+  ({ file }: { file: IFileUploadFile }) =>
     emit('remove', file)
 
 export const calcUploadListLiWidth =
-  ({ vm, nextTick, props, constants }) =>
+  ({ vm, nextTick, props, constants }: Pick<IUploadListRenderlessParams, 'vm' | 'nextTick' | 'props' | 'constants'>) =>
   () => {
-    const { listType } = props,
-      { LIST_TYPE } = constants
+    const { listType } = props
+    const { LIST_TYPE } = constants
     nextTick(() => {
-      const uploadListEle = vm.$refs['upload-list']
-      const uploadListLiEle = vm.$refs['upload-list-li']
+      const uploadListEle = vm.$refs.uploadList
+      const uploadListLiEle = uploadListEle && uploadListEle.querySelectorAll('[data-tag="tiny-upload-list-item"]')
 
       if (!uploadListEle || !(uploadListLiEle && uploadListLiEle[0])) return
 
-      if (listType === LIST_TYPE.TEXT) {
+      if (listType === LIST_TYPE.TEXT || listType === LIST_TYPE.SAAS) {
         const { minWidth } = window.getComputedStyle(uploadListLiEle && uploadListLiEle[0])
         const marginRight = 8
 
@@ -234,7 +240,7 @@ export const calcUploadListLiWidth =
   }
 
 export const calcVisible =
-  ({ props, constants, emit }) =>
+  ({ props, constants, emit }: Pick<IUploadListRenderlessParams, 'props' | 'constants' | 'emit'>) =>
   () => {
     const { SUCESS } = constants.FILE_STATUS
     const isAllSuccess = props.files.every(({ status }) => status === SUCESS || !status)
@@ -242,8 +248,8 @@ export const calcVisible =
   }
 
 export const getNotSuccessFiles =
-  ({ props, constants }) =>
-  () => {
+  ({ props, constants }: Pick<IUploadListRenderlessParams, 'props' | 'constants'>) =>
+  (): object[] => {
     const { SUCESS } = constants.FILE_STATUS
     let files = props.files
 
@@ -255,8 +261,8 @@ export const getNotSuccessFiles =
   }
 
 export const chooseFile =
-  ({ state, constants }) =>
-  (type) => {
+  ({ state, constants }: Pick<IUploadListRenderlessParams, 'state' | 'constants'>) =>
+  (type: string) => {
     const { SOURCE_AUDIO } = constants.SOURCE_TYPE
     if (type === SOURCE_AUDIO) {
       state.showAudioPanel = true
@@ -267,8 +273,8 @@ export const chooseFile =
   }
 
 export const handleTriggerClick =
-  ({ state, props }) =>
-  ($event, type) => {
+  ({ state, props }: Pick<IUploadListRenderlessParams, 'state' | 'props'>) =>
+  ($event: Event, type: string) => {
     return new Promise((resolve) => {
       let res = props.triggerClick($event, state.triggerClickType, type)
       if (res && res.then) {
@@ -289,16 +295,22 @@ export const handleTriggerClick =
   }
 
 export const mounted =
-  ({ api, vm }) =>
+  ({ api, vm }: Pick<IUploadListRenderlessParams, 'api' | 'vm'>) =>
   () => {
-    const el = vm.$refs['upload-list']
-    el && addResizeListener(el, api.calcUploadListLiWidth)
+    const el = vm.$refs.uploadList
+    if (el) {
+      addResizeListener(el, api.calcUploadListLiWidth)
+      vm._removeResizeListener = () => removeResizeListener(el, api.calcUploadListLiWidth)
+    }
   }
 
 export const destroyed =
-  ({ api, props, vm }) =>
+  ({ props, vm }: Pick<IUploadListRenderlessParams, 'props' | 'vm'>) =>
   () => {
-    removeResizeListener(vm.$refs['upload-list'], api.calcUploadListLiWidth)
+    if (vm._removeResizeListener) {
+      vm._removeResizeListener()
+      vm._removeResizeListener = null
+    }
 
     props.files.forEach((file) => {
       removePlayEventListener({ type: 'ended', el: file.el }, file.playEvent)

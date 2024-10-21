@@ -17,10 +17,10 @@
         {{ title }}
         <div class="headSort" v-if="render && state.renderType !== 'TinyTable' && data.flag === 'sort'">
           <div class="sort-btn disabled up" @click="setPosition('up', $event)">
-            <icon-arrow-up fill="#1890ff"></icon-arrow-up>
+            <icon-arrow-up></icon-arrow-up>
           </div>
           <div class="sort-btn disabled down" @click="setPosition('down', $event)">
-            <icon-arrow-down fill="#1890ff"></icon-arrow-down>
+            <icon-arrow-down></icon-arrow-down>
           </div>
         </div>
         <span>{{ state.checkedSummary }}</span>
@@ -32,17 +32,18 @@
         v-model="state.query"
         size="small"
         :placeholder="placeholder"
+        clearable
+        :inputBoxType="state.inputBoxType"
+        @clear="clearQuery"
         @mouseenter="state.inputHover = true"
         @mouseleave="state.inputHover = false"
         v-if="filterable"
       >
-        <template #prefix>
-          <i :class="['tiny-input__icon', 'tiny-icon-' + state.inputIcon]" @click="clearQuery"></i>
+        <template #prefix v-if="state.showInputSearch">
+          <icon-search></icon-search>
         </template>
       </tiny-input>
-      <transition-group
-        name="tiny-transition-transfer-fade"
-        tag="div"
+      <div
         v-show="!render"
         role="group"
         aria-label="checkbox-group"
@@ -69,9 +70,10 @@
             <span class="tiny-checkbox__inner">
               <icon-check
                 v-if="!(state.checked.length > 0 && state.checked.indexOf(item[state.keyProp]) > -1)"
-                class="tiny-svg-size"
+                class="tiny-svg-size icon-no-checked"
+                style="fill: transparent"
               />
-              <icon-checked-sur v-else class="tiny-svg-size" />
+              <icon-checked-sur v-else class="tiny-svg-size icon-checked-sur" />
             </span>
             <input
               type="checkbox"
@@ -85,11 +87,11 @@
             <option-content :option="optionRender(item)"></option-content>
           </span>
         </label>
-      </transition-group>
+      </div>
       <component
         ref="plugin"
         v-if="render && render.plugin"
-        :is="markRaw(toRaw(render.plugin))"
+        :is="toRaw(render.plugin)"
         v-bind="state.render"
         v-on="state.render.on"
       ></component>
@@ -128,7 +130,38 @@ import { renderless, api } from '@opentiny/vue-renderless/transfer-panel/vue'
 import Checkbox from '@opentiny/vue-checkbox'
 import Input from '@opentiny/vue-input'
 import Pager from '@opentiny/vue-pager'
-import { iconArrowUp, iconArrowDown, iconCheckedSur, iconCheck } from '@opentiny/vue-icon'
+import { iconArrowUp, iconArrowDown, iconYes, iconSearch } from '@opentiny/vue-icon'
+
+export const transferPanelProps = {
+  columns: Array,
+  data: {
+    type: Array,
+    default() {
+      return []
+    }
+  },
+  defaultChecked: Array,
+  filterMethod: Function,
+  filterable: Boolean,
+  format: Object,
+  isToLeft: Boolean,
+  optionRender: Function,
+  pagerOp: Object,
+  placeholder: String,
+  props: Object,
+  render: Object,
+  renderContent: Function,
+  showLeft: Boolean,
+  showPager: Boolean,
+  title: String,
+  treeOp: Object,
+  value: {
+    type: Array,
+    default() {
+      return []
+    }
+  }
+}
 
 export default defineComponent({
   name: $prefix + 'TransferPanel',
@@ -140,8 +173,9 @@ export default defineComponent({
     TinyPager: Pager,
     IconArrowDown: iconArrowDown(),
     IconArrowUp: iconArrowUp(),
-    IconCheckedSur: iconCheckedSur(),
-    IconCheck: iconCheck(),
+    IconCheckedSur: iconYes(),
+    IconCheck: iconYes(),
+    IconSearch: iconSearch(),
     OptionContent: {
       props: {
         option: [Object, Array]
@@ -151,36 +185,7 @@ export default defineComponent({
       }
     }
   },
-  props: {
-    columns: Array,
-    data: {
-      type: Array,
-      default() {
-        return []
-      }
-    },
-    defaultChecked: Array,
-    filterMethod: Function,
-    filterable: Boolean,
-    format: Object,
-    isToLeft: Boolean,
-    optionRender: Function,
-    pagerOp: Object,
-    placeholder: String,
-    props: Object,
-    render: Object,
-    renderContent: Function,
-    showLeft: Boolean,
-    showPager: Boolean,
-    title: String,
-    treeOp: Object,
-    value: {
-      type: Array,
-      default() {
-        return []
-      }
-    }
-  },
+  props: transferPanelProps,
   setup(props, context) {
     return setup({ props, context, renderless, api, mono: true })
   }

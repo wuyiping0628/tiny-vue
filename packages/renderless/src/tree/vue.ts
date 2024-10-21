@@ -79,6 +79,7 @@ import {
   handleClickPlainNode,
   setCheckedByNodeKey
 } from './index'
+import { random } from '../common/string'
 
 export const api = [
   'state',
@@ -130,16 +131,16 @@ export const api = [
   'setCheckedByNodeKey'
 ]
 
-const initState = ({ reactive, emitter, props, computed, api }) => {
+const initState = ({ reactive, emitter, props, computed, api, TreeAdapter }) => {
   const state = reactive({
-    loaded: false,
+    loaded: !props.lazy,
     checkEasily: false,
     root: null,
     store: null,
     treeItems: null,
     currentNode: null,
     checkboxItems: [],
-    isEmpty: false,
+    isEmpty: computed(() => api.computedIsEmpty(props, state)),
     emitter: emitter(),
     expandIcon: props.expandIcon,
     shrinkIcon: props.shrinkIcon,
@@ -173,13 +174,20 @@ const initState = ({ reactive, emitter, props, computed, api }) => {
       deleteData: [],
       editData: []
     },
-    plainNodeStore: {}
+    newNodeId: Math.floor(random() * 10000),
+    plainNodeStore: {},
+    allNodeKeys: [],
+    renderedChildNodes: computed(() => {
+      return state.root.childNodes.filter((childNode) => (TreeAdapter ? TreeAdapter.shouldRender(childNode) : true))
+    }),
+    // tiny 新增
+    filterText: '' // 记录当前过滤的内容
   })
 
   return state
 }
 
-const initApi = ({ state, dispatch, broadcast, props, vm, constants, t, emit, refs }) => ({
+const initApi = ({ state, dispatch, broadcast, props, vm, constants, t, emit, api, TreeAdapter }) => ({
   state,
   dispatch,
   broadcast,
@@ -192,14 +200,14 @@ const initApi = ({ state, dispatch, broadcast, props, vm, constants, t, emit, re
   watchCheckboxItems: watchCheckboxItems(),
   watchCheckStrictly: watchCheckStrictly(state),
   updated: updated({ vm, state }),
-  filter: filter({ props, state }),
+  filter: filter({ props, state, api }),
   getNodeKey: getNodeKey(props),
   getNodePath: getNodePath({ props, state }),
   getCheckedNodes: getCheckedNodes(state),
   getCheckedKeys: getCheckedKeys(state),
   getCurrentNode: getCurrentNode(state),
   setCheckedNodes: setCheckedNodes({ props, state }),
-  setCheckedKeys: setCheckedKeys({ props, state }),
+  setCheckedKeys: setCheckedKeys({ props, state, api }),
   setChecked: setChecked(state),
   getHalfCheckedNodes: getHalfCheckedNodes(state),
   getHalfCheckedKeys: getHalfCheckedKeys(state),
@@ -212,7 +220,7 @@ const initApi = ({ state, dispatch, broadcast, props, vm, constants, t, emit, re
   insertAfter: insertAfter(state),
   updateKeyChildren: updateKeyChildren({ props, state }),
   initTabIndex: initTabIndex({ vm, state }),
-  handleKeydown: handleKeydown({ vm, state }),
+  handleKeydown: handleKeydown({ vm, state, TreeAdapter }),
   computedShowEmptyText: computedShowEmptyText({ constants, t }),
   setCurrentRadio: setCurrentRadio({ props, state }),
   expandAllNodes: expandAllNodes({ state }),
@@ -224,14 +232,14 @@ const initApi = ({ state, dispatch, broadcast, props, vm, constants, t, emit, re
   setCheckedByNodeKey: setCheckedByNodeKey({ props, state })
 })
 
-const initWatcher = ({ watch, props, api, state }) => {
+const initWatcher = ({ watch, props, api, state, isVue2 }) => {
   watch(() => props.defaultCheckedKeys, api.watchDefaultCheckedKeys)
 
   watch(() => props.defaultExpandedKeys, api.watchDefaultExpandedKeys)
 
   watch(() => props.defaultExpandedKeysHighlight, api.initIsCurrent)
 
-  watch(() => props.data, api.watchData, { deep: true })
+  watch(() => props.data, api.watchData, { deep: !isVue2 })
 
   watch(() => props.checkboxItems, api.watchCheckboxItems)
 
@@ -254,28 +262,21 @@ const initWatcher = ({ watch, props, api, state }) => {
     (value) => (state.action.addDisabled = value || []),
     { immediate: true }
   )
-
-  watch(
-    () => state.root,
-    () => {
-      state.isEmpty = api.computedIsEmpty(props, state)
-      api.initPlainNodeStore()
-    },
-    { deep: true }
-  )
 }
 
 export const renderless = (
   props,
-  { computed, onMounted, onUpdated, reactive, watch, provide, onBeforeUnmount },
-  { vm, t, emit, constants, broadcast, dispatch, service, emitter, nextTick }
+  { computed, onMounted, onUpdated, reactive, watch, provide, onBeforeUnmount, inject },
+  { vm, t, emit, constants, broadcast, dispatch, service, emitter, nextTick },
+  { isVue2 }
 ) => {
   const api = {}
-  const state = initState({ reactive, emitter, props, computed, api })
+  const TreeAdapter = inject('TreeAdapter', null)
+  const state = initState({ reactive, emitter, props, computed, api, TreeAdapter })
 
   provide('parentEmitter', state.emitter)
 
-  Object.assign(api, initApi({ state, dispatch, broadcast, props, vm, constants, t, emit }), {
+  Object.assign(api, initApi({ state, dispatch, broadcast, props, vm, constants, t, emit, api, TreeAdapter }), {
     closeMenu: closeMenu(state),
     mounted: mounted({ api, vm }),
     created: created({ api, props, state }),
@@ -285,13 +286,13 @@ export const renderless = (
     wrapMounted: wrapMounted({ api, props, service }),
     initTreeStore: initTreeStore({ api, props, state, emit }),
     deleteAction: deleteAction({ state, api, emit }),
-    deleteConfirm: deleteConfirm({ state }),
+    deleteConfirm: deleteConfirm({ state, props, api }),
     getSameDataIndex,
     loopGetTreeData,
     cancelDelete: cancelDelete({ state }),
     openEdit: openEdit({ props, state, api, emit }),
     saveNode: saveNode({ state, emit, api }),
-    addNode: addNode({ api }),
+    addNode: addNode({ api, props, state }),
     editNode: editNode({ state }),
     closeEdit: closeEdit({ props, state, api, emit }),
     saveEdit: saveEdit({ props, state, emit }),
@@ -307,7 +308,7 @@ export const renderless = (
 
   api.created()
 
-  initWatcher({ watch, props, api, state })
+  initWatcher({ watch, props, api, state, isVue2 })
 
   onMounted(api.wrapMounted)
 

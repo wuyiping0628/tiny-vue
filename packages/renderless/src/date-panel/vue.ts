@@ -53,7 +53,10 @@ import {
   computerVisibleTime,
   computerVisibleDate,
   computerTimeFormat,
-  watchVisible
+  watchVisible,
+  getDisabledNow,
+  getDisabledConfirm,
+  getNowTime
 } from './index'
 import { getWeekNumber, extractDateFormat } from '../common/deps/date-util'
 import { DATEPICKER, DATE } from '../common'
@@ -82,10 +85,11 @@ export const api = [
   'handleVisibleDateChange',
   'handleLeave',
   'handleShortcutClick',
-  'handleTimePickClose'
+  'handleTimePickClose',
+  'getNowTime'
 ]
 
-const initState = ({ reactive, computed, api, i18n }) => {
+const initState = ({ reactive, computed, api, i18n, designConfig }) => {
   const state = reactive({
     popperClass: '',
     date: new Date(),
@@ -115,6 +119,8 @@ const initState = ({ reactive, computed, api, i18n }) => {
     selectedTz: null,
     animationName: '',
     startYear: Math.floor(new Date().getFullYear() / 10) * 10,
+    disabledNow: computed(() => api.getDisabledNow()),
+    disabledConfirm: computed(() => api.getDisabledConfirm()),
     year: computed(() => !Array.isArray(state.date) && state.date.getFullYear()),
     month: computed(() => !Array.isArray(state.date) && state.date.getMonth()),
     week: computed(() => getWeekNumber(state.date)),
@@ -127,7 +133,9 @@ const initState = ({ reactive, computed, api, i18n }) => {
     dateFormat: computed(() => (state.format ? extractDateFormat(state.format.replace(state.timefmt, '')) : DATE.Date)),
     lang: computed(() => (i18n ? i18n.locale.replace(/_/g, '-') : 'zh-CN')),
     isShowTz: computed(() => state.showTimezone && state.showTime),
-    isShowFooter: computed(() => state.footerVisible && [DATEPICKER.Date, DATEPICKER.Year].includes(state.currentView))
+    isShowFooter: computed(() => state.footerVisible && [DATEPICKER.Date, DATEPICKER.Year].includes(state.currentView)),
+    buttonType: designConfig?.state?.buttonType || 'default',
+    buttonSize: designConfig?.state?.buttonSize || 'default'
   })
 
   state.needChangeTimezoneData = true // 控制重新渲染时区列表
@@ -171,7 +179,7 @@ const initWatch = ({ watch, state, api, nextTick }) => {
   watch(() => state.visible, api.watchVisible)
 }
 
-const initApi = ({ api, state, t, emit, nextTick, vm, watch }) => {
+const initApi = ({ api, state, t, emit, nextTick, vm, watch, props }) => {
   Object.assign(api, {
     t,
     state,
@@ -202,7 +210,7 @@ const initApi = ({ api, state, t, emit, nextTick, vm, watch }) => {
     searchTz: searchTz({ api, state }),
     handleEnter: handleEnter(api),
     handleLeave: handleLeave({ api, emit }),
-    changeToNow: changeToNow({ api, state }),
+    changeToNow: changeToNow({ api, state, props }),
     isValidValue: isValidValue({ api, state }),
     handleClear: handleClear({ api, state, emit }),
     watchValue: watchValue({ api, state }),
@@ -217,16 +225,23 @@ const initApi = ({ api, state, t, emit, nextTick, vm, watch }) => {
     handleShortcutClick: handleShortcutClick(api),
     computerVisibleDate: computerVisibleDate({ state, t }),
     handleVisibleTimeChange: handleVisibleTimeChange({ api, vm, state, t }),
-    computerTimeFormat: computerTimeFormat({ state })
+    computerTimeFormat: computerTimeFormat({ state }),
+    getDisabledNow: getDisabledNow({ state }),
+    getDisabledConfirm: getDisabledConfirm({ state }),
+    getNowTime: getNowTime({ props })
   })
 }
 
-export const renderless = (props, { computed, reactive, watch, nextTick }, { t, emit: $emit, vm, i18n }) => {
+export const renderless = (
+  props,
+  { computed, reactive, watch, nextTick },
+  { t, emit: $emit, vm, i18n, designConfig }
+) => {
   const api = {}
   const emit = props.emitter ? props.emitter.emit : $emit
-  const state = initState({ reactive, computed, api, i18n })
+  const state = initState({ reactive, computed, api, i18n, designConfig })
 
-  initApi({ api, state, t, emit, nextTick, vm, watch })
+  initApi({ api, state, t, emit, nextTick, vm, watch, props })
   initWatch({ watch, state, api, nextTick })
 
   return api

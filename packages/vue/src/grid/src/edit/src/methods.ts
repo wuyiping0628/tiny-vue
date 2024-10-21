@@ -79,7 +79,7 @@ function operArrs({ _vm, editStore, newRecords, newRecordsCopy, nowData, row, ta
   Array.prototype.push.apply(_vm.temporaryRows, newRecordsCopy)
 }
 
-function removeFromTableSourceData({ _vm, rows, tableSourceData }) {
+export function removeFromTableSourceData({ _vm, rows, tableSourceData }) {
   for (let i = 0; i < rows.length; i++) {
     for (let j = tableSourceData.length - 1; j >= 0; j--) {
       if (getRowid(_vm, rows[i]) === getRowid(_vm, tableSourceData[j])) {
@@ -159,7 +159,7 @@ export default {
     this.updateCache(true)
     this.handleTableData(true)
     this.checkSelectionStatus()
-
+    this.updateFooter()
     if (scrollYLoad) {
       this.updateScrollYSpace()
     }
@@ -238,7 +238,7 @@ export default {
     this.handleTableData(true)
 
     this.checkSelectionStatus()
-
+    this.updateFooter()
     if (scrollYLoad) {
       this.updateScrollYSpace()
     }
@@ -268,7 +268,7 @@ export default {
   },
   _revert(...args) {
     warn('ui.grid.error.delRevert')
-    return this.revertData.apply(this, args)
+    return this.revertData(...args)
   },
 
   /**
@@ -351,7 +351,7 @@ export default {
   /**
    * 处理激活编辑
    */
-  handleActived(params, event) {
+  async handleActived(params, event) {
     let { editConfig, editStore, tableColumn } = this
     let { cell, column, row } = params
     let { editor } = column
@@ -361,7 +361,7 @@ export default {
     if (editor && cell && isActiveCell) {
       // 判断是否禁用编辑
       let type = 'edit-disabled'
-      let canActive = handleActivedCanActive({ editConfig, params })
+      let canActive = await handleActivedCanActive({ editConfig, params })
       let args = { _vm: this, actived, canActive, cell, column, editConfig }
 
       Object.assign(args, { event, params, row, tableColumn, type })
@@ -421,6 +421,14 @@ export default {
 
     if (isActived) {
       this.updateFooter()
+
+      // 处理数字输入框返回string类型数据，导致还原初始数字还是编辑状态的问题
+      const { row, column } = args
+      const { editor } = column || {}
+      if (editor?.component === 'input' && editor?.attrs?.type === 'number') {
+        row[column.property] = +row[column.property]
+      }
+
       emitEvent(this, 'edit-closed', [args, event])
     }
 
@@ -536,7 +544,7 @@ export default {
       return
     }
 
-    let listElem = elemStore[`${column.fixed}-body-list`] || elemStore['main-body-list']
+    let listElem = elemStore['main-body-list']
     let rowid = getRowid(this, row)
     let trElem = listElem.querySelector(`[data-rowid="${rowid}"]`)
 

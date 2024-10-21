@@ -4,13 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OpenTiny - TinyVue</title>
-    <!--问题：1.TinyNG打包后静态资源文件在新官网找不到，CSS主题样式文件加载不到-->
-    <!--2.TinyNG打包文件web-components的主题样式加载时机较早，编译获取不到PUBLIC_URL和DEPLOY_URL变量，从而找不到对应的css文件-->
-    <!--方案：将PUBLIC_URL和DEPLOY_URL变量在header中提前定义，保证web-components可以获取到这两个变量，从而正确加载对应的主题样式文件-->
+    <title>TinyVue：一套跨端、跨框架的企业级 UI 组件库，支持 Vue 2 和 Vue 3，支持 PC 端和移动端</title>
+    <meta
+      name="description"
+      content="TinyVue 是一套跨端、跨框架的企业级 UI 组件库，支持 Vue 2 和 Vue 3，支持 PC 端和移动端。"
+    />
+    <meta
+      name="keywords"
+      content="vue,frontend,vue-components,component-library,renderless,renderless-components,mobile-components,tiny-vue,vue3,headless-components,opentiny,前端,UI组件库,Vue组件库,移动端组件,无渲染组件"
+    />
+
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <!--图片引用方案：将PUBLIC_URL和DEPLOY_URL变量在header中提前定义，保证web-components可以获取到这两个变量，从而正确加载对应的主题样式文件-->
     <script type="module">
       window.PUBLIC_URL = import.meta.env.BASE_URL
       window.DEPLOY_URL = ''
+      window.process = { env: {} }
     </script>
   </head>
 
@@ -18,11 +27,8 @@
     <div id="header"></div>
     <app-root></app-root>
     <div id="app" class="wp100 hp100 pt60 of-hidden"></div>
-
-    <script
-      id="tinyui-design-common"
-      src="https://res.hc-cdn.com/tinyui-design-common/1.0.5.20230707170109/tinyui-design-common.min.js"
-    ></script>
+    <!-- prettier-ignore -->
+    <script id="tinyui-design-common" src="/static/js/design-common.js"></script>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>

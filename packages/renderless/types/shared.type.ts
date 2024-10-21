@@ -6,13 +6,13 @@
  */
 
 // 使用vue3的声明，来代表hooks中所有函数的声明
-import * as hooks from 'vue'
+import type * as hooks from 'vue'
 
 /** hooks 变量: renderless的第二个参数 */
 export type ISharedRenderlessParamHooks = typeof hooks
 
 /** utils变量: renderless的第三个参数  */
-export interface ISharedRenderlessParamUtils<CT> {
+export interface ISharedRenderlessParamUtils<CT = never> {
   /** 当前使用的框架 */
   framework: 'vue3' | 'vue2' | 'vue2.7'
   /** 组件前缀，默认为 Tiny  */
@@ -32,19 +32,21 @@ export interface ISharedRenderlessParamUtils<CT> {
   /** 组件内国际化，常用函数 */
   t: (path: string, options?: any) => string
 
-  /** 模式。
-   * @mark 取值为：pc  mobile  mobile-first */
+  /** 组件模式。
+   * @mark 等同于 vm.$mode, 取值为：pc  mobile  mobile-first */
   mode: 'pc' | 'mobile' | 'mobile-first'
   /** 是否为 mobile */
   isMobileMode: boolean
   /** 是否为 pc */
   isPCMode: boolean
+  /** 是否为mobile-first */
+  isMobileFirstMode: boolean
 
   /** vue组件实例的context.attrs */
   attrs: any
   /** 返回组件props._constants */
   constants: CT
-  /** vue的内置nextTick， 其实可以从第二参 hooks中获取, 还可以通过当前vm.$nextTick来获取*/
+  /** vue的内置nextTick， 其实可以从第二参 hooks中获取, 还可以通过当前vm.$nextTick来获取 */
   nextTick: typeof hooks.nextTick
   /** parentVm */
   parent: ITinyVm<CT>
@@ -53,12 +55,12 @@ export interface ISharedRenderlessParamUtils<CT> {
   /** 第一次mount加载后的所有refs，不会更新！ ⭐要避免使用 */
   refs: Record<string, any>
   /** 组件初化时的页面路由，不会更新！
-   * @mark ⭐要避免使用 */
+   * @mark ⭐要避免使用, 请使用vm.$refs */
   route: any
   /** 当前的router实例。 从app的根上读取 */
   router: any
 
-  /** 从app的根上读取: root?.$service,  用户必须引用服务适配器的包， 并传入app后，才有该变量*/
+  /** 从app的根上读取: root?.$service,  用户必须引用服务适配器的包， 并传入app后，才有该变量 */
   service: any
   /** 调用从app的根上$getService:  root?.$getService(vm) */
   getService: any
@@ -71,13 +73,13 @@ export interface ISharedRenderlessParamUtils<CT> {
   /** 向实例的 subTree.children 深度遍历发送广播消息。 如果component找到了触发component.emit(eventName, params)
    * @param componentName 组件名
    */
-  broadcast: (componentName: string, eventName: string, params: any) => void
+  broadcast: (componentName: string, eventName: string, params?: any) => void
   /** 向实例的 parent开始查找componentName， 找到匹配第一个组件， 触发component.emit(eventName, params) */
-  dispatch: (componentName: string, eventName: string, params: any) => void
+  dispatch: (componentName: string, eventName: string, params?: any) => void
   /** 向实例的subTree 遍历。
    * 1、handler 是函数： handler入参{level,vm,el,options,isLevel1}. 给每个子节点遍历调用函数。
    * 2、handler 是非函数： 直接通过 instance.subTree 来生成一个同等树状的vm数据。
-   * @mark ⭐全局有4个组件使用到 handler是函数 的用法 ，用于遍历子节点，将符合条件的信息收集到一个数组中。
+   * @mark ⭐全局有4个组件使用到`handler是函数`的用法 ，用于遍历子节点，将符合条件的信息收集到一个数组中。
    */
   childrenHandler: (handler?: (node: { level: number; vm: ITinyVm<CT>; el; options; isLevel1 }) => void) => void | any[]
   /** 向实例的 parent 遍历。
@@ -93,11 +95,11 @@ export interface ISharedRenderlessParamUtils<CT> {
    * @param props Object.defineProperties的第2参, 格式：{ property1: {value: 42,writable: true},property2: {...} }
    */
   defineInstanceProperties: (props: PropertyDescriptorMap & ThisType<any>) => void
-  /** 给parentVm 添加属性。*/
+  /** 给parentVm 添加属性。 */
   defineParentInstanceProperties: (props: PropertyDescriptorMap & ThisType<any>) => void
   /** 返回 context.emit */
   emit: (event, ...args) => void
-  /** Tiny 适配器中，自行封装的一个 EventBus模型。每次调用返回一个新的模型对象。
+  /** Tiny 适配器中，自行封装的一个 EventBus模型的工厂函数。⭐每次调用才返回一个新的模型对象。
    * @mark vm中，会给instance添加一个$emitter=emitter() ,就是该函数返回的模型。 vm中的$on, $off,$once 都是该模型的方法。
    * @mark ⭐所以不要直接使用该函数。
    */
@@ -112,7 +114,7 @@ export interface ISharedRenderlessParamUtils<CT> {
 }
 
 /** vue.ts的一个混合上下文，也是index.ts 文件中二层函数的入参混合体。 */
-export type ISharedRenderlessFunctionParams<CT> = {
+export type ISharedRenderlessFunctionParams<CT = null> = {
   api: object
   props: object
   state: object
@@ -132,7 +134,7 @@ interface IComponentDesignConfig {
 }
 
 /** Tiny-Vue的Adapter 内部为组件创建的Vm */
-interface ITinyVm<CT> {
+export interface ITinyVm<CT = never> {
   /** 从instance.attrs上， 过滤出所有的非函数的attrs */
   $attrs: Record<string, any>
   /** 从instance.attrs上， 过滤出所有的函数的attrs, 并对大驼峰属性名转化为下划线名 */
@@ -143,14 +145,14 @@ interface ITinyVm<CT> {
   $constants: CT
   /** 返回 instance.vnode.el */
   $el: HTMLElement
-  /** 返回 instance._tiny_mode*/
+  /** 返回 instance._tiny_mode */
   $mode: 'pc' | 'mobile' | 'mobile-first'
   /** 即 hooks.nextTick */
   $nextTick: typeof hooks.nextTick
-  /** 自动触发 instance.emit 和 instance.$emitter 两处地方*/
+  /** 自动触发 instance.emit 和 instance.$emitter 两处地方 */
   $emit: (...args) => void
-  /** instance.$emitter.off */
-  $off: (eventname: string, callback: Function) => void
+  /** instance.$emitter.off, 不传任何参数则是移除所有事件 */
+  $off: (eventname?: string, callback?: Function) => void
   /** instance.$emitter.on */
   $on: (eventname: string, callback: Function) => void
   /** instance.$emitter.once */
@@ -163,9 +165,9 @@ interface ITinyVm<CT> {
   /** 返回 instance.refs,
    * @mark ⭐ 尽量使用这个，每次都会是最新的refs */
   $refs: Record<string, any>
-  /** 返回 instance.slots*/
+  /** 返回 instance.slots */
   $slots: Record<string, Function>
-  /** 返回 instance.slots*/
+  /** 返回 instance.slots */
   $scopedSlots: Record<string, Function>
 
   /** 给target赋值。 vue2是调用instance.$set

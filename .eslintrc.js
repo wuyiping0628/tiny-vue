@@ -10,6 +10,8 @@ module.exports = {
         order: [['script', 'template'], 'style']
       }
     ],
+    'vue/attribute-hyphenation': 'off',
+    'vue/v-on-event-hyphenation': 'off',
     'vue/order-in-components': 'off',
     'vue/component-name-in-template-casing': 'off',
     'vue/custom-event-name-casing': 'off',
@@ -20,7 +22,10 @@ module.exports = {
     'vue/prefer-separate-static-class': 'off',
     'vue/comma-dangle': 'off',
     'vue/prefer-template': 'off',
+    'vue/no-unused-refs': 'off',
+    'vue/require-component-is': 'off',
     'vue/singleline-html-element-content-newline': 'off',
+    'vue/no-v-for-template-key-on-child': 'off',
     'curly': 'off',
     'sort-imports': 'off',
     'prefer-template': 'off',
@@ -33,8 +38,8 @@ module.exports = {
     'quote-props': 'off',
     'prefer-const': 'off',
     'multiline-ternary': 'off',
+    'vue/no-deprecated-v-on-native-modifier': 'off',
     '@typescript-eslint/comma-dangle': 'off',
-    // '@typescript-eslint/indent': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -43,6 +48,8 @@ module.exports = {
     '@typescript-eslint/brace-style': 'off',
     '@typescript-eslint/restrict-plus-operands': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/restrict-template-expressions': 'off'
+    '@typescript-eslint/restrict-template-expressions': 'off',
+    '@typescript-eslint/no-invalid-this': 'off',
+    'vue/no-deprecated-dollar-scopedslots-api': 'off'
   }
 }

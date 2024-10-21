@@ -9,10 +9,11 @@ import {
   getModel,
   setModel,
   computedStore,
-  getItemChecked
+  getItemChecked,
+  cardClick
 } from './index'
 
-export const api = ['state', 'handelIconClick']
+export const api = ['state', 'handelIconClick', 'handleChange', 'cardClick']
 
 export const renderless = (
   props,
@@ -29,7 +30,7 @@ export const renderless = (
     iconNum: computed(() => api.getIconNum()),
     effectOptions: computed(() => props.options.filter((item) => !item.hidden)),
     store: computed(() => api.computedStore()),
-    cardClass: computed(() => props.cardClass || state.cardGroup.cardClass || ''),
+    customClass: computed(() => props.customClass || state.cardGroup.customClass || ''),
     autoWidth: computed(() => props.autoWidth || state.cardGroup.autoWidth),
     height: computed(() => props.height || state.cardGroup.height),
     status: computed(() => props.status || state.cardGroup.status || 'default'),
@@ -42,7 +43,8 @@ export const renderless = (
     model: computed({
       get: () => api.getModel(),
       set: (val) => api.setModel(val)
-    })
+    }),
+    checkMode: computed(() => props.checkMode)
   })
 
   Object.assign(api, {
@@ -53,6 +55,7 @@ export const renderless = (
     isDisabled: isDisabled({ props, state }),
     setModel: setModel({ constants, dispatch, emit, props, vm, state }),
     handleChange: handleChange({ constants, dispatch, emit, state, nextTick }),
+    cardClick: cardClick({ emit, state, props }),
     getSliceNum: getSliceNum({ state, props }),
     getIconNum: getIconNum({ state, props }),
     computedStore: computedStore({ state, props }),
@@ -60,7 +63,6 @@ export const renderless = (
     getItemChecked: getItemChecked({ state, props })
   })
 
-  watch(() => state.model, api.handleChange, { deep: true })
   watch(
     () => state.disabled,
     () => {

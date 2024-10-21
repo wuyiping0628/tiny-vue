@@ -11,8 +11,6 @@
  */
 import Vue from 'vue'
 import * as hooks from 'vue'
-
-import type {} from 'vue-router' // https://github.com/microsoft/TypeScript/issues/47663#issuecomment-1270716220
 import { emitter, bindFilter, getElementCssClass, getElementStatusClass } from '../utils'
 import teleport from '../teleport'
 
@@ -89,6 +87,7 @@ const emitEvent = (vm) => {
       }
 
       if (parent) {
+        // eslint-disable-next-line prefer-spread
         parent.$emit.apply(parent, [eventName].concat(params))
       }
     },
@@ -187,19 +186,6 @@ const defineProperties = (vm, instance, filter) => {
 
 const filter = (name) => name.indexOf('$') === 0 || name.indexOf('_') === 0 || name === 'constructor'
 
-const customEmit = (context, emit) => {
-  return function () {
-    const args = Array.prototype.slice.apply(arguments)
-
-    emit.apply(context, args)
-
-    // vue3 下 emit('update:modelValue') 会同时触发 input 事件，vue2 不会
-    if (args[0] === 'update:modelValue') {
-      emit.apply(context, ['input'].concat(args.slice(1)))
-    }
-  }
-}
-
 const createVm = (vm, instance, context = undefined) => {
   context || defineProperties(vm, instance, filter)
 
@@ -207,7 +193,7 @@ const createVm = (vm, instance, context = undefined) => {
     $attrs: { get: () => instance.$attrs },
     $children: { get: () => generateChildren(instance.$children) },
     $constants: { get: () => instance._constants },
-    $emit: { get: () => customEmit(instance, instance.$emit) },
+    $emit: { get: () => () => instance.$emit.bind(instance) },
     $el: { get: () => instance.$el },
     $listeners: { get: () => instance.$listeners },
     $mode: { get: () => instance._tiny_mode },
@@ -231,11 +217,9 @@ const createVm = (vm, instance, context = undefined) => {
 }
 
 const onBeforeMount = (instance, refs) => {
-  for (let name in instance.refs) {
-    if (Object.prototype.hasOwnProperty.call(instance.refs, name)) {
-      refs[name] = instance.refs[name]
-    }
-  }
+  Object.keys(instance.$refs).forEach((key) => {
+    refs[key] = instance.$refs[key]
+  })
 }
 
 export const tools = (context, mode) => {
@@ -271,7 +255,7 @@ export const tools = (context, mode) => {
   return {
     framework: 'vue2.7',
     vm,
-    emit: customEmit(context, emit),
+    emit,
     emitter,
     route,
     router,
@@ -344,6 +328,8 @@ export const parseVnode = (vnode) => {
   return vnode
 }
 
+export const isEmptyVnode = (vnode) => !vnode || !vnode.tag
+
 export const h = hooks.h
 
 export const createComponentFn = (design) => {
@@ -360,6 +346,10 @@ export default hooks
 export const isVue2 = true
 
 export const isVue3 = false
+
+export const isVnode = hooks.isVNode
+
+export const KeepAlive = Vue.component('KeepAlive')
 
 export type {
   PropType,

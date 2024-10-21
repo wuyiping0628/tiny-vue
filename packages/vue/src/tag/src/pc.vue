@@ -13,18 +13,48 @@
 import { renderless, api } from '@opentiny/vue-renderless/tag/vue'
 import { props, setup, h, defineComponent } from '@opentiny/vue-common'
 import { iconClose } from '@opentiny/vue-icon'
+import type { ITagApi } from '@opentiny/vue-renderless/types/tag.type'
 
 export default defineComponent({
   components: {
     IconClose: iconClose()
   },
   emits: ['click', 'close'],
-  props: [...props, 'text', 'closable', 'type', 'hit', 'disabled', 'color', 'size', 'effect', 'value', 'beforeDelete'],
+  props: [
+    ...props,
+    'text',
+    'closable',
+    'type',
+    'hit', //  hit 只保留类名供aui使用， tinyvue 这边的border是随着规范走，取决于css var中的border色值
+    'disabled',
+    'color',
+    'size',
+    'effect',
+    'value',
+    'beforeDelete',
+    'onlyIcon'
+  ],
   setup(props, context) {
-    return setup({ props, context, renderless, api, h })
+    return setup({ props, context, renderless, api, h }) as unknown as ITagApi
   },
   render() {
-    const { type, size, hit, effect, slots, closable, color, handleClose, handleClick, disabled, state, value } = this
+    const {
+      type,
+      size,
+      hit,
+      effect,
+      slots,
+      closable,
+      color,
+      handleClose,
+      handleClick,
+      disabled,
+      state,
+      value,
+      onlyIcon
+    } = this
+
+    let styles = {}
 
     const classes = [
       'tiny-tag',
@@ -32,18 +62,29 @@ export default defineComponent({
       size ? `tiny-tag--${size}` : '',
       effect ? `tiny-tag--${effect}` : '',
       hit && 'is-hit',
-      disabled ? 'is-disabled' : ''
+      disabled ? 'is-disabled' : '',
+      onlyIcon ? 'tiny-tag--only-icon' : ''
     ]
 
-    const tagElement = (
-      <span
-        class={classes}
-        style={{ backgroundColor: color, display: state.show ? null : 'none' }}
-        onClick={handleClick}>
-        {value ? <span>{value}</span> : slots.default && slots.default()}
-        {closable && <icon-close class="tiny-svg-size tiny-tag__close " onClick={handleClose}></icon-close>}
-      </span>
-    )
+    if (color) {
+      if (Array.isArray(color)) {
+        styles = { background: color[0], color: color[1] }
+      } else if (['red', 'orange', 'green', 'blue', 'purple', 'brown', 'grey', 'gold'].includes(color)) {
+        classes.push(`tiny-tag--${color}`)
+      } else {
+        styles = { background: color }
+      }
+    }
+
+    const tagElement =
+      value || (slots.default && slots.default()) ? (
+        <span data-tag="tiny-tag" class={classes} style={styles} onClick={handleClick}>
+          {value ? <span>{value}</span> : slots.default && slots.default()}
+          {closable && <icon-close class="tiny-svg-size tiny-tag__close " onClick={handleClose}></icon-close>}
+        </span>
+      ) : (
+        <span></span>
+      )
 
     return tagElement
   }

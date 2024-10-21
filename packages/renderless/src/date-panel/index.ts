@@ -42,11 +42,11 @@ export const getYearLabel =
 
     if (state.currentView === Year) {
       const startYear = state.startYear
-  
+
       if (yearTranslation) {
         return startYear + ' ' + yearTranslation + ' - ' + (startYear + PanelYearNum - 1) + ' ' + yearTranslation
       }
-  
+
       return startYear + ' - ' + (startYear + PanelYearNum - 1)
     }
 
@@ -286,12 +286,32 @@ export const handleYearPick =
       api.cusEmit(state.date)
     } else if ([DATEPICKER.Years].includes(state.selectionMode)) {
       state.date = value.map((year) => new Date(year, 0, 2))
-  
+
       api.cusEmit(state.date, state.selectionMode === DATEPICKER.YearRange ? value.length < 2 : true)
     } else {
       state.date = changeYearMonthAndClampDate(state.date, value, state.month)
       state.currentView = DATEPICKER.Month
     }
+  }
+
+export const getDisabledNow =
+  ({ state }) =>
+  () => {
+    let disabledDate = state.disabledDate
+    if (!disabledDate) return false
+
+    return disabledDate(new Date())
+  }
+
+export const getDisabledConfirm =
+  ({ state }) =>
+  () => {
+    let disabledDate = state.disabledDate
+
+    if (!disabledDate) return false
+    if (!state.value) return true
+
+    return disabledDate(state.value)
   }
 
 const dateToLocaleStringForIE = (timezone, value) => {
@@ -302,10 +322,24 @@ const dateToLocaleStringForIE = (timezone, value) => {
   return new Date(offsetTime)
 }
 
-export const changeToNow =
-  ({ api, state }) =>
+export const getNowTime =
+  ({ props }) =>
   () => {
-    const now = new Date()
+    return new Promise((resolve) => {
+      resolve(props.nowClick())
+    }).then((res) => {
+      return res
+    })
+  }
+
+export const changeToNow =
+  ({ api, state, props }) =>
+  async () => {
+    let now = new Date()
+
+    if (props.nowClick !== undefined) {
+      now = await api.getNowTime()
+    }
     const timezone = state.timezone
     const isServiceTimezone = timezone.isServiceTimezone
     let disabledDate = !state.disabledDate

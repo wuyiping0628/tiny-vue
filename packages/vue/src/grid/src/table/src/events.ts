@@ -62,6 +62,10 @@ export function handleGlobalMousedownEvent(event) {
   handleGlobalMousedownOnCtxMenu({ _vm: this, ctxMenuStore, event })
 }
 
+export function handleGlobalMousedownCaptureEvent(event) {
+  this.handleClearMouseChecked(event)
+}
+
 // 窗口失焦事件处理
 export function handleGlobalBlurEvent() {
   this.closeFilter()
@@ -240,42 +244,7 @@ export function handleGlobalKeydownEvent(event) {
 
 // 监听全局的窗口尺寸改变事件，然后重新计算表格样式
 export function handleGlobalResizeEvent() {
+  // 窗口resize后，调用recalculate父容器高度还是初始值，需要update一下
+  this.updateParentHeight()
   this.recalculate()
-}
-
-// 触发表头 tooltip 事件
-export function triggerHeaderTooltipEvent(event, params) {
-  let { tooltipStore } = this
-  let { column, showHeaderTip } = params
-  if (tooltipStore.column !== column || !tooltipStore.visible) {
-    // 在 v3.0 中废弃 label
-    this.handleTooltip(event, column, null, showHeaderTip, true)
-  }
-}
-
-// 触发表尾 tooltip 事件
-export function triggerFooterTooltipEvent(event, params) {
-  let { column } = params
-  let tooltipStore = this.tooltipStore
-  if (tooltipStore.column !== column || !tooltipStore.visible) {
-    this.handleTooltip(event, column)
-  }
-}
-
-// 触发 tooltip 事件
-export function triggerTooltipEvent(event, params) {
-  let { editConfig, editStore, tooltipStore } = this
-  let { actived } = editStore
-  let { row, column, showTip } = params
-  if (editConfig) {
-    if (
-      (editConfig.mode === 'row' && actived.row === row && column.editor) ||
-      (actived.row === row && actived.column === column)
-    ) {
-      return
-    }
-  }
-  if (tooltipStore.column !== column || tooltipStore.row !== row || !tooltipStore.visible) {
-    this.handleTooltip(event, column, row, showTip)
-  }
 }

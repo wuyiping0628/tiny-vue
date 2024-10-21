@@ -3,7 +3,7 @@ import template from 'virtual-template?pc'
 
 const $constants = {
   COMPONENT_NAME: { FormItem: 'FormItem' },
-  EVENT_NAME: { FormBlur: 'form.blur' }
+  EVENT_NAME: { FormBlur: 'form.blur', FormChange: 'form.change' }
 }
 
 export default defineComponent({
@@ -23,7 +23,15 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
+    multipleLimit: {
+      type: Number,
+      default: 0
+    },
     disabled: {
+      type: Boolean,
+      default: false
+    },
+    displayOnly: {
       type: Boolean,
       default: false
     },
@@ -125,6 +133,18 @@ export default defineComponent({
     maxWidth: {
       type: [String, Number],
       default: 200
+    },
+    keepFocus: {
+      type: Boolean,
+      default: true
+    },
+    changeCompat: {
+      type: Boolean,
+      default: false
+    },
+    multiLineDrag: {
+      type: Boolean,
+      default: false
     }
   },
   setup(props, context) {

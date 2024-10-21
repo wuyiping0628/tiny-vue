@@ -11,7 +11,7 @@
  */
 
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
-import template from 'virtual-template?pc'
+import template from 'virtual-template?pc|mobile-first'
 
 export default defineComponent({
   name: $prefix + 'SelectDropdown',
@@ -49,7 +49,16 @@ export default defineComponent({
     },
     visibleArrow: {
       default: () => false
-    }
+    },
+    closeByMask: {
+      type: Boolean,
+      default: true
+    },
+    searchPlaceholder: {
+      type: String,
+      default: ''
+    },
+    title: String
   },
   setup(props, context) {
     return $setup({ props, context, template })

@@ -1,9 +1,12 @@
 import { mountPcMode } from '@opentiny-internal/vue-test-utils'
 import { describe, expect, test, vi } from 'vitest'
 import Switch from '@opentiny/vue-switch'
-import { nextTick } from 'vue'
+import { IconArrowLeft, IconArrowRight } from '@opentiny/vue-icon'
+import { nextTick, ref } from 'vue'
 
 let value = false
+const TinyIconArrowLeft = IconArrowLeft()
+const TinyIconArrowRight = IconArrowRight()
 
 describe('PC Mode', () => {
   const mount = mountPcMode
@@ -13,7 +16,7 @@ describe('PC Mode', () => {
     expect(wrapper.find('.mini').exists()).toBe(true)
   })
 
-  test('slot', async () => {
+  test('open & close slot', async () => {
     const wrapper = mount(() => (
       <Switch
         v-model={value}
@@ -21,10 +24,20 @@ describe('PC Mode', () => {
         v-slots={{
           open: () => <span class="yes">是</span>,
           close: () => <span class="no">否</span>
-        }}
-      ></Switch>
+        }}></Switch>
     ))
     expect(wrapper.find('.no').exists()).toBe(true)
+  })
+
+  test('active-icon & inactive-icon slot', async () => {
+    const wrapper = mount(Switch, {
+      modelValue: value,
+      slots: {
+        'active-icon': () => <TinyIconArrowLeft />,
+        'inactive-icon': () => <TinyIconArrowRight />
+      }
+    })
+    expect(wrapper.find('.tiny-svg').exists()).toBe(true)
   })
 
   test('events', async () => {
@@ -35,7 +48,35 @@ describe('PC Mode', () => {
     expect(handleClick).toHaveBeenCalled()
   })
 
-  test.todo('base 基本用法')
-  test.todo('true-value & false-value 自定义开关取值')
-  test.todo('disable 禁用状态')
+  test('base 基本用法', async () => {
+    const switchValue = ref(false)
+    const wrapper = mount(() => <Switch v-model={switchValue.value}></Switch>)
+    expect(wrapper.find('.tiny-switch').exists()).toBe(true)
+    switchValue.value = true
+    await nextTick()
+    expect(wrapper.find('.tiny-switch.tiny-switch-checked').exists()).toBe(true)
+  })
+
+  test('tabindex', () => {
+    const wrapper = mount(() => <Switch tabindex="0" />)
+    expect(wrapper.find('.tiny-switch').attributes().tabindex).toBe('0')
+  })
+
+  test('true-value & false-value 自定义开关取值', async () => {
+    const switchValue = ref('yes')
+    const wrapper = mount(() => <Switch v-model={switchValue.value} true-value="yes" false-value="no"></Switch>)
+    expect(wrapper.find('.tiny-switch.tiny-switch-checked').exists()).toBe(true)
+    await wrapper.find('.tiny-switch').trigger('click')
+    await nextTick()
+    expect(switchValue.value).toBe('no')
+  })
+
+  test('disable 禁用状态', async () => {
+    const value = ref(true)
+    const wrapper = mount(() => <Switch disabled v-model={value.value} />)
+
+    expect(value.value).toEqual(true)
+    await wrapper.find('.tiny-switch').trigger('click')
+    expect(value.value).toEqual(true)
+  })
 })

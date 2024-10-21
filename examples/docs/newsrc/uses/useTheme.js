@@ -1,5 +1,4 @@
 import TinyThemeTool from '@opentiny/vue-theme/theme-tool'
-import { tinyAuroraTheme, tinySmbTheme } from '@opentiny/vue-theme/theme'
 import { hooks } from '@opentiny/vue-common'
 import { Notify } from '@opentiny/vue'
 
@@ -15,14 +14,15 @@ function showTip() {
   isShowTip = true
 }
 
-export function useTheme() {
+export function useTheme({ readCacheImmediate = true } = {}) {
   const theme = new TinyThemeTool()
   const currThemeLabel = hooks.ref('tiny-default-theme')
   const lastThemeKey = localStorage.getItem('tinyThemeToolkey')
 
   const THEME_MAP = {
-    'tiny-aurora-theme': tinyAuroraTheme,
-    'tiny-smb-theme': tinySmbTheme
+    'tiny-aurora-theme': null,
+    'tiny-smb-theme': null,
+    'tiny-infinity-theme': null
   }
 
   const changeTheme = ({ vm }) => {
@@ -36,7 +36,7 @@ export function useTheme() {
   }
 
   // 切换上次缓存的主题
-  if (THEME_MAP[lastThemeKey]) {
+  if (readCacheImmediate && THEME_MAP[lastThemeKey]) {
     theme.changeTheme(THEME_MAP[lastThemeKey])
     currThemeLabel.value = lastThemeKey
   }

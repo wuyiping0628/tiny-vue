@@ -13,10 +13,10 @@
   <transition name="tiny-transition-alert-fade">
     <div
       v-if="state.show"
-      :class="['tiny-alert', 'tiny-alert--' + type, 'tiny-alert--' + size, { 'is-center': center }]"
+      :class="['tiny-alert', 'tiny-alert--' + type, 'tiny-alert--' + size, { 'is-center': center }, customClass]"
     >
       <component v-if="showIcon" :is="state.getIcon" class="tiny-svg-size tiny-alert__icon" />
-      <div class="tiny-alert__content">
+      <div class="tiny-alert__content" :class="{ 'close-hidden': !closable }">
         <div v-if="size === 'large'" class="tiny-alert__title">
           <slot name="title">
             {{ state.getTitle }}
@@ -52,21 +52,35 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/alert/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
-import { iconClose, iconSuccess, iconError, iconHelp, iconWarning } from '@opentiny/vue-icon'
+import { iconClose, iconSuccess, iconError, iconHelp, iconWarning, iconWarningTriangle } from '@opentiny/vue-icon'
+import type { IAlertApi } from '@opentiny/vue-renderless/types/alert.type'
 import '@opentiny/vue-theme/alert/index.less'
 
 export default defineComponent({
-  props: [...props, 'icon', 'type', 'size', 'description', 'title', 'closable', 'center', 'showIcon', 'closeText'],
+  props: [
+    ...props,
+    'icon',
+    'type',
+    'size',
+    'description',
+    'title',
+    'closable',
+    'center',
+    'showIcon',
+    'closeText',
+    'customClass'
+  ],
   components: {
     IconClose: iconClose(),
     IconSuccess: iconSuccess(),
     IconError: iconError(),
     IconHelp: iconHelp(),
-    IconWarning: iconWarning()
+    IconWarning: iconWarning(),
+    IconWarningTriangle: iconWarningTriangle()
   },
   emits: ['close'],
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IAlertApi
   }
 })
 </script>

@@ -13,7 +13,7 @@
   <label
     class="tiny-radio-button"
     :class="[
-      state.size ? 'tiny-radio-button--' + state.size : '',
+      state.size ? 'tiny-radio-button--' + state.size : 'tiny-radio-button--default',
       { 'is-active': state.value === label },
       { 'is-disabled': state.isDisabled },
       { 'is-focus': state.focus }
@@ -37,7 +37,7 @@
       @focus="state.focus = true"
       @blur="state.focus = false"
     />
-    <span class="tiny-radio-button__inner" :style="state.value === label ? state.activeStyle : null" @keydown.stop>
+    <span class="tiny-radio-button__inner" :style="state.value === label ? state.activeStyle : undefined" @keydown.stop>
       <slot></slot>
       <template v-if="!slots.default">{{ text || label }}</template>
     </span>
@@ -47,12 +47,13 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/radio-button/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
+import type { IRadioButtonApi } from '@opentiny/vue-renderless/types/radio-button.type'
 
 export default defineComponent({
   emits: ['change'],
   props: [...props, 'label', 'events', 'text', 'disabled', 'name'],
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IRadioButtonApi
   }
 })
 </script>

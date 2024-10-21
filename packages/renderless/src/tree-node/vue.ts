@@ -10,6 +10,7 @@
  *
  */
 
+import debounce from '../common/deps/debounce'
 import {
   created,
   handleDragEnd,
@@ -35,6 +36,7 @@ import {
   deleteNode,
   onSiblingToggleExpand,
   watchExpandedChange,
+  // tiny 新增
   computedExpandIcon,
   computedIndent
 } from './index'
@@ -60,7 +62,7 @@ export const api = [
   'handleCheckChange'
 ]
 
-const initState = ({ reactive, treeRoot, props, emitter, $parentEmitter, vm, api, computed }) => {
+const initState = ({ reactive, treeRoot, props, emitter, $parentEmitter, vm, api, TreeAdapter, computed }) => {
   const state = reactive({
     tree: treeRoot,
     expanded: false,
@@ -77,6 +79,10 @@ const initState = ({ reactive, treeRoot, props, emitter, $parentEmitter, vm, api
     emitter: emitter(),
     parentEmitter: $parentEmitter,
     isSaaSTheme: (props.theme || vm.theme) === 'saas',
+    props: treeRoot.props,
+    renderedChildNodes: computed(() => {
+      return props.node.childNodes.filter((childNode) => (TreeAdapter ? TreeAdapter.shouldRender(childNode) : true))
+    }),
     computedExpandIcon: computed(() => api.computedExpandIcon(treeRoot, state)),
     computedIndent: computed(() => api.computedIndent(props, state))
   })
@@ -84,13 +90,13 @@ const initState = ({ reactive, treeRoot, props, emitter, $parentEmitter, vm, api
   return state
 }
 
-const initApi = ({ api, state, dispatch, broadcast, vm, props, parent, treeRoot, nextTick, emit }) => {
+const initApi = ({ api, state, dispatch, broadcast, vm, props, treeRoot, nextTick, emit, designConfig }) => {
   Object.assign(api, {
     state,
     dispatch,
     broadcast,
-    watchExpanded: watchExpanded({ state }),
-    created: created({ vm, props, state, parent }),
+    watchExpanded: debounce(20, watchExpanded({ state })),
+    created: created({ props, state }),
     getNodeKey: getNodeKey(state),
     closeMenu: closeMenu(state),
     handleSelectChange: handleSelectChange({ props, state }),
@@ -108,12 +114,12 @@ const initApi = ({ api, state, dispatch, broadcast, vm, props, parent, treeRoot,
     watchIndeterminate: watchIndeterminate({ api, props }),
     watchChecked: watchChecked({ api, props }),
     openEdit: openEdit({ state, vm }),
-    addNode: addNode({ state, props, api }),
+    addNode: debounce(500, true, addNode({ state, props, api })),
     saveEdit: saveEdit({ state }),
     deleteNode: deleteNode({ state }),
     handleChildNodeExpand: handleChildNodeExpand(state),
     handleExpandIconClick: handleExpandIconClick({ api, state }),
-    computedExpandIcon: computedExpandIcon(),
+    computedExpandIcon: computedExpandIcon({ designConfig }),
     computedIndent: computedIndent()
   })
 }
@@ -128,18 +134,25 @@ const initWatcher = ({ watch, state, api, props }) => {
   watch(() => props.node.expanded, api.watchExpanded, { deep: true })
 }
 
-export const renderless = (props, { reactive, watch, inject, provide, computed }, { parent: parentVm, vm, nextTick, emit, broadcast, dispatch, emitter }) => {
+export const renderless = (
+  props,
+  { reactive, watch, inject, provide, computed },
+  { vm, nextTick, emit, broadcast, dispatch, emitter, designConfig },
+  { isVue2 }
+) => {
   const api = {}
-  const parent = inject('parentTree') || parentVm
   const treeRoot = inject('TreeRoot')
   const $parentEmitter = inject('parentEmitter')
-  const state = initState({ reactive, treeRoot, props, emitter, $parentEmitter, vm, api, computed })
+  const TreeAdapter = inject('TreeAdapter', null)
+  const state = initState({ reactive, treeRoot, props, emitter, $parentEmitter, vm, api, TreeAdapter, computed })
 
-  state.parentEmitter.on('sibling-node-toggle-expand', (event) => api.onSiblingToggleExpand(event))
+  if (state.tree.accordion) {
+    state.parentEmitter.on('sibling-node-toggle-expand', (event) => api.onSiblingToggleExpand(event))
+  }
 
   provide('parentEmitter', state.emitter)
 
-  initApi({ api, state, dispatch, broadcast, vm, props, parent, treeRoot, nextTick, emit })
+  initApi({ api, state, dispatch, broadcast, vm, props, treeRoot, nextTick, emit, designConfig })
   initWatcher({ watch, state, api, props })
 
   api.created((childrenKey) => {
@@ -149,6 +162,12 @@ export const renderless = (props, { reactive, watch, inject, provide, computed }
         props.node.updateChildren()
       }
     )
+
+    if (!isVue2) {
+      props.node.updateMethod = (node, field) => {
+        field === 'expanded' && api.watchExpanded(node[field])
+      }
+    }
   })
 
   state.parentEmitter.on('closeMenu', () => {

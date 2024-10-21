@@ -10,13 +10,32 @@
  *
  */
 
-import { comptCheckPath, handleExpand, isInPath, handleCheckChange, handleMultiCheckChange } from './index'
+import type {
+  ICascaderNodeApi,
+  ICascaderNodeProps,
+  ISharedRenderlessParamHooks,
+  ISharedRenderlessParamUtils,
+  ICascaderNodeRenderlessParams,
+  ICascaderNodeState
+} from '@/types'
+import {
+  comptCheckPath,
+  handleExpand,
+  isInPath,
+  handleCheckChange,
+  handleMultiCheckChange,
+  handleNodeClick
+} from './index'
 
-export const api = ['state', 'handleMultiCheckChange', 'handleCheckChange', 'handleExpand']
+export const api = ['state', 'handleMultiCheckChange', 'handleCheckChange', 'handleExpand', 'handleNodeClick']
 
-export const renderless = (props, { computed, reactive, inject }, { dispatch }) => {
-  const parent = inject('panel')
-  const api = {}
+export const renderless = (
+  props: ICascaderNodeProps,
+  { computed, reactive, inject }: ISharedRenderlessParamHooks,
+  { dispatch }: ISharedRenderlessParamUtils
+): ICascaderNodeApi => {
+  const parent = inject('panel') as ICascaderNodeRenderlessParams['parent']
+  const api = {} as ICascaderNodeApi
   const state = reactive({
     config: computed(() => parent.state.config),
     isLeaf: computed(() => props.node.isLeaf),
@@ -25,8 +44,13 @@ export const renderless = (props, { computed, reactive, inject }, { dispatch }) 
     isChecked: computed(() => props.node.isSameNode(state.checkedValue)),
     inActivePath: computed(() => api.isInPath(parent.state.activePath)),
     inCheckedPath: computed(() => api.comptCheckPath()),
-    value: computed(() => props.node.getValueByOption())
-  })
+    value: computed(() => props.node.getValueByOption()),
+    nodeLabel: computed(() => {
+      return parent.state.renderLabelFn
+        ? parent.state.renderLabelFn({ node: props.node, data: props.node.data })
+        : props.node.label
+    })
+  }) as ICascaderNodeState
 
   Object.assign(api, {
     state,
@@ -34,7 +58,8 @@ export const renderless = (props, { computed, reactive, inject }, { dispatch }) 
     handleExpand: handleExpand({ api, props, parent, state }),
     comptCheckPath: comptCheckPath({ api, parent, state }),
     handleCheckChange: handleCheckChange({ api, parent, dispatch, state }),
-    handleMultiCheckChange: handleMultiCheckChange({ parent, props })
+    handleMultiCheckChange: handleMultiCheckChange({ parent, props }),
+    handleNodeClick: handleNodeClick({ state, api })
   })
 
   return api

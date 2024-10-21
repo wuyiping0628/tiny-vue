@@ -2,8 +2,13 @@
   <div class="tiny-rich-text-editor">
     <div class="tiny-rich-text-editor__toolbar">
       <!-- starter-kit功能区 -->
-      <template v-for="item in toolBar">
-        <button v-if="(item.name ?? item) === 'font-size'" :title="t('ui.richTextEditor.fontSize')" class="font-size-box">
+      <template v-for="item in state.toolbar">
+        <button
+          :key="'fz' + item"
+          v-if="item === 'font-size'"
+          :title="t('ui.richTextEditor.fontSize')"
+          class="font-size-box"
+        >
           <TinyIconRichTextFontSize></TinyIconRichTextFontSize>
           <div class="font-size-options">
             <button @click="state.editor.chain().focus().setSize({ size: 12 }).run()">12px</button>
@@ -15,8 +20,12 @@
             <button @click="state.editor.chain().focus().setSize({ size: 30 }).run()">30px</button>
           </div>
         </button>
-        <button v-else-if="(item.name ?? item) === 'line-height'" class="line-height-button"
-          :title="t('ui.richTextEditor.lineHeight')">
+        <button
+          :key="'lh' + item"
+          v-else-if="item === 'line-height'"
+          class="line-height-button"
+          :title="t('ui.richTextEditor.lineHeight')"
+        >
           <div class="line-height-icon">
             <TinyIconRichTextLineHeight></TinyIconRichTextLineHeight>
           </div>
@@ -27,7 +36,7 @@
             <button class="line-2.5" @click.stop="state.editor.chain().focus().setP({ level: 2.5 }).run()">2.5</button>
           </div>
         </button>
-        <button v-else-if="(item.name ?? item) === 'h-box'" :title="t('ui.richTextEditor.hBox')" class="h-box">
+        <button :key="'h-box' + item" v-else-if="item === 'h-box'" :title="t('ui.richTextEditor.hBox')" class="h-box">
           <div class="h-ico">
             <TinyIconRichTextHeading></TinyIconRichTextHeading>
           </div>
@@ -55,39 +64,65 @@
             </button>
           </div>
         </button>
-        <button v-else-if="(item.name ?? item) === 'img'" :title="t('ui.richTextEditor.img')" class="image-button">
+        <button :key="'img' + item" v-else-if="item === 'img'" :title="t('ui.richTextEditor.img')" class="image-button">
           <TinyIconRichTextImage></TinyIconRichTextImage>
           <div class="img-option">
             <div class="img-item">
               <input @change="handleChange" id="img-btn" type="file" accept="image/*, video/*" />
-              <label for="img-btn">本地资源</label>
+              <label for="img-btn">{{ t('ui.richTextEditor.localResources') }}</label>
             </div>
             <div @click.stop="handleChange(null)" class="img-item">
-              <div>资源链接</div>
+              <div>{{ t('ui.richTextEditor.resourceLink') }}</div>
             </div>
           </div>
         </button>
-        <button v-else-if="(item.name ?? item) === 'color'" :title="t('ui.richTextEditor.color')" class="color-button">
+        <button
+          :key="'color' + item"
+          v-else-if="item === 'color'"
+          :title="t('ui.richTextEditor.color')"
+          class="color-button"
+        >
           <label for="tiny-color">
             <TinyIconRichTextColor></TinyIconRichTextColor>
           </label>
-          <input id="tiny-color" type="color" @input="state.editor.chain().focus().setColor($event.target.value).run()"
-            :value="state.editor?.getAttributes('textStyle').color" />
+          <input
+            id="tiny-color"
+            type="color"
+            @input="state.editor.chain().focus().setColor($event.target.value).run()"
+          />
         </button>
-        <button v-else-if="(item.name ?? item) === 'backgroundColor'" :title="t('ui.richTextEditor.backgroundColor')"
-          class="color-button">
+        <button
+          :key="'bg' + item"
+          v-else-if="item === 'backgroundColor'"
+          :title="t('ui.richTextEditor.backgroundColor')"
+          class="color-button"
+        >
           <label for="tiny--back-color">
-            <TinyIconRichTextColor></TinyIconRichTextColor>
+            <TinyIconRichbackgroundColor></TinyIconRichbackgroundColor>
           </label>
-          <input id="tiny-back-color" type="color"
-            @input="state.editor.chain().focus().setBackColor({ bgColor: $event.target.value }).run()" />
+          <input
+            id="tiny-back-color"
+            type="color"
+            @input="state.editor.chain().focus().setBackColor({ bgColor: $event.target.value }).run()"
+          />
         </button>
-        <button v-else-if="(item.name ?? item) === 'table'" :title="t('ui.richTextEditor.table')" class="table-button">
-          <div class="table-box" @click="handleClick">
+        <button
+          :key="'table' + item"
+          v-else-if="item === 'table'"
+          :title="t('ui.richTextEditor.table')"
+          class="table-button"
+        >
+          <div class="table-box" v-clickoutside="closeTablePanel" @click="toggleTablePanel">
             <div class="table-icon">
               <TinyIconRichTextTable></TinyIconRichTextTable>
             </div>
-            <div class="table-option" ref="box" v-if="state.isShow" @mousemove="handleMove">
+            <div
+              class="table-panel"
+              ref="tablePanelRef"
+              v-if="state.isShowTable"
+              @mousemove="tableMouseMove"
+              @click.stop="tableChoose"
+            >
               <div class="table-row">
                 <div class="item" :class="{ isActive: 1 <= state.flagX && 1 <= state.flagY }"></div>
                 <div class="item" :class="{ isActive: 2 <= state.flagX && 1 <= state.flagY }"></div>
@@ -115,67 +150,109 @@
             </div>
           </div>
         </button>
-        <button v-else-if="(item.name ?? item) === 'unlink'" :title="t('ui.richTextEditor.unlink')"
-          @click="eventClick(state.editor, item)" :disabled="!state.editor?.isActive(Active(item))">
+        <button
+          :key="'unlink' + item"
+          v-else-if="item === 'unlink'"
+          :title="t('ui.richTextEditor.unlink')"
+          @click="eventClick(state.editor, item)"
+          :disabled="!state.editor?.isActive(Active(item))"
+        >
           <img v-if="item.img" :src="eventImg(item)" alt="" srcset="" />
-          <component v-else :is='eventImg(item)'></component>
+          <component v-else :is="eventImg(item)"></component>
         </button>
-        <button v-else :title="t(`ui.richTextEditor.${item.name ?? item}`)" @click="eventClick(state.editor, item)"
-          :class="{ 'is-active': state.editor?.isActive(Active(item)) }">
+        <button
+          :key="'editor' + item"
+          v-else
+          :title="t(`ui.richTextEditor.${item}`)"
+          @click="eventClick(state.editor, item)"
+          :class="{ 'is-active': state.editor?.isActive(Active(item)) }"
+        >
           <img v-if="item.img" :src="eventImg(item)" alt="" srcset="" />
-          <component v-else :is='eventImg(item)'></component>
+          <component v-else :is="eventImg(item)"></component>
         </button>
       </template>
       <!-- 插槽传出editor实例 -->
       <slot name="toolBar" :option="state.editor"></slot>
-      <BubbleMenu :editor="state.editor" :tippy-options="{ duration: 100 }" v-if="state.editor" :should-show="shouldShow"
-        class="bubble-menu">
-        <button title="add column before" @click="state.editor.chain().focus().addColumnBefore().run()"
-          :disabled="!state.editor?.can().addColumnBefore()">
+      <BubbleMenu
+        :editor="state.editor"
+        :tippy-options="{ duration: 100 }"
+        v-if="state.editor"
+        :should-show="shouldShow"
+        class="bubble-menu"
+      >
+        <button
+          title="add column before"
+          @click="state.editor.chain().focus().addColumnBefore().run()"
+          :disabled="!state.editor?.can().addColumnBefore()"
+        >
           <TinyIconRichTextAddColumnBefore></TinyIconRichTextAddColumnBefore>
         </button>
-        <button title="add column after" @click="state.editor.chain().focus().addColumnAfter().run()"
-          :disabled="!state.editor?.can().addColumnAfter()">
+        <button
+          title="add column after"
+          @click="state.editor.chain().focus().addColumnAfter().run()"
+          :disabled="!state.editor?.can().addColumnAfter()"
+        >
           <TinyIconRichTextAddColumnAfter></TinyIconRichTextAddColumnAfter>
         </button>
-        <button title="delete column" @click="state.editor.chain().focus().deleteColumn().run()"
-          :disabled="!state.editor?.can().deleteColumn()">
+        <button
+          title="delete column"
+          @click="state.editor.chain().focus().deleteColumn().run()"
+          :disabled="!state.editor?.can().deleteColumn()"
+        >
           <TinyIconRichTextDeleteColumn></TinyIconRichTextDeleteColumn>
         </button>
-        <button title="add row before" @click="state.editor.chain().focus().addRowBefore().run()"
-          :disabled="!state.editor?.can().addRowBefore()">
+        <button
+          title="add row before"
+          @click="state.editor.chain().focus().addRowBefore().run()"
+          :disabled="!state.editor?.can().addRowBefore()"
+        >
           <TinyIconRichTextAddRowBefore></TinyIconRichTextAddRowBefore>
         </button>
-        <button title="add row after" @click="state.editor.chain().focus().addRowAfter().run()"
-          :disabled="!state.editor?.can().addRowAfter()">
+        <button
+          title="add row after"
+          @click="state.editor.chain().focus().addRowAfter().run()"
+          :disabled="!state.editor?.can().addRowAfter()"
+        >
           <TinyIconRichTextAddRowAfter></TinyIconRichTextAddRowAfter>
         </button>
-        <button title="delete row" @click="state.editor.chain().focus().deleteRow().run()"
-          :disabled="!state.editor?.can().deleteRow()">
+        <button
+          title="delete row"
+          @click="state.editor.chain().focus().deleteRow().run()"
+          :disabled="!state.editor?.can().deleteRow()"
+        >
           <TinyIconRichTextDeleteRow></TinyIconRichTextDeleteRow>
         </button>
-        <button title="delete table" @click="state.editor.chain().focus().deleteTable().run()"
-          :disabled="!state.editor?.can().deleteTable()">
+        <button
+          title="delete table"
+          @click="state.editor.chain().focus().deleteTable().run()"
+          :disabled="!state.editor?.can().deleteTable()"
+        >
           <TinyIconRichTextDeleteTable></TinyIconRichTextDeleteTable>
         </button>
-        <button title="toggle header cell" @click="state.editor.chain().focus().toggleHeaderCell().run()"
-          :disabled="!state.editor?.can().toggleHeaderCell()">
+        <button
+          title="toggle header cell"
+          @click="state.editor.chain().focus().toggleHeaderCell().run()"
+          :disabled="!state.editor?.can().toggleHeaderCell()"
+        >
           <TinyIconRichTextHeading></TinyIconRichTextHeading>
         </button>
-        <button title="merge Or split" @click="state.editor.chain().focus().mergeOrSplit().run()"
-          :disabled="!state.editor?.can().mergeOrSplit()">
+        <button
+          title="merge Or split"
+          @click="state.editor.chain().focus().mergeOrSplit().run()"
+          :disabled="!state.editor?.can().mergeOrSplit()"
+        >
           <TinyIconRichTextMergeCells></TinyIconRichTextMergeCells>
         </button>
       </BubbleMenu>
     </div>
-    <div class="tiny-rich-text-editor__container" :style="{ fontSize: fontSize }">
+    <div class="tiny-rich-text-editor__container">
       <EditorContent :editor="state.editor"></EditorContent>
     </div>
   </div>
-</template> 
+</template>
 
 <script lang="ts">
-import { renderless, api } from '@opentiny/vue-renderless/rich-text-edtior/vue'
+import { renderless, api } from '@opentiny/vue-renderless/rich-text-editor/vue'
 import codeHighlight from './code-highlight.vue'
 import {
   iconRichTextAddColumnAfter,
@@ -188,7 +265,8 @@ import {
   iconRichTextBold,
   iconRichTextCodeBlock,
   iconRichTextCodeView,
-  iconRichTextColor,
+  IconEditorTextcolor,
+  IconEditorBackground,
   iconRichTextDeleteColumn,
   iconRichTextDeleteRow,
   iconRichTextDeleteTable,
@@ -225,68 +303,107 @@ import {
   iconRichTextUnderline,
   iconRichTextUndo
 } from '@opentiny/vue-icon'
-import {
-  Editor,
-  EditorContent,
-  BubbleMenu,
-  VueNodeViewRenderer,
-  NodeViewContent,
-  nodeViewProps,
-  NodeViewWrapper
-} from '@tiptap/vue'
+import { Editor, EditorContent, BubbleMenu, VueNodeViewRenderer } from '@tiptap/vue'
 import StarterKit from '@tiptap/starter-kit'
+
 // 段落包
 import Paragraph from '@tiptap/extension-paragraph'
 import { mergeAttributes } from '@tiptap/core'
+
 // image 包
-import Image from '@tiptap/extension-image'
+// import Image from '@tiptap/extension-image'
+import Image from './extensions/image'
+
 // -- HeighLight
 import Highlight from '@tiptap/extension-highlight'
+
 // color 包
 import { Color } from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
+
 // -- link
 import Link from '@tiptap/extension-link'
+
 // underline
 import Underline from '@tiptap/extension-underline'
+
 // subScript
 import Subscript from '@tiptap/extension-subscript'
 import Superscript from '@tiptap/extension-superscript'
+
 // table 包
 import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
+
 // task list
 import TaskItem from '@tiptap/extension-task-item'
 import TaskList from '@tiptap/extension-task-list'
+
 // textalign
 import TextAlign from '@tiptap/extension-text-align'
+
 // code high light
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+
+// Placeholder
+import Placeholder from '@tiptap/extension-placeholder'
+
 import css from 'highlight.js/lib/languages/css'
 import js from 'highlight.js/lib/languages/javascript'
 import ts from 'highlight.js/lib/languages/typescript'
 import html from 'highlight.js/lib/languages/xml'
 import { lowlight } from 'lowlight'
-lowlight.registerLanguage('html', html)
-lowlight.registerLanguage('css', css)
-lowlight.registerLanguage('js', js)
-lowlight.registerLanguage('ts', ts)
-// Placeholder
-import Placeholder from '@tiptap/extension-placeholder'
-// collaboration 包
-import Collaboration from '@tiptap/extension-collaboration'
-import * as Y from 'yjs'
-import { WebrtcProvider } from 'y-webrtc'
 
-import { props, setup, defineComponent } from '@opentiny/vue-common'
-import { t } from '@opentiny/vue-locale'
+import { $props, setup, defineComponent, $prefix, directive } from '@opentiny/vue-common'
 import '@opentiny/vue-theme/rich-text-editor/index.less'
+import Clickoutside from '@opentiny/vue-renderless/common/deps/clickoutside'
+
+function initLowLight() {
+  lowlight.registerLanguage('html', html)
+  lowlight.registerLanguage('css', css)
+  lowlight.registerLanguage('js', js)
+  lowlight.registerLanguage('ts', ts)
+}
+/* @__PURE__ */
+initLowLight()
+
+export const richTextEditorProps = {
+  ...$props,
+  modelValue: {
+    type: String,
+    default: ''
+  },
+  placeholder: {
+    type: String,
+    default: ''
+  },
+  customToolBar: {
+    type: Array,
+    default: () => []
+  },
+  options: {
+    type: Object,
+    default: () => ({})
+  }
+}
 
 export default defineComponent({
-  emits: ['beforeCreate', 'create', 'update:modelValue', 'focus', 'blur', 'selectionUpdate', 'transaction', 'destroy', 'update'],
-  props: [...props, 'modelValue', 'collaboration', 'placeholder', 'customToolBar', 'options'],
+  name: $prefix + 'RichTextEditor',
+  emits: [
+    'beforeCreate',
+    'create',
+    'update:modelValue',
+    'focus',
+    'blur',
+    'selectionUpdate',
+    'transaction',
+    'destroy',
+    'update'
+  ],
+  directives: directive({ Clickoutside }),
+  props: richTextEditorProps,
   components: {
     EditorContent,
     BubbleMenu,
@@ -300,7 +417,8 @@ export default defineComponent({
     TinyIconRichTextBold: iconRichTextBold(),
     TinyIconRichTextCodeBlock: iconRichTextCodeBlock(),
     TinyIconRichTextCodeView: iconRichTextCodeView(),
-    TinyIconRichTextColor: iconRichTextColor(),
+    TinyIconRichTextColor: IconEditorTextcolor(),
+    TinyIconRichbackgroundColor: IconEditorBackground(),
     TinyIconRichTextDeleteColumn: iconRichTextDeleteColumn(),
     TinyIconRichTextDeleteRow: iconRichTextDeleteRow(),
     TinyIconRichTextDeleteTable: iconRichTextDeleteTable(),
@@ -343,12 +461,10 @@ export default defineComponent({
       context,
       renderless,
       api,
+      mono: true,
       extendOptions: {
         Editor,
-        Collaboration,
         StarterKit,
-        Y,
-        WebrtcProvider,
         Table,
         TableCell,
         TableHeader,
@@ -369,11 +485,8 @@ export default defineComponent({
         CodeBlockLowlight,
         lowlight,
         VueNodeViewRenderer,
-        NodeViewContent,
-        nodeViewProps,
-        NodeViewWrapper,
         Placeholder,
-        codeHighlight,
+        codeHighlight
       }
     })
   }

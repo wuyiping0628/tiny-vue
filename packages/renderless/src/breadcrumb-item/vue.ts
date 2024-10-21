@@ -10,16 +10,30 @@
  *
  */
 
+import type {
+  IBreadcrumbItemProps,
+  IBreadcrumbItemApi,
+  IBreadcrumbItemRenderlessParamUtils,
+  ISharedRenderlessParamHooks
+} from '@/types'
 import { linkClick } from './index'
 
-export const api = ['linkClick']
+export const api = ['linkClick', 'state']
 
-export const renderless = (props, { inject }, { refs, router, emit }) => {
+export const renderless = (
+  props: IBreadcrumbItemProps,
+  { reactive, inject, computed }: ISharedRenderlessParamHooks,
+  { refs, router, emit, designConfig }: IBreadcrumbItemRenderlessParamUtils
+) => {
   const breadcrumbEmitter = inject('breadcrumbEmitter')
   const breadcrumb = inject('breadcrumb')
   const constants = breadcrumb._constants
-
-  const api = {
+  const state = reactive({
+    size: inject('size', null),
+    separator: computed(() => breadcrumb.separator || designConfig?.separator || '/')
+  })
+  const api: IBreadcrumbItemApi = {
+    state,
     linkClick: linkClick({ props, refs, router, emit, breadcrumbEmitter, constants })
   }
 

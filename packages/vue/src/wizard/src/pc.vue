@@ -12,7 +12,7 @@
 
 <template>
   <div class="tiny-wizard">
-    <div class="tiny-wizard__nomarl" v-if="!vertical">
+    <div class="tiny-wizard__normal" v-if="!vertical">
       <ul class="tiny-wizard__steps">
         <li
           class="tiny-wizard__steps-item"
@@ -80,7 +80,7 @@
                 {{ index + 1 }}
               </div>
               <span v-if="timeLineFlow" class="tiny-wizard__time-wrapper">
-                <tiny-icon-successful @click="showNode(item, index, $event)"> </tiny-icon-successful>
+                <component :is="state.iconYes" @click="showNode(item, index, $event)"></component>
               </span>
             </div>
             <div class="tiny-wizard__chart-name" v-if="!timeLineFlow" @click="showNode(item, index, $event)">
@@ -127,7 +127,8 @@ import { renderless, api } from '@opentiny/vue-renderless/wizard/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
 import Button from '@opentiny/vue-button'
 import UserContact from '@opentiny/vue-user-contact'
-import { iconTriangleDown, iconMarkOn, iconSuccessful } from '@opentiny/vue-icon'
+import { iconTriangleDown, iconMarkOn, iconSuccessful, iconYes } from '@opentiny/vue-icon'
+import type { IWizardApi } from '@opentiny/vue-renderless/types/wizard.type'
 
 export default defineComponent({
   props: [...props, 'data', 'pageGuide', 'timeLineFlow', 'vertical'],
@@ -136,11 +137,12 @@ export default defineComponent({
     TinyButton: Button,
     TinyUserContact: UserContact,
     TinyIconSuccessful: iconSuccessful(),
+    TinyIconYes: iconYes(),
     TinyIconMarkOn: iconMarkOn(),
     TinyIconTriangleDown: iconTriangleDown()
   },
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IWizardApi
   }
 })
 </script>

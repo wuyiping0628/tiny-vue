@@ -10,21 +10,23 @@
  *
  -->
 <template>
-  <div :style="state.barStyle" :class="`is-${state.rootTabs.position}`" class="tiny-tabs__active-bar"></div>
+  <div
+    :style="state.barStyle"
+    :class="[`is-${state.rootTabs.position}`, state.separator ? '' : 'tiny-tabs__active-bar']"
+  ></div>
 </template>
 
 <script lang="tsx">
-import { $prefix, setup, $props } from '@opentiny/vue-common'
+import { $prefix, setup, defineComponent } from '@opentiny/vue-common'
 import { renderless, api } from '@opentiny/vue-renderless/tab-bar/vue'
+import type { ITabBarPcApi } from '@opentiny/vue-renderless/types/tab-bar.type'
+import { tabBarProps } from './index'
 
-export default {
+export default defineComponent({
   name: $prefix + 'TabBar',
-  props: {
-    ...$props,
-    tabs: Array
-  },
+  props: tabBarProps,
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({ props, context, renderless, api, mono: true }) as unknown as ITabBarPcApi
   }
-}
+})
 </script>

@@ -19,13 +19,28 @@
     "type": "module",
     "exclude": false
   },
-  "DesignSmb": {
-    "path": "design/smb/index.ts",
+  "SaasCommon": {
+    "path": "vue-saas-common/src/index.ts",
     "type": "module",
     "exclude": false
   },
   "DesignAurora": {
     "path": "design/aurora/index.ts",
+    "type": "module",
+    "exclude": false
+  },
+  "DesignSaas": {
+    "path": "design/saas/index.ts",
+    "type": "module",
+    "exclude": false
+  },
+  "Directive": {
+    "path": "vue-directive/index.ts",
+    "type": "module",
+    "exclude": false
+  },
+  "Hooks": {
+    "path": "vue-hooks/index.ts",
     "type": "module",
     "exclude": false
   },

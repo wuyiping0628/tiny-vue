@@ -1,14 +1,16 @@
 <template>
-  <div class="inline-block relative">
+  <div class="inline-block relative" data-tag="tiny-user-head" @click="handleClick" @mouseenter="mouseEnter">
+    <!-- round： 偶现rounded 覆盖 rounded-full这个样式， 勿同步覆盖 -->
     <div
+      data-tag="tiny-user-head-body"
       :style="[state.style, { height: `${state.size}px`, width: `${state.size}px`, lineHeight: `${state.size}px` }]"
       :class="[
-        'overflow-hidden w-10 h-10  text-center rounded  bg-center bg-no-repeat bg-cover',
+        'overflow-hidden w-10 h-10  text-center  bg-center bg-no-repeat bg-cover',
+        round ? 'rounded-full' : 'rounded',
         { 'h-8 w-8 leading-8': min },
         {
           '[&_span]:overflow-hidden [&_span]:flex [&_span]:justify-center [&_span]:h-full px-0.5': type === 'label'
         },
-        { 'rounded-full': round },
         {
           '[&_svg]:top-1/2  [&_svg]:absolute [&_svg]:left-1/2  [&_svg]:-translate-y-1/2 [&_svg]:-translate-x-1/2':
             type === 'icon'
@@ -34,9 +36,10 @@
       </slot>
     </div>
     <div
+      data-tag="tiny-user-head-message"
       v-if="messageTotal"
       :class="[
-        'absolute rounded-lg text-black text-center box-content bg-color-error',
+        'absolute rounded-lg text-color-text-primary text-center box-content bg-color-error',
         messageType === 'basic'
           ? 'w-0 h-1 px-0.5 border-2 -right-1.5 border-color-bg-1 border-solid -top-1 left-9'
           : 'min-w-[0.625rem] w-auto left-7 flex items-center -top-2.5 px-0.5 text-xs h-3.5 border-2 border-color-bg-1 border-solid',
@@ -60,6 +63,7 @@ export default defineComponent({
   components: {
     IconUser: IconUser()
   },
+  emits: ['click', 'mouseenter'],
   props: [
     ...props,
     'min',

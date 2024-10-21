@@ -31,15 +31,18 @@ import {
   iconSortTriangleAscending,
   iconFullscreen,
   iconSortTriangleDescending,
-  iconSortTriangle
+  iconSortTriangle,
+  iconError
 } from '@opentiny/vue-icon'
+import { $prefix } from '@opentiny/vue-common'
 
 const GlobalConfig = {
   validConfig: {
-    message: 'tooltip'
+    message: 'tooltip',
+    icon: iconError()
   },
   // 默认开启点击头部单元格触发排序
-  sortConfig: {},
+  sortConfig: { multipleColumnSort: false },
   // 默认不开启隔行换色和行高亮，不暴露此配置
   stripe: false,
   // saas下默认不开启隔行换色和行高亮
@@ -51,6 +54,8 @@ const GlobalConfig = {
   // 鼠标移入表格行是否高亮显示
   highlightHoverRow: true,
   resizable: true,
+  // 操作列（type为index或radio或selection的列）默认不可拖动列宽
+  operationColumnResizable: false,
   fit: true,
   showHeader: true,
   defaultTreeIndent: 16,
@@ -134,6 +139,7 @@ const GlobalConfig = {
     CARD: 'card',
     LIST: 'list',
     GANTT: 'gantt',
+    CUSTOM: 'custom',
     // 移动优先视图下展示类型
     MF_SHOW_LIST: 'list',
     MF_SHOW_CARD: 'card',
@@ -155,10 +161,16 @@ const GlobalConfig = {
     mfTable: { default: 'hidden', mf: 'block sm:hidden', card: 'block' },
     footerBorder: { default: 'block', mf: 'hidden sm:block', card: 'hidden' },
     operButton: { default: 'inline-block', mf: 'hidden sm:inline-block', card: 'hidden' }
-  }
+  },
+  themes: {
+    TINY: 'tiny',
+    SAAS: 'saas'
+  },
+  columnLevelKey: 'ColumnLevelProvideKey',
+  defaultColumnName: $prefix + 'GridColumn'
 }
 
-// list视图类型、gantt视图类型和card视图类型的配置一致
+// list视图类型、gantt视图类型、custom视图类型和card视图类型的配置一致
 function addListConfig() {
   const viewConfig = GlobalConfig.viewConfig
 
@@ -166,6 +178,7 @@ function addListConfig() {
     if (typeof viewConfig[key] === 'object') {
       viewConfig[key].list = viewConfig[key].card
       viewConfig[key].gantt = viewConfig[key].card
+      viewConfig[key].custom = viewConfig[key].card
     }
   }
 }

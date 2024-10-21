@@ -29,13 +29,21 @@ import {
   mounted,
   beforeUnmouted,
   selfClickEvent,
+  mouseEnterEvent,
+  mouseLeaveEvent,
   updateZindex,
   closeEvent,
   confirmEvent,
   cancelEvent,
   open,
-  resetDragStyle
+  resetDragStyle,
+  computedBoxStyle,
+  handleHashChange,
+  showScrollbar,
+  hideScrollbar,
+  watchVisible
 } from './index'
+import type { IModalApi, IModalProps, IModalRenderlessParamUtils, ISharedRenderlessParamHooks } from '@/types'
 
 export const api = [
   'state',
@@ -48,6 +56,8 @@ export const api = [
   'close',
   'updateStyle',
   'selfClickEvent',
+  'mouseEnterEvent',
+  'mouseLeaveEvent',
   'updateZindex',
   'closeEvent',
   'confirmEvent',
@@ -58,12 +68,13 @@ export const api = [
 ]
 
 export const renderless = (
-  props,
-  { computed, onMounted, onBeforeUnmount, reactive, watch },
-  { refs, emit, emitter, nextTick, broadcast, vm: parent },
+  props: IModalProps,
+  { computed, onMounted, onBeforeUnmount, reactive, watch }: ISharedRenderlessParamHooks,
+  { vm, emit, emitter, nextTick, broadcast, vm: parent, constants, mode }: IModalRenderlessParamUtils,
   { isMobileFirstMode }
 ) => {
-  const api = {}
+  const api = {} as IModalApi
+  const lockScrollClass = constants.SCROLL_LOCK_CLASS(mode)
   const state = reactive({
     emitter: emitter(),
     visible: false,
@@ -75,7 +86,9 @@ export const renderless = (
     isMsg: computed(() => api.computedIsMsg(props)),
     prevEvent: null,
     options: [],
-    theme: props.tiny_theme
+    theme: props.tiny_theme,
+    boxStyle: computed(() => api.computedBoxStyle()),
+    timer: 0
   })
 
   Object.assign(api, {
@@ -83,31 +96,40 @@ export const renderless = (
     broadcast,
     computedIsMsg: computedIsMsg(),
     updateStyle: updateStyle({ nextTick, props }),
-    getBox: getBox(refs),
+    getBox: getBox({ vm }),
     watchValue: watchValue(api),
     created: created({ api, props, state }),
-    mounted: mounted({ api, parent, props, isMobileFirstMode }),
+    mounted: mounted({ api, parent, props, isMobileFirstMode, state }),
     beforeUnmouted: beforeUnmouted({ api, parent, isMobileFirstMode }),
     selfClickEvent: selfClickEvent({ api, parent, props }),
+    mouseEnterEvent: mouseEnterEvent(state),
+    mouseLeaveEvent: mouseLeaveEvent({ api, props, state }),
     updateZindex: updateZindex({ state, props }),
     handleEvent: handleEvent({ api, emit, parent, props, isMobileFirstMode }),
     closeEvent: closeEvent(api),
-    confirmEvent: confirmEvent(api),
+    confirmEvent: confirmEvent({ api, state }),
     cancelEvent: cancelEvent(api),
     open: open({ api, emit, nextTick, parent, props, state, isMobileFirstMode }),
     addMsgQueue: addMsgQueue({ api, parent }),
     removeMsgQueue: removeMsgQueue({ api, parent }),
     close: close({ emit, parent, props, state }),
     handleGlobalKeydownEvent: handleGlobalKeydownEvent(api),
+    handleHashChange: handleHashChange(api),
     maximize: maximize({ api, nextTick, props, state, isMobileFirstMode }),
     revert: revert({ api, nextTick, state, isMobileFirstMode }),
     toggleZoomEvent: toggleZoomEvent({ api, emit, parent, state, isMobileFirstMode }),
     mousedownEvent: mousedownEvent({ api, nextTick, props, state, emit, isMobileFirstMode }),
     dragEvent: dragEvent({ api, emit, parent, props, state }),
-    resetDragStyle: resetDragStyle(api)
+    resetDragStyle: resetDragStyle(api),
+    computedBoxStyle: computedBoxStyle({ props, isMobileFirstMode }),
+    watchVisible: watchVisible({ api, props }),
+    hideScrollbar: hideScrollbar(lockScrollClass),
+    showScrollbar: showScrollbar(lockScrollClass)
   })
 
   watch(() => props.modelValue, api.watchValue)
+
+  watch(() => state.visible, api.watchVisible)
 
   api.created()
 

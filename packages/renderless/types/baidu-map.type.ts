@@ -1,1 +1,0 @@
-import type { ExtractPropTypes } from '@opentiny/vue-common'

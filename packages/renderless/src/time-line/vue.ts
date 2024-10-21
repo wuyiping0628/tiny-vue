@@ -21,20 +21,33 @@ import {
   changeStatus,
   computedStackNodes,
   computedSpace,
-  computedWrapperClass
+  computedWrapperClass,
+  toggleFold
 } from './index'
+import type {
+  ITimelineApi,
+  ITimelineProps,
+  ITimelineRenderlessParamUtils,
+  ITimelineState,
+  ISharedRenderlessParamHooks
+} from '@/types'
 
-export const api = ['state', 'handleClick', 'getStatusCls', 'getStatus', 'getDate', 'changeStatus']
+export const api = ['state', 'handleClick', 'getStatusCls', 'getStatus', 'getDate', 'changeStatus', 'toggleFold']
 
-export const renderless = (props, { computed, reactive, provide, watch }, { t, emit, constants }) => {
-  const api = {}
-  const state = reactive({
+export const renderless = (
+  props: ITimelineProps,
+  { computed, reactive, provide, watch }: ISharedRenderlessParamHooks,
+  { t, emit, constants }: ITimelineRenderlessParamUtils
+): ITimelineApi => {
+  const api = {} as ITimelineApi
+  const state: ITimelineState = reactive({
+    // 当标签式使用时，记录有多少个 item 的标签
+    itemsArray: [],
     nodes: computed(() => api.computedData()),
-    timelineItems: [],
     current: computed(() => api.computedCurrent()),
     isReverse: computed(() => api.computedIsReverse()),
     stackNodes: computed(() => (state.showAll ? state.nodes : api.computedStackNodes())),
-    computedSpace: computed(() => computedSpace({ props })),
+    computedSpace: computed(() => api.computedSpace()),
     showData: false,
     showAll: false,
     computedWrapperClass: computed(() => api.computedWrapperClass())
@@ -46,25 +59,17 @@ export const renderless = (props, { computed, reactive, provide, watch }, { t, e
     computedData: computedData({ props, state }),
     computedCurrent: computedCurrent({ props, state }),
     computedIsReverse: computedIsReverse(props),
+    computedSpace: computedSpace({ props }),
     getStatus: getStatus({ state, t }),
-    handleClick: handleClick({ emit, state, api }),
-    getStatusCls: getStatusCls({ constants, props, state }),
-    computedStackNodes: computedStackNodes({ state, constants }),
+    handleClick: handleClick({ emit, state }),
+    getStatusCls: getStatusCls({ constants, state }),
+    computedStackNodes: computedStackNodes({ state, props }),
     changeStatus: changeStatus({ state }),
-    computedWrapperClass: computedWrapperClass({ props })
+    computedWrapperClass: computedWrapperClass({ props }),
+    toggleFold: toggleFold({ props })
   })
 
-  provide('nodesInject', { timelineItems: state.timelineItems, nodes: state.nodes, props })
-  watch(
-    () => state.timelineItems,
-    (newVal) => {
-      newVal.forEach((item, i) => (item.index = i))
-    },
-    {
-      immediate: true,
-      deep: true
-    }
-  )
+  provide('nodesInject', { state, props })
 
   return api
 }

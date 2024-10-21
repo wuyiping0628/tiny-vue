@@ -1,37 +1,24 @@
 <script lang="tsx">
-import { setup, $prefix, defineComponent } from '@opentiny/vue-common'
+import { props, setup, $prefix, defineComponent } from '@opentiny/vue-common'
 import { renderless, api } from '@opentiny/vue-renderless/anchor/vue'
+import { AutoTip } from '@opentiny/vue-directive'
+import type { IAnchorApi } from '@opentiny/vue-renderless/types/anchor.type'
 
 export default defineComponent({
   name: $prefix + 'Anchor',
-  props: {
-    isAffix: {
-      type: Boolean,
-      default: false
-    },
-    links: {
-      type: Array,
-      default: () => []
-    },
-    containerId: {
-      type: String,
-      default: ''
-    },
-    markClass: {
-      type: String,
-      default: ''
-    }
-  },
-  emits: ['linkClick', 'onChange'],
+  directives: { AutoTip },
+  props: [...props, 'isAffix', 'links', 'containerId', 'markClass', 'type'],
+  emits: ['linkClick', 'onChange', 'change'], // deprecated v3.12.0废弃，v3.17.0移除onChange 事件
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IAnchorApi
   },
   render() {
     const {
       isAffix,
       links,
       linkClick,
-      state: { currentLink }
+      state: { currentLink },
+      type
     } = this
     const anchorClass = 'tiny-anchor'
 
@@ -42,9 +29,9 @@ export default defineComponent({
               <a
                 href={item.link}
                 class={[`${anchorClass}-link-title`, currentLink === item.link && `${anchorClass}-link-title--active`]}
-                title={item.title}
                 onClick={(e) => linkClick(e, item)}
-                ref={item.link}>
+                ref={item.link}
+                v-auto-tip>
                 {item.title}
               </a>
               {item.children ? renderLinks(item.children) : null}
@@ -52,13 +39,21 @@ export default defineComponent({
           ))
         : null
 
+    const renderMask = <div class={`${anchorClass}-link-mask`} ref="maskRef"></div>
+
+    const renderOrbit = (
+      <div class={`${anchorClass}-orbit`}>
+        <div class={`${anchorClass}-orbit-skid`} ref="skidRef"></div>
+      </div>
+    )
+
     return (
-      <div class={[isAffix ? `${anchorClass}__affix` : '', `${anchorClass}__wrapper`]} ref={isAffix ? 'fixRef' : ''}>
+      <div
+        class={[isAffix ? `${anchorClass}__affix` : '', `${anchorClass}__wrapper`, `tiny-anchor__${type}`]}
+        ref="anchorWrapRef">
         <div class={anchorClass} ref="anchorRef">
-          <div class={`${anchorClass}-link-mask`} ref="maskRef"></div>
-          <div class={`${anchorClass}-orbit`}>
-            <div class={`${anchorClass}-orbit-skid`} ref="skidRef"></div>
-          </div>
+          {type === 'line' && renderMask}
+          {type === 'line' && renderOrbit}
           {links && renderLinks(links)}
         </div>
       </div>

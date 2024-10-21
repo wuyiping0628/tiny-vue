@@ -9,18 +9,20 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-
+import type { ITabNavRenderlessParams } from '@/types'
 import { KEY_CODE, POSITION } from '../common'
 import { capitalize } from '../common/string'
 import { addResizeListener, removeResizeListener } from '../common/deps/resize-event'
 import { on, off } from '../common/deps/dom'
 
-export const computedNavStyle = (state) => {
+export const computedNavStyle = (state: ITabNavRenderlessParams['state']): { transform: string; width?: string } => {
   const dir = ~[POSITION.Top, POSITION.Bottom].indexOf(state.rootTabs.position) ? 'X' : 'Y'
 
   if (state.mode === 'mobile') {
+    const { offset, width } = state.lineStyle
     return {
-      transform: `translate${dir}(${state.lineOffset}px) translate${dir}(-50%)`
+      width: `${width}px`,
+      transform: `translate${dir}(${offset}px) translate${dir}(-50%)`
     }
   } else {
     return {
@@ -30,14 +32,14 @@ export const computedNavStyle = (state) => {
 }
 
 export const scrollIntoView =
-  ({ parent, refs, state }) =>
+  ({ parent, vm, state }: Pick<ITabNavRenderlessParams, 'parent' | 'vm' | 'state'>) =>
   () => {
     if (!state.scrollable) {
       return
     }
 
-    const nav = refs.nav
-    const activeTab = parent.$el.querySelector('.is-active')
+    const nav = vm.$refs.nav
+    const activeTab = parent.$el.querySelector('.is-active') as HTMLElement
 
     if (!activeTab) {
       return
@@ -48,47 +50,53 @@ export const scrollIntoView =
 
     if (state.mode === 'mobile') {
       nav.scrollLeft += to - from
-      state.lineOffset = activeTab.offsetLeft + activeTab.offsetWidth / 2
+      const nameHtml = activeTab.querySelector('.tiny-mobile-tabs__name') as HTMLElement
+      state.lineStyle.width = nameHtml.offsetWidth
+      state.lineStyle.offset = activeTab.offsetLeft + activeTab.offsetWidth / 2
     }
   }
 
-export const computedSizeName = (state) =>
+export const computedSizeName = (state: ITabNavRenderlessParams['state']): 'width' | 'height' =>
   ~[POSITION.Top, POSITION.Bottom].indexOf(state.rootTabs.position) ? 'width' : 'height'
 
 /* istanbul ignore next */
 export const updated =
-  ({ api, refs, state }) =>
+  ({ api, vm, state }: Pick<ITabNavRenderlessParams, 'api' | 'vm' | 'state'>) =>
   () => {
-    if (!refs.nav || state.dragging) {
+    if (!vm.$refs.nav || state.dragging) {
       return
     }
 
-    let navSize = refs.nav[`offset${capitalize(state.sizeName)}`] // taList 列表容器
+    let navSize = vm.$refs.nav[`offset${capitalize(state.sizeName)}`] // taList 列表容器
 
     if (state.mode === 'mobile') {
-      Array.prototype.forEach.call(refs.nav.children, (item) => {
+      Array.prototype.forEach.call(vm.$refs.nav.children, (item) => {
         if (item.classList && item.classList.contains('tiny-mobile-tabs__item')) {
           navSize += item.offsetWidth
         }
 
         if (item.classList && item.classList.contains('is-active')) {
-          const line = item.querySelector('.tiny-mobile-tabs__name')
+          const nameHtml = item.querySelector('.tiny-mobile-tabs__name') as HTMLElement
 
           state.isActive = true
-          state.lineOffset = item.offsetLeft + item.offsetWidth / 2
+          state.lineStyle.width = nameHtml.offsetWidth
+          state.lineStyle.offset = item.offsetLeft + item.offsetWidth / 2
         }
       })
     }
 
-    const containerSize = refs.navScroll[`offset${capitalize(state.sizeName)}`] // 父容器宽度
+    const containerSize = vm.$refs.navScroll[`offset${capitalize(state.sizeName)}`] // 父容器宽度
     const currentOffset = state.navOffset
 
     if (containerSize < navSize) {
       const currentOffset = state.navOffset
 
-      state.scrollable = state.scrollable || {}
-      state.scrollable.prev = currentOffset
-      state.scrollable.next = currentOffset + containerSize < navSize
+      if (!state.scrollable) {
+        state.scrollable = {
+          prev: currentOffset,
+          next: currentOffset + containerSize < navSize
+        }
+      }
 
       if (navSize - currentOffset < containerSize) {
         state.navOffset = navSize - containerSize
@@ -103,16 +111,16 @@ export const updated =
 
     state.isActive && api.scrollIntoView()
 
-    if (refs.tabBar) {
+    if (vm.$refs.tabBar) {
       // active-bar动画滚动
-      refs.tabBar.state.barStyle = refs.tabBar.computedBarStyle(refs.tabBar, state)
+      vm.$refs.tabBar.state.barStyle = vm.$refs.tabBar.computedBarStyle(vm.$refs.tabBar, state)
     } else {
-      const line = refs.nav.querySelector('tiny-mobile-tabs__line')
+      const line = vm.$refs.nav.querySelector('tiny-mobile-tabs__line')
       line && line.style && (line.style.transform = api.computedNavStyle(state).transform)
     }
   }
 
-export const mounted = ({ api, parent }) => {
+export const mounted = ({ api, parent }: Pick<ITabNavRenderlessParams, 'api' | 'parent'>) => {
   const el = parent.$refs.nav.$el
 
   /* istanbul ignore next */
@@ -126,7 +134,7 @@ export const mounted = ({ api, parent }) => {
   api.sortableEvent()
 }
 
-export const beforeUnmount = ({ api, parent }) => {
+export const beforeUnmount = ({ api, parent }: Pick<ITabNavRenderlessParams, 'api' | 'parent'>) => {
   const el = parent.$refs.nav && parent.$refs.nav.$el
 
   /* istanbul ignore next */
@@ -139,7 +147,7 @@ export const beforeUnmount = ({ api, parent }) => {
   off(window, 'focus', api.windowFocusHandler)
 }
 
-export const visibilityChangeHandler = (state) => () => {
+export const visibilityChangeHandler = (state: ITabNavRenderlessParams['state']) => () => {
   const visibility = document.visibilityState
 
   /* istanbul ignore next */
@@ -152,11 +160,11 @@ export const visibilityChangeHandler = (state) => () => {
   }
 }
 
-export const windowBlurHandler = (state) => () => {
+export const windowBlurHandler = (state: ITabNavRenderlessParams['state']) => () => {
   state.focusable = false
 }
 
-export const windowFocusHandler = (state) => () => {
+export const windowFocusHandler = (state: ITabNavRenderlessParams['state']) => () => {
   setTimeout(() => {
     state.focusable = true
   }, 50)
@@ -164,20 +172,20 @@ export const windowFocusHandler = (state) => () => {
 
 /* istanbul ignore next */
 export const scrollToActiveTab =
-  ({ parent, refs, state }) =>
+  ({ parent, vm, state }: Pick<ITabNavRenderlessParams, 'parent' | 'vm' | 'state'>) =>
   () => {
     if (!state.scrollable) {
       return
     }
 
-    const nav = refs.nav
+    const nav = vm.$refs.nav
     const activeTab = parent.$el.querySelector('.is-active')
 
     if (!activeTab) {
       return
     }
 
-    const navScroll = refs.navScroll
+    const navScroll = vm.$refs.navScroll
     const activeTabBounding = activeTab.getBoundingClientRect()
     const navScrollBounding = navScroll.getBoundingClientRect()
     let maxOffset = nav.offsetWidth - navScrollBounding.width
@@ -206,9 +214,9 @@ export const scrollToActiveTab =
   }
 
 export const scrollPrev =
-  ({ refs, state }) =>
+  ({ vm, state }: Pick<ITabNavRenderlessParams, 'vm' | 'state'>) =>
   () => {
-    const containerSize = refs.navScroll[`offset${capitalize(state.sizeName)}`]
+    const containerSize = vm.$refs.navScroll[`offset${capitalize(state.sizeName)}`]
     const currentOffset = state.navOffset
 
     if (!currentOffset) {
@@ -221,10 +229,10 @@ export const scrollPrev =
   }
 
 export const scrollNext =
-  ({ refs, state }) =>
+  ({ vm, state }: Pick<ITabNavRenderlessParams, 'vm' | 'state'>) =>
   () => {
-    const navSize = refs.nav[`offset${capitalize(state.sizeName)}`]
-    const containerSize = refs.navScroll[`offset${capitalize(state.sizeName)}`]
+    const navSize = vm.$refs.nav[`offset${capitalize(state.sizeName)}`]
+    const containerSize = vm.$refs.navScroll[`offset${capitalize(state.sizeName)}`]
     const currentOffset = state.navOffset
 
     if (navSize - currentOffset <= containerSize) {
@@ -238,13 +246,17 @@ export const scrollNext =
   }
 
 /* istanbul ignore next */
-export const changeTab = (api) => (event) => {
+export const changeTab = (api: ITabNavRenderlessParams['api']) => (event: KeyboardEvent) => {
   const keyCode = event.keyCode
   let nextIndex
   let currentIndex, tabList
 
-  if (~[KEY_CODE.ArrowLeft, KEY_CODE.ArrowRight, KEY_CODE.ArrowUp, KEY_CODE.ArrowDown].indexOf(keyCode)) {
-    tabList = event.currentTarget.querySelectorAll('[role=tab]')
+  if (
+    ~[KEY_CODE.ArrowLeft, KEY_CODE.ArrowRight, KEY_CODE.ArrowUp, KEY_CODE.ArrowDown].indexOf(keyCode) &&
+    event.currentTarget
+  ) {
+    const target = event.currentTarget as HTMLElement
+    tabList = target.querySelectorAll('[role=tab]')
     currentIndex = Array.prototype.indexOf.call(tabList, event.target)
   } else {
     return
@@ -269,18 +281,18 @@ export const changeTab = (api) => (event) => {
   api.setFocus()
 }
 
-export const setFocus = (state) => () => {
+export const setFocus = (state: ITabNavRenderlessParams['state']) => () => {
   if (state.focusable) {
     state.isFocus = true
   }
 }
 
-export const removeFocus = (state) => () => {
+export const removeFocus = (state: ITabNavRenderlessParams['state']) => () => {
   state.isFocus = true
 }
 
 // pc-展示更多的功能
-export const moreTabShow = (state) => () => {
+export const moreTabShow = (state: ITabNavRenderlessParams['state']) => () => {
   if (state.showMoreItem) {
     state.showMoreItem = false
   } else {
@@ -290,7 +302,7 @@ export const moreTabShow = (state) => () => {
 
 // mobile-展示展开选项的功能
 export const expandTabShow =
-  ({ api, state }) =>
+  ({ api, state }: Pick<ITabNavRenderlessParams, 'api' | 'state'>) =>
   () => {
     state.showExpandItem = !state.showExpandItem
     if (state.showExpandItem) {
@@ -298,21 +310,21 @@ export const expandTabShow =
     }
   }
 
-export const expandTabHide = (state) => () => (state.showExpandItem = false)
+export const expandTabHide = (state: ITabNavRenderlessParams['state']) => () => (state.showExpandItem = false)
 
 export const computedHeaderStyle =
-  ({ refs, state }) =>
+  ({ vm, state }: Pick<ITabNavRenderlessParams, 'vm' | 'state'>) =>
   () => {
-    if (refs.nav) {
-      state.expandHeaderStyle[state.sizeName] = refs.nav[`offset${capitalize(state.sizeName)}`] + 'px'
+    if (vm.$refs.nav) {
+      state.expandHeaderStyle[state.sizeName] = vm.$refs.nav[`offset${capitalize(state.sizeName)}`] + 'px'
     }
 
     return state.expandHeaderStyle
   }
 
 export const handleTabDragStart =
-  ({ state, refs, emit }) =>
-  (event) => {
+  ({ state, vm, emit }: Pick<ITabNavRenderlessParams, 'state' | 'vm' | 'emit'>) =>
+  (event: DragEvent) => {
     state.dragging = true
 
     if (![POSITION.Top, POSITION.Bottom].includes(state.rootTabs.position)) {
@@ -320,8 +332,8 @@ export const handleTabDragStart =
       return
     }
 
-    const navContainer = refs.navScroll
-    const nav = refs.nav
+    const navContainer = vm.$refs.navScroll
+    const nav = vm.$refs.nav
 
     const containerWidth = navContainer.offsetWidth
     const navWidth = nav.offsetWidth
@@ -342,7 +354,7 @@ export const handleTabDragStart =
   }
 
 export const handleTabDragEnd =
-  ({ refs, state, nextTick }) =>
+  ({ vm, state, nextTick }: Pick<ITabNavRenderlessParams, 'vm' | 'state' | 'nextTick'>) =>
   () => {
     state.dragging = false
 
@@ -350,11 +362,11 @@ export const handleTabDragEnd =
       return
     }
 
-    const nav = refs.nav
+    const nav = vm.$refs.nav
 
     if (nav.style.width) {
       const navOffset = nav.scrollLeft
-      const navContainer = refs.navScroll
+      const navContainer = vm.$refs.navScroll
 
       navContainer.style.height = ''
       nav.style.width = ''
@@ -368,13 +380,21 @@ export const handleTabDragEnd =
   }
 
 export const sortableEvent =
-  ({ api, props, state, refs, emit, markRaw }) =>
+  ({
+    api,
+    props,
+    state,
+    vm,
+    emit,
+    markRaw
+  }: Pick<ITabNavRenderlessParams, 'api' | 'props' | 'state' | 'vm' | 'emit' | 'markRaw'>) =>
   () => {
     if (!props.dropConfig || typeof props.dropConfig.plugin !== 'function') {
       return
     }
 
-    const navSortableObj = new props.dropConfig.plugin(refs.nav, {
+    // eslint-disable-next-line new-cap
+    const navSortableObj = new props.dropConfig.plugin(vm.$refs.nav, {
       sort: true,
       draggable: '.tiny-tabs__item',
       onUpdate(event) {
@@ -386,8 +406,8 @@ export const sortableEvent =
       onStart(event) {
         api.handleTabDragStart(event)
       },
-      onEnd(event) {
-        api.handleTabDragEnd(event)
+      onEnd() {
+        api.handleTabDragEnd()
       }
     })
 
@@ -395,13 +415,44 @@ export const sortableEvent =
   }
 
 export const watchCurrentName =
-  ({ nextTick, refs, state }) =>
+  ({ nextTick, vm, state }: Pick<ITabNavRenderlessParams, 'nextTick' | 'vm' | 'state'>) =>
   () => {
     nextTick(() => {
-      const tabBarVnode = refs.tabBar
+      const tabBarVnode = vm.$refs.tabBar
 
       if (tabBarVnode) {
         tabBarVnode.state.barStyle = tabBarVnode.computedBarStyle(tabBarVnode, state)
       }
     })
+  }
+
+export const handleTitleMouseenter =
+  ({ state, vm, props }) =>
+  (e, title) => {
+    const dom = e.target
+    // 以下逻辑与aui不同，tiny不能通过dom宽度判断是否超出隐藏
+    const el = title?.el
+
+    // 如果用户配置了tooltipConfig属性，优先级最高
+    if (props.tooltipConfig) {
+      return
+    }
+
+    if (dom && el && el.scrollWidth > el.offsetWidth) {
+      const tooltip = vm.$refs.tooltip
+      tooltip.state.referenceElm = dom
+      tooltip.state.popperElm && (tooltip.state.popperElm.style.display = 'none')
+      tooltip.doDestroy()
+
+      state.tooltipContent = title
+      state.tooltipVisible = true
+
+      setTimeout(tooltip.updatePopper, 20)
+    }
+  }
+
+export const handleTitleMouseleave =
+  ({ state }) =>
+  () => {
+    state.tooltipVisible = false
   }

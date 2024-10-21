@@ -19,20 +19,28 @@ let startClick
 let seed = 0
 
 if (!isServer) {
-  on(document, 'mousedown', (event) => (startClick = event))
+  on(document, 'mousedown', (event) => {
+    startClick = event
+    nodeList
+      .filter((node) => node[nameSpace].mousedownTrigger)
+      .forEach((node) => node[nameSpace].documentHandler(event, startClick))
+  })
 
   on(document, 'mouseup', (event) => {
-    nodeList.forEach((node) => node[nameSpace].documentHandler(event, startClick))
+    nodeList
+      .filter((node) => !node[nameSpace].mousedownTrigger)
+      .forEach((node) => node[nameSpace].documentHandler(event, node[nameSpace]?.mouseupTrigger ? event : startClick))
+    startClick = null
   })
 }
 
 const createDocumentHandler = (el, binding, vnode) =>
   function (mouseup = {}, mousedown = {}) {
-    let popperElm = vnode.context.popperElm || vnode.context.state.popperElm
+    let popperElm = vnode.context.popperElm || (vnode.context.state && vnode.context.state.popperElm)
 
     if (
-      !mouseup.target ||
-      !mousedown.target ||
+      !mouseup?.target ||
+      !mousedown?.target ||
       el.contains(mouseup.target) ||
       el.contains(mousedown.target) ||
       el === mouseup.target ||
@@ -52,27 +60,38 @@ const createDocumentHandler = (el, binding, vnode) =>
  * v-clickoutside
  * @desc 点击元素外面才会触发的事件
  * @example
+ * 两个修饰符，mousedown、mouseup
+ * 当没有修饰符时，需要同时满足在目标元素外同步按下和释放鼠标才会触发回调。
  * ```html
- * <div v-clickoutside="handleClose">
+ * <div v-clickoutside="handleClose"> // 在元素外部点击时触发
+ * <div v-clickoutside.mousedown="handleClose"> // 在元素外部按下鼠标时触发
+ * <div v-clickoutside.mouseup="handleClose"> // 在元素外部松开鼠标时触发
  * ```
  */
 export default {
   bind: (el, binding, vnode) => {
     nodeList.push(el)
     const id = seed++
-
+    const { modifiers, expression, value } = binding
+    const { mousedown = false, mouseup = false } = modifiers || {}
     el[nameSpace] = {
       id,
       documentHandler: createDocumentHandler(el, binding, vnode),
-      methodName: binding.expression,
-      bindingFn: binding.value
+      methodName: expression,
+      bindingFn: value,
+      mousedownTrigger: mousedown,
+      mouseupTrigger: mouseup
     }
   },
 
   update: (el, binding, vnode) => {
+    const { modifiers, expression, value } = binding
+    const { mousedown = false, mouseup = false } = modifiers || {}
     el[nameSpace].documentHandler = createDocumentHandler(el, binding, vnode)
-    el[nameSpace].methodName = binding.expression
-    el[nameSpace].bindingFn = binding.value
+    el[nameSpace].methodName = expression
+    el[nameSpace].bindingFn = value
+    el[nameSpace].mousedownTrigger = mousedown
+    el[nameSpace].mouseupTrigger = mouseup
   },
 
   unbind: (el) => {
@@ -87,6 +106,10 @@ export default {
         nodeList.splice(i, 1)
         break
       }
+    }
+
+    if (nodeList.length === 0 && startClick) {
+      startClick = null
     }
 
     delete el[nameSpace]

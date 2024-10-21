@@ -1,49 +1,38 @@
 <template>
-  <div class="w-full grid gap-4" :style="state.style">
+  <div data-tag="tiny-card-group" class="w-full grid gap-4" :class="gcls(`size-${state.size}`)">
     <slot></slot>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/card-group/vue'
-import { $props, $prefix, setup, defineComponent } from '@opentiny/vue-common'
+import { $prefix, props, setup, defineComponent } from '@opentiny/vue-common'
+import { classes } from './token'
 
 export default defineComponent({
   name: $prefix + 'CardGroup',
   componentName: 'CardGroup',
   emits: ['update:modelValue', 'change'],
-  props: {
-    ...$props,
-    modelValue: {},
-    cardClass: String,
-    height: String,
-    autoWidth: {
-      type: Boolean,
-      default: true
-    },
-    size: {
-      type: String,
-      default: 'medium'
-    },
-    status: {
-      type: String,
-      default: 'default'
-    },
-    checkType: {
-      type: String,
-      default: ''
-    },
-    type: {
-      type: String,
-      default: 'text'
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    }
-  },
+  props: [
+    ...props,
+    'modelValue',
+    'customClass',
+    'height',
+    'autoWidth',
+    'size',
+    'status',
+    'checkType',
+    'type',
+    'disabled'
+  ],
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({
+      props,
+      context,
+      renderless,
+      api,
+      classes
+    })
   }
 })
 </script>

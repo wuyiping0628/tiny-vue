@@ -30,8 +30,8 @@ import {
 } from './index'
 import userPopper from '../common/deps/vue-popper'
 import { guid } from '../common/string'
-import { ISharedRenderlessParamHooks, ISharedRenderlessParamUtils } from 'types/shared.type'
-import { ITooltipApi, ITooltipProps, ITooltipState } from 'types/tooltip.type'
+import type { ISharedRenderlessParamHooks, ISharedRenderlessParamUtils } from 'types/shared.type'
+import type { ITooltipApi, ITooltipProps, ITooltipState } from 'types/tooltip.type'
 
 export const api = [
   'state',
@@ -45,23 +45,22 @@ export const api = [
   'handleClosePopper',
   'setExpectedState',
   'updatePopper',
-  'focusHandler',
-  'markRaw'
+  'focusHandler'
 ]
 
-const initState = ({ reactive, showPopper, popperElm, referenceElm, props, markRaw, inject }) =>
+const initState = ({ reactive, showPopper, popperElm, referenceElm, props, inject, popperJS, currentPlacement }) =>
   reactive({
+    popperJS,
     showPopper,
     popperElm,
     referenceElm,
+    currentPlacement,
     timeout: null,
     focusing: false,
     expectedState: undefined,
-    mounted: false,
     tooltipId: guid('tiny-tooltip-', 4),
     tabindex: props.tabindex,
     xPlacement: 'bottom',
-    poppers: markRaw([]),
     showContent: inject('showContent', null),
     tipsMaxWidth: inject('tips-max-width', null)
   })
@@ -76,37 +75,45 @@ export const renderless = (
     onDeactivated,
     onMounted,
     onUnmounted,
-    markRaw,
     inject
   }: ISharedRenderlessParamHooks,
-  { vm, emit, refs, slots, nextTick, parent }: ISharedRenderlessParamUtils<never>
+  { vm, emit, slots, nextTick, parent }: ISharedRenderlessParamUtils<never>
 ) => {
   const api = {} as ITooltipApi
-  // 因为tootip组件由单层组件变成双层组件，所以parent需要再往上找一层
-  const popperParam = { emit, props, nextTick, toRefs, reactive, parent: parent.$parent, refs }
 
-  const popperVmRef = {}
+  const popperVmRef = {} as { popper: HTMLElement }
+  const popperParam = { emit, props, nextTick, toRefs, reactive, parent: parent.$parent, vm, popperVmRef }
 
   Object.assign(popperParam, { slots, onBeforeUnmount, onDeactivated, watch })
 
-  const { showPopper, updatePopper, popperElm, referenceElm, doDestroy } = userPopper(popperParam as any)
-  const state: ITooltipState = initState({ reactive, showPopper, popperElm, referenceElm, props, markRaw, inject })
+  const { showPopper, updatePopper, popperElm, referenceElm, doDestroy, popperJS, currentPlacement } = userPopper(
+    popperParam as any
+  )
+  const state: ITooltipState = initState({
+    reactive,
+    showPopper,
+    popperElm,
+    referenceElm,
+    props,
+    inject,
+    popperJS,
+    currentPlacement
+  })
 
   Object.assign(api, {
     state,
-    markRaw,
     doDestroy,
     updatePopper,
     show: show({ api, state, props }),
     hide: hide(api),
-    destroyed: destroyed({ state, api }),
-    bindPopper: bindPopper({ vm, refs, nextTick, popperVmRef }),
+    destroyed: destroyed({ state, api, vm }),
+    bindPopper: bindPopper({ vm, nextTick, popperVmRef }),
     watchFocusing: watchFocusing(state),
     removeFocusing: removeFocusing({ api, state }),
     handleBlur: handleBlur({ api, state }),
     handleFocus: handleFocus({ api, state }),
     debounceClose: debounceClose({ api, props }),
-    setExpectedState: setExpectedState({ api, state }),
+    setExpectedState: setExpectedState({ state }),
     handleShowPopper: handleShowPopper({ props, state }),
     handleClosePopper: handleClosePopper({ api, props, state }),
     bindEvent: bindEvent({ api, state, vm }),

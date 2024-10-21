@@ -1,3 +1,5 @@
+import { format } from '../common/date'
+
 const getFormatTime = (time) => {
   return ('0' + time).slice(-2)
 }
@@ -17,90 +19,96 @@ const isSameDay = (day1, day2) => {
   )
 }
 
-export const getCurrentDate = () => (dateValue) => {
-  const today = new Date()
-  const theDate = new Date(dateValue)
-  const year = theDate.getFullYear()
-  const month = theDate.getMonth() + 1
-  const day = theDate.getDate()
-  const yearMonth = year + '/' + month
-  const startWeek = new Date(year, month - 1, 1).getDay()
-  const index = startWeek + day - 1
-
-  return {
-    date: yearMonth + '/' + day,
-    yearMonth,
-    index,
-    day,
-    year,
-    month,
-    isStartDay: false,
-    isEndDay: false,
-    isToday: isSameDay(today, theDate)
-  }
+export const getDateStr = (year, month, day = '01', seperator = '/') => {
+  const arr = [year, month, day]
+  return arr.join(seperator)
 }
 
-export const getFormatDate = (date, yearUnit = '/', monthUnit = '/', dayUnit = '') => {
-  const theDate = new Date(date)
+export const getCurrentDate =
+  ({ api, props }) =>
+  (dateValue) => {
+    const today = new Date()
+    const theDate = new Date(dateValue)
+    const year = theDate.getFullYear()
+    const month = theDate.getMonth() + 1
+    const day = theDate.getDate()
+    const yearMonth = getDateStr(year, month)
 
-  return theDate.getFullYear() + yearUnit + (theDate.getMonth() + 1) + monthUnit + theDate.getDate() + dayUnit
+    const startWeek = new Date(year, month - 1, 1).getDay()
+    const index = startWeek + day - 1
+    const { disabledDate } = props.pickerOptions || {}
+
+    return {
+      value: api.formatDate(theDate),
+      yearMonth,
+      index,
+      day,
+      year,
+      month,
+      isStartDay: false,
+      isEndDay: false,
+      disabled: typeof disabledDate === 'function' && !!disabledDate(theDate),
+      isToday: isSameDay(today, theDate)
+    }
+  }
+
+export const formatDate =
+  ({ props, constants }) =>
+  (date, dateFormat) => {
+    const { YEAR_MONTH_RANGE, YEAR_MONTH } = constants.TYPE
+    const defaultFormet = [YEAR_MONTH_RANGE, YEAR_MONTH].includes(props.type) ? 'yyyy/MM/01' : 'yyyy/MM/dd'
+    return format(date, dateFormat === undefined ? defaultFormet : dateFormat)
+  }
+
+const getDateFromStr = (dateStr, direction = 'top') => {
+  const arr = dateStr.split('/').map((item) => +item)
+  const yarr = arr[0]
+  const month = direction == 'top' ? arr[1] - 1 : arr[1]
+  return new Date(yarr, month, 1)
 }
 
 export const loadingDate =
   ({ state, api }) =>
   (direction) => {
     const list = Object.keys(state.dateList)
-    let date
-    if (direction === 'top') {
-      const yearMonth = list[0].split('/').map((item) => +item)
-      const year = yearMonth[1] === 1 ? yearMonth[0] - 1 : yearMonth[0]
-      const month = yearMonth[1] === 1 ? 11 : yearMonth[1] - 1
 
-      date = new Date(year, month, 1)
-    } else {
-      const yearMonth = list[list.length - 1].split('/').map((item) => +item)
+    const value = direction === 'top' ? list[0] : list[list.length - 1]
 
-      date = new Date(yearMonth[0], yearMonth[1] - 2, 1)
-    }
+    const date = getDateFromStr(value, direction)
 
-    api.initPanel(date, direction, 2)
+    api.initPanel({ dateValue: date, direction })
 
     setTimeout(() => {
       state.loading = false
-    }, 300)
+    }, 100)
   }
 
 export const initPanel =
   ({ state, api }) =>
-  (dateValue, direction, yearNum = 1) => {
-    const currentDate = dateValue || (Array.isArray(state.date) ? state.date[1] : state.date) || new Date()
+  ({ dateValue, direction, isInit }) => {
+    const currentDate = dateValue || (Array.isArray(state.date) ? state.date[0] : state.date) || new Date()
 
     let month = currentDate.getMonth() + 1
-    let year = direction === 'top' ? currentDate.getFullYear() - 1 : currentDate.getFullYear()
+    let year = direction === 'top' ? currentDate.getFullYear() - state.yearNum : currentDate.getFullYear()
 
-    if (yearNum === 1 && !direction) {
+    if (isInit) {
       // init component
-      if (month <= 6) {
-        year -= 1
-        month += 6
-      } else {
-        month -= 6
-      }
+      year -= Math.floor(state.yearNum / 2)
     }
 
     let date = new Date(year, month - 1, 1) // 加载日历的起始日期
     const dateList = {}
 
-    Array.from({ length: 12 * yearNum }).map(() => {
+    Array.from({ length: 12 * state.yearNum }).map(() => {
       const startWeek = date.getDay()
-      dateList[year + '/' + month] = Array.from({ length: startWeek }).map(() => ({}))
+      dateList[getDateStr(year, month)] = Array.from({ length: startWeek }).map(() => ({}))
       const days = getDaysByMonth(year, month)
 
       Array.from({ length: days }).map((v, index) => {
         const day = index + 1
         const dayInfo = api.getCurrentDate(new Date(year, month - 1, day))
 
-        dateList[year + '/' + month].push(dayInfo)
+        dateList[getDateStr(year, month)].push(dayInfo)
       })
 
       month++
@@ -113,7 +121,8 @@ export const initPanel =
       date = new Date(year, month - 1, 1)
     })
 
-    state.dateList = dateList
+    state.dateList =
+      direction === 'top' ? Object.assign({}, dateList, state.dateList) : Object.assign({}, state.dateList, dateList)
   }
 
 export const getWeeksByMonth =
@@ -139,10 +148,9 @@ export const getDate =
 
     if (date) {
       const theDate = new Date(date)
+      const key = getDateStr(theDate.getFullYear(), theDate.getMonth + 1)
 
-      currentDate = state.dateList[`${theDate.getFullYear()}/${theDate.getMonth + 1}`]
-        .filter((item) => item.day === theDate.getDate())
-        .shift()
+      currentDate = state.dateList[key].filter((item) => item.day === theDate.getDate()).shift()
     } else {
       currentDate = state.dateList[yearMonth][index]
     }
@@ -151,55 +159,88 @@ export const getDate =
   }
 
 export const getSelectedPosition =
-  ({ state }) =>
+  ({ state, api }) =>
   (dateFormat) => {
     const { selected } = state
+    const length = selected.length
 
-    if (!selected.length) {
+    if (!length) {
       return ''
     }
 
-    const index = selected.map((item) => getFormatDate(item)).indexOf(dateFormat)
-    const length = selected.length
+    const index = selected.indexOf(api.formatDate(dateFormat))
 
     return index === 0 ? 'start' : index === length - 1 ? 'end' : index > -1 ? 'inner' : ''
   }
 
 export const watchVisible =
-  ({ emit, api, nextTick, vm }) =>
+  ({ emit, api, state }) =>
   (bool) => {
     if (bool) {
       api.watchModelValue()
-
-      nextTick(() => {
-        const refBody = vm.$refs.datePickerBody
-
-        if (refBody.scrollHeight && !refBody.scrollTop) {
-          refBody.scrollTop = refBody.scrollHeight / 2
-        }
-      })
+      const currentDate = (Array.isArray(state.date) ? state.date[0] : state.date) || new Date()
+      setTimeout(() => api.scrollToCurrentDate({ date: currentDate }), 300)
     }
 
     emit('update:visible', bool)
   }
 
+export const scrollToCurrentDate =
+  ({ state, vm, nextTick }) =>
+  ({ date, value }) => {
+    const { isYearMonthPanel, computedYears, months } = state
+    let field
+    let list
+    let year
+    let month
+    let index = -1
+
+    if (date) {
+      year = date.getFullYear()
+      month = date.getMonth() + 1
+    }
+
+    if (isYearMonthPanel) {
+      field = 'year'
+      value = value || `${year}`
+      list = computedYears
+    } else {
+      field = 'yearMonth'
+      value = value || getDateStr(year, month)
+      list = months
+    }
+
+    list.some((item, i) => {
+      if (item[field] === value) {
+        index = i
+        return true
+      }
+      return false
+    })
+
+    nextTick(() => {
+      index !== -1 && vm.$refs.recycleScroller.scrollToItem(index)
+    })
+  }
+
 export const watchModelValue =
-  ({ props, state }) =>
+  ({ props, state, constants }) =>
   () => {
+    const { DATE, DATE_TIME, DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE, YEAR_MONTH } = constants.TYPE
     const { modelValue, type } = props
-    if (['daterange', 'datetimerange'].includes(type)) {
+    if ([DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE].includes(type)) {
       state.date = modelValue && modelValue.length ? modelValue.map((date) => new Date(date)) : []
     }
 
-    if (['datetime', 'date'].includes(type)) {
-      state.date = modelValue ? new Date(modelValue) : new Date()
+    if ([DATE, DATE_TIME, YEAR_MONTH].includes(type)) {
+      state.date = modelValue ? new Date(modelValue) : ''
     }
 
-    if (['datetimerange', 'datetime'].includes(type)) {
+    if ([DATE_TIME_RANGE, DATE_TIME].includes(type)) {
       // sync date to time
-      const length = type === 'datetime' ? 1 : 2
+      const length = type === DATE_TIME ? 1 : 2
       Array.from({ length }).forEach((v, index) => {
-        const date = type === 'datetime' ? state.date : state.date[index]
+        const date = type === DATE_TIME ? state.date : state.date[index]
         if (date) {
           state.timeList[index] = [
             getFormatTime(date.getHours()),
@@ -212,50 +253,53 @@ export const watchModelValue =
   }
 
 export const selectOption =
-  ({ emit, state, props }) =>
-  ({ yearMonth, index }) => {
+  ({ emit, state, props, constants }) =>
+  ({ value, index }) => {
+    const { DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE, YEAR_MONTH } = constants.TYPE
     const { type } = props
-    const currentDateInfo = state.dateList[yearMonth][index]
+    const { dateList, years } = state
+    const current = [YEAR_MONTH_RANGE, YEAR_MONTH].includes(type) ? years[value][index] : dateList[value][index]
 
-    if (!currentDateInfo) {
+    if (!current || current.disabled) {
       return
     }
 
-    if (['daterange', 'datetimerange'].includes(type)) {
+    if ([DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE].includes(type)) {
       if (state.date.length > 1) {
         state.date = []
       }
 
-      state.date.push(new Date(currentDateInfo.date))
+      state.date.push(new Date(current.value))
 
       if (state.date.length === 2) {
         state.date.sort((a, b) => a.getTime() - b.getTime())
       }
     } else {
-      state.date = new Date(currentDateInfo.date)
+      state.date = new Date(current.value)
 
-      emit('click', currentDateInfo)
+      emit('click', current)
     }
   }
 
 export const confirm =
-  ({ emit, state, props, api }) =>
+  ({ emit, state, props, api, constants }) =>
   () => {
+    const { DATE_TIME, DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE } = constants.TYPE
     const { date, timeList } = state
     const { type } = props
 
-    if (['daterange', 'datetimerange', 'datetime'].includes(type)) {
+    if ([DATE_TIME, DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE].includes(type)) {
       // sync time to date
-      const length = type === 'datetime' ? 1 : 2
+      const length = type === DATE_TIME ? 1 : 2
       Array.from({ length }).forEach((v, index) => {
-        let thisDate = type === 'datetime' ? date : date[index]
+        let thisDate = type === DATE_TIME ? date : date[index]
         if (thisDate) {
           const currentDate = api.getCurrentDate(thisDate)
           const time = timeList[index]
 
           thisDate = new Date(currentDate.year, currentDate.month - 1, currentDate.day, time[0], time[1], time[2])
 
-          if (type === 'datetime') {
+          if (type === DATE_TIME) {
             state.date = thisDate
           } else {
             state.date[index] = thisDate
@@ -265,7 +309,6 @@ export const confirm =
     }
 
     emit('confirm', state.date)
-
     emit('update:visible', false)
     emit('update:modelValue', state.date)
   }
@@ -288,12 +331,15 @@ export const timeToggle =
   }
 
 export const selectedComputed =
-  ({ state, props }) =>
+  ({ state, props, constants, api }) =>
   () => {
-    if (['daterange', 'datetimerange'].includes(props.type)) {
+    const { type } = props
+    const { DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE } = constants.TYPE
+
+    if ([DATE_RANGE, DATE_TIME_RANGE, YEAR_MONTH_RANGE].includes(type)) {
       if (state.date && state.date.length) {
         if (state.date.length === 1) {
-          return [state.date[0]]
+          return [api.formatDate(state.date[0])]
         }
 
         const list = []
@@ -301,34 +347,60 @@ export const selectedComputed =
         let date2 = state.date[1].getTime()
 
         while (date1 <= date2) {
-          list.push(new Date(date1))
-          date1 += 3600 * 24 * 1000
+          const date = new Date(date1)
+          list.push(api.formatDate(date))
+
+          if (type === YEAR_MONTH_RANGE) {
+            date1 = api.getOffsetMonth(date, 1).getTime()
+          } else {
+            date1 += 3600 * 24 * 1000
+          }
         }
 
         return list
-      } else {
-        return []
       }
-    } else {
-      return state.date ? [getFormatDate(state.date)] : []
+
+      return []
     }
+
+    return state.date ? [api.formatDate(state.date)] : []
   }
 
-export const scrollLoadHandler =
-  ({ state, vm, api }) =>
+export const scrollStart =
+  ({ state, api, props }) =>
   () => {
-    const refBody = vm.$refs.datePickerBody
-
-    if (refBody.scrollHeight && refBody.scrollTop < 50 && !state.loading) {
-      state.loading = true
-      api.loadingDate('top')
-    } else if (
-      refBody.scrollHeight &&
-      refBody.scrollHeight - refBody.offsetHeight - refBody.scrollTop < 10 &&
-      !state.loading
-    ) {
-      state.loading = true
-      api.loadingDate('down')
-      refBody.scrollTop = 50
+    if (state.loading || !props.visible || !state.ready) {
+      return
     }
+
+    state.loading = true
+    const value = state.isYearMonthPanel ? state.computedYears[1].year : state.months[1].yearMonth
+
+    state.isYearMonthPanel ? api.loadYearMonth('top') : api.loadingDate('top')
+    api.scrollToCurrentDate({ value })
   }
+
+export const scrollEnd =
+  ({ state, api }) =>
+  () => {
+    if (state.loading) {
+      return
+    }
+
+    state.loading = true
+    state.isYearMonthPanel ? api.loadYearMonth('down') : api.loadingDate('down')
+  }
+
+export const clear = ({ state, emit, api }) => () => {
+  state.date = Array.isArray(state.date) ? [] : ''
+
+  emit('update:modelValue', state.date)
+  emit('clear', state.date)
+  api.close()
+}
+
+export const close = ({ emit, vm }) => () => {
+  vm.$refs.actionSheet.close()
+
+  emit('close')
+}

@@ -11,7 +11,17 @@
  -->
 <template>
   <transition name="tiny-zoom-in-top" @after-leave="$emit('dodestroy')">
-    <div v-show="state.visible" class="tiny-time-panel tiny-popper" :class="state.popperClass">
+    <div v-show="state.visible" class="tiny-time tiny-time-panel tiny-popper" :class="state.popperClass">
+      <div class="tiny-time-panel__header">
+        <div class="tiny-time-panel__header-input">
+          <tiny-input v-model="state.displayValue" :placeholder="state.format"></tiny-input>
+        </div>
+        <div class="tiny-time-panel__header-title">
+          <span>{{ t('ui.datepicker.hour') }}</span>
+          <span>{{ t('ui.datepicker.minute') }}</span>
+          <span v-if="state.showSeconds">{{ t('ui.datepicker.second') }}</span>
+        </div>
+      </div>
       <div class="tiny-time-panel__content" :class="{ 'has-seconds': state.showSeconds }">
         <time-spinner
           ref="spinner"
@@ -26,17 +36,19 @@
         </time-spinner>
       </div>
       <div class="tiny-time-panel__footer">
-        <button type="button" class="tiny-time-panel__btn cancel" @click="handleCancel">
+        <tiny-button v-if="!state.showTimePickerButton" class="tiny-time-panel__btn cancel" @click="handleCancel()">
           {{ t('ui.datepicker.cancel') }}
-        </button>
-        <button
-          type="button"
-          class="tiny-time-panel__btn"
-          :class="{ confirm: !state.disabled }"
+        </tiny-button>
+        <tiny-button
           @click="handleConfirm()"
+          size="small"
+          :class="{
+            'tiny-time-panel__btn': !state.showTimePickerButton,
+            confirm: !state.disabled && !state.showTimePickerButton
+          }"
         >
           {{ t('ui.datepicker.confirm') }}
-        </button>
+        </tiny-button>
       </div>
     </div>
   </transition>
@@ -44,27 +56,21 @@
 
 <script lang="tsx">
 import { renderless, api } from '@opentiny/vue-renderless/time/vue'
-import { $prefix, setup, defineComponent } from '@opentiny/vue-common'
+import { props, setup, defineComponent } from '@opentiny/vue-common'
 import TimeSpinner from '@opentiny/vue-time-spinner'
+import Input from '@opentiny/vue-input'
+import Button from '@opentiny/vue-button'
 
 export default defineComponent({
-  name: $prefix + 'Time',
   emits: ['dodestroy', 'pick', 'select-range'],
   components: {
-    TimeSpinner
+    TimeSpinner,
+    TinyInput: Input,
+    TinyButton: Button
   },
-  props: {
-    show: Boolean,
-    timeArrowControl: Boolean,
-    emitter: Object,
-    value: Date,
-    step: {
-      type: Object,
-      default() { return { hour: 1, minute: 1, second: 1 } }
-    }
-  },
+  props: [...props, 'show', 'timeArrowControl', 'emitter', 'value', 'step'],
   setup(props, context) {
-    return setup({ props, context, renderless, api, mono: true })
+    return setup({ props, context, renderless, api })
   }
 })
 </script>

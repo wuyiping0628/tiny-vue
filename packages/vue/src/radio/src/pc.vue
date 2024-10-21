@@ -26,7 +26,7 @@
     :aria-disabled="state.isDisabled"
     tabindex="-1"
     @keydown.space.stop.prevent="state.model = state.isDisabled ? state.model : label"
-    v-bind="a($attrs, ['class', 'style', 'onClick'], true)"
+    v-bind="a($attrs, ['class', 'style'], true)"
   >
     <span
       class="tiny-radio__input"
@@ -41,7 +41,6 @@
         class="tiny-radio__original"
         :value="label"
         type="radio"
-        aria-hidden="true"
         v-model="state.model"
         @focus="state.focus = true"
         @blur="state.focus = false"
@@ -60,6 +59,7 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/radio/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
+import type { IRadioApi } from '@opentiny/vue-renderless/types/radio.type'
 import '@opentiny/vue-theme/radio/index.less'
 
 export default defineComponent({
@@ -78,7 +78,7 @@ export default defineComponent({
     'displayOnly'
   ],
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as IRadioApi
   }
 })
 </script>

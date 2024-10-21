@@ -7,22 +7,19 @@
         :placement="placement"
         trigger="manual"
         :width="width"
-        :popper-class="m('tiny-popconfirm-popover', popperClass)"
+        :popper-class="'tiny-popconfirm-popover ' + (customClass || '')"
+        :popper-options="popperOptions"
+        :append-to-body="popperAppendToBody"
+        :reference="reference"
+        @show="handleEmit('show')"
+        @hide="handleEmit('hide')"
       >
         <div class="tiny-popconfirm-popover__container">
           <div class="tiny-popconfirm-popover__header">
             <component
               v-if="type"
               :is="state.getIcon"
-              :class="
-                m(
-                  'tiny-popconfirm-popover__icon',
-                  { 'fill-color-info-secondary': type === 'info' },
-                  { 'fill-color-error': type === 'error' },
-                  { 'fill-color-warning': type === 'warning' },
-                  { 'fill-color-success': type === 'success' }
-                )
-              "
+              :class="['tiny-popconfirm-popover__icon', type ? `tiny-popconfirm-popover--${type}` : '']"
             >
             </component>
             <div class="tiny-popconfirm-popover__title">
@@ -30,15 +27,15 @@
             </div>
           </div>
           <div class="tiny-popconfirm-popover__content">
-            {{ content }}
+            {{ message }}
           </div>
           <div class="tiny-popconfirm-popover__footer">
             <slot name="footer">
               <tiny-button v-if="cancelButton" class="tiny-popconfirm-popover__cancel-button" size="mini" @click="hide">
-                {{ t('ui.buttonMessage.cancel') }}
+                {{ t('ui.button.cancel') }}
               </tiny-button>
               <tiny-button class="tiny-popconfirm-popover__confirm-button" size="mini" type="primary" @click="confirm">
-                {{ t('ui.buttonMessage.confirm') }}
+                {{ t('ui.button.confirm') }}
               </tiny-button>
             </slot>
           </div>
@@ -57,20 +54,18 @@
 import { setup, $prefix, defineComponent } from '@opentiny/vue-common'
 import { renderless, api } from '@opentiny/vue-renderless/popconfirm/vue'
 import Popover from '@opentiny/vue-popover'
-import Modal from '@opentiny/vue-modal'
 import Button from '@opentiny/vue-button'
-import { iconError, iconInfoSolid, iconWarning, iconSuccess } from '@opentiny/vue-icon'
+import { iconError, iconHelp, iconWarningTriangle, iconSuccess } from '@opentiny/vue-icon'
 import '@opentiny/vue-theme/popconfirm/index.less'
 
 export default defineComponent({
   name: $prefix + 'Popconfirm',
   components: {
     TinyPopover: Popover,
-    TinyModal: Modal,
     TinyButton: Button,
     IconSuccess: iconSuccess(),
-    IconInfoSolid: iconInfoSolid(),
-    IconWarning: iconWarning(),
+    IconHelp: iconHelp(),
+    IconWarningTriangle: iconWarningTriangle(),
     IconError: iconError()
   },
   props: {
@@ -78,14 +73,19 @@ export default defineComponent({
       type: Object,
       default: () => ({})
     },
-    content: String,
-    popperClass: String,
+    popperOptions: Object,
+    message: String,
+    customClass: String,
     trigger: {
       type: String,
       default: 'hover',
-      validator: (value: string) => Boolean(~['click', 'hover'].indexOf(value))
+      validator: (value: string) => ['click', 'hover'].includes(value)
     },
     cancelButton: {
+      type: Boolean,
+      default: true
+    },
+    closeOnClickOutside: {
       type: Boolean,
       default: true
     },
@@ -96,9 +96,15 @@ export default defineComponent({
     },
     width: {
       type: [String, Number],
-      default: '350'
+      default: ''
     },
-    type: [String, Object]
+    type: [String, Object],
+    reference: {},
+    events: Object,
+    popperAppendToBody: {
+      type: Boolean,
+      default: true
+    }
   },
   emits: ['hide', 'show', 'confirm'],
   setup(props, context): any {

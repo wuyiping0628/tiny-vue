@@ -207,6 +207,7 @@ export const handleClear =
     state.leftDate = calcDefaultValue(state.defaultValue)[0]
     state.rightDate = nextMonth(state.leftDate)
     state.rangeState.selecting = false
+    // tiny 新增下面行
     state.rangeState.endDate = null
 
     emit('pick', null)
@@ -370,16 +371,16 @@ export const handleRangePick =
     const defaultTime = state.defaultTime || []
     let minDateVal = val.minDate
     let maxDateVal = val.maxDate
-  
+
     if (state.singleSelect) {
       Object.assign(state.rangeState, { selecting: false })
       const effectDate = val.minDate || val.maxDate
       const rangeDate = state.shortcutType === 'startFrom' ? state.maxRangeDate : state.minRangeDate
-  
+
       minDateVal = rangeDate > effectDate ? effectDate : rangeDate
       maxDateVal = rangeDate > effectDate ? rangeDate : effectDate
     }
-  
+
     const minDate = modifyWithTimeString(minDateVal, defaultTime[0], t)
     const maxDate = modifyWithTimeString(maxDateVal, defaultTime[1], t)
 
@@ -586,10 +587,12 @@ export const computerLabel =
 export const computerEnableYearArrow = (state) => () =>
   state.unlinkPanels && state.rightYear * 12 + state.rightMonth - (state.leftYear * 12 + state.leftMonth + 1) >= 12
 
-export const watchPickerVisible = ({ state, constants }) => (val) => {
-  if (!val) {
-    state.singleSelect = false
-    state.minRangeDate = constants.startDate
-    state.maxRangeDate = constants.endDate
+export const watchPickerVisible =
+  ({ state, constants }) =>
+  (val) => {
+    if (!val) {
+      state.singleSelect = false
+      state.minRangeDate = constants.startDate
+      state.maxRangeDate = constants.endDate
+    }
   }
-}

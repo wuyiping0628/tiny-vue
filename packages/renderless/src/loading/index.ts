@@ -10,29 +10,31 @@
  *
  */
 
+import type { ILoadingRenderlessParamUtils, ILoadingRenderlessParams, ILoadingState } from 'types/loading.type'
 import afterLeave from '../common/deps/after-leave'
 import { removeClass } from '../common/deps/dom'
 
-export const handleAfterLeave = (emit) => () => {
+export const handleAfterLeave = (emit: ILoadingRenderlessParamUtils['emit']) => (): void => {
   emit('after-leave')
 }
 
-export const setText = (state) => (text) => {
-  state.text = text
-}
+export const setText =
+  (state: ILoadingState) =>
+  (text: string): void => {
+    state.text = text
+  }
 
 export const close =
-  ({ state, constants, vm }) =>
-  () => {
+  ({ state, constants, vm }: Pick<ILoadingRenderlessParams, 'state' | 'constants' | 'vm'>) =>
+  (): void => {
     afterLeave(
       vm,
       () => {
         const target = state.fullscreen || state.body ? document.body : state.target
 
-        removeClass(target, constants.PARENT_RELATIVE_CLS)
-        removeClass(target, constants.PARENT_HIDDEN_CLS)
-
         if (vm.$el && vm.$el.parentNode) {
+          removeClass(target, constants.PARENT_RELATIVE_CLS)
+          removeClass(target, constants.PARENT_HIDDEN_CLS)
           vm.$el.parentNode.removeChild(vm.$el)
         }
 

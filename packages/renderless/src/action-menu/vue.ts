@@ -10,24 +10,51 @@
  *
  */
 
-import { handleMoreClick, handleItemClick, visibleChange } from './index'
+import type {
+  IActionMenuApi,
+  IActionMenuProps,
+  IActionMenuState,
+  ISharedRenderlessParamHooks,
+  IActionMenuRenderlessParamUtils
+} from '@/types'
+import {
+  handleMoreClick,
+  handleItemClick,
+  visibleChange,
+  computedMaxShowNum,
+  computedSpacing,
+  computedMoreText,
+  computedSuffixIcon
+} from './index'
 
 export const api = ['state', 'handleMoreClick', 'handleItemClick', 'visibleChange']
 
-export const renderless = (props, { computed, reactive }, { emit, nextTick }) => {
-  const api = {
-    handleMoreClick: handleMoreClick(emit),
-    handleItemClick: handleItemClick(emit),
-    visibleChange: visibleChange(emit)
-  }
-  const state = reactive({
-    visibleOptions: computed(() => props.options.slice(0, props.maxShowNum)),
-    moreOptions: computed(() => props.options.slice(props.maxShowNum)),
-    spacing: computed(() => (String(props.spacing).includes('px') ? props.spacing : props.spacing + 'px'))
+export const renderless = (
+  props: IActionMenuProps,
+  { computed, reactive }: ISharedRenderlessParamHooks,
+  { emit, t, designConfig }: IActionMenuRenderlessParamUtils
+): IActionMenuApi => {
+  const api = {} as IActionMenuApi
+
+  const state: IActionMenuState = reactive({
+    visibleOptions: computed(() => props.options.slice(0, state.maxShowNum)),
+    isCardMode: computed(() => props.mode === 'card'),
+    moreOptions: computed(() => props.options.slice(state.maxShowNum)),
+    spacing: computed(() => api.computedSpacing()),
+    maxShowNum: computed(() => api.computedMaxShowNum()),
+    moreText: computed(() => api.computedMoreText()),
+    suffixIcon: computed(() => api.computedSuffixIcon())
   })
 
   Object.assign(api, {
-    state
+    state,
+    handleMoreClick: handleMoreClick(emit),
+    handleItemClick: handleItemClick(emit),
+    visibleChange: visibleChange(emit),
+    computedMaxShowNum: computedMaxShowNum({ props, state }),
+    computedSpacing: computedSpacing({ props, state, designConfig }),
+    computedMoreText: computedMoreText({ props, state, t }),
+    computedSuffixIcon: computedSuffixIcon({ props, state })
   })
 
   return api

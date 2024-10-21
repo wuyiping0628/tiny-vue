@@ -9,10 +9,11 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-import { $props, $prefix, $setup, defineComponent, type PropType } from '@opentiny/vue-common'
+import type { PropType } from '@opentiny/vue-common'
+import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
 import template from 'virtual-template?pc|mobile|mobile-first'
 
-const $constants = {
+export const $constants = {
   INPUT_PC: 'tiny-input__',
   INPUTGROUP_PC: 'tiny-input-group__',
   INPUT_MOBILE: 'tiny-mobile-input__',
@@ -31,109 +32,144 @@ const $constants = {
   },
   COMPONENT_NAME: {
     FormItem: 'FormItem'
+  },
+  MASKSYMBOL: '******',
+  TEXTAREA_HEIGHT_MOBILE: 108
+}
+
+export const inputProps = {
+  ...$props,
+  _constants: {
+    type: Object,
+    default: () => $constants
+  },
+  name: String,
+  size: String,
+  form: String,
+  label: String,
+  height: Number,
+  resize: String,
+  tabindex: { type: String, default: '1' },
+  disabled: Boolean,
+  readonly: Boolean,
+  hoverExpand: Boolean,
+  mask: Boolean,
+  suffixIcon: [Object, String],
+  prefixIcon: [Object, String],
+  modelValue: [String, Number] as PropType<string | number | null>,
+  type: {
+    type: String,
+    default: 'text'
+  },
+  memorySpace: {
+    type: Number,
+    default: 5
+  },
+  vertical: {
+    type: Boolean,
+    default: false
+  },
+  selectMenu: {
+    type: Array<{ id: string; label: string }>,
+    default: () => []
+  },
+  ellipsis: {
+    type: Boolean,
+    default: false
+  },
+  contentStyle: {
+    type: Object,
+    default: () => ({})
+  },
+  isSelect: {
+    type: Boolean,
+    default: false
+  },
+  tips: String,
+  counter: {
+    type: Boolean,
+    default: false
+  },
+  autosize: {
+    type: [Boolean, Object],
+    default: false
+  },
+  clearable: {
+    type: Boolean,
+    default: false
+  },
+  autocomplete: {
+    type: String,
+    default: 'off'
+  },
+  showPassword: {
+    type: Boolean,
+    default: false
+  },
+  showWordLimit: {
+    type: Boolean,
+    default: false
+  },
+  showTitle: {
+    type: Boolean,
+    default: false
+  },
+  validateEvent: {
+    type: Boolean,
+    default: true
+  },
+  popupMore: {
+    type: Boolean,
+    default: false
+  },
+  // mobile特有属性
+  textareaTitle: {
+    type: String,
+    default: ''
+  },
+  displayOnly: {
+    type: Boolean,
+    default: false
+  },
+  displayOnlyContent: {
+    type: String,
+    default: ''
+  },
+  customClass: {
+    type: String,
+    default: ''
+  },
+  frontClearIcon: {
+    type: Boolean,
+    default: false
+  },
+  showEmptyValue: {
+    type: Boolean,
+    default: undefined
+  },
+  textAlign: {
+    type: String,
+    default: 'left'
+  },
+  width: {
+    type: [String, Number] as PropType<string | number | null>
+  },
+  showTooltip: {
+    type: Boolean,
+    default: true
+  },
+  /** 输入框的边框模式，当值为underline时，只显示一条底部直线 */
+  inputBoxType: {
+    type: String,
+    default: 'normal',
+    validator: (value: string) => ['normal', 'underline'].includes(value)
   }
 }
 
 export default defineComponent({
   name: $prefix + 'Input',
   inheritAttrs: false,
-  props: {
-    ...$props,
-    _constants: {
-      type: Object,
-      default: () => $constants
-    },
-    name: String,
-    size: String,
-    form: String,
-    label: String,
-    height: Number,
-    resize: String,
-    tabindex: { type: String, default: '1' },
-    disabled: Boolean,
-    readonly: Boolean,
-    suffixIcon: [Object, String],
-    prefixIcon: [Object, String],
-    modelValue: [String, Number] as PropType<string | number | null>,
-    type: {
-      type: String,
-      default: 'text'
-    },
-    vertical: {
-      type: Boolean,
-      default: false
-    },
-    selectMenu: {
-      type: Array,
-      default: () => []
-    },
-    ellipsis: {
-      type: Boolean,
-      default: false
-    },
-    contentStyle: {
-      type: Object,
-      default: () => ({})
-    },
-    isSelect: {
-      type: Boolean,
-      default: false
-    },
-    mobileTips: String,
-    counter: {
-      type: Boolean,
-      default: false
-    },
-    autosize: {
-      type: [Boolean, Object],
-      default: false
-    },
-    clearable: {
-      type: Boolean,
-      default: false
-    },
-    autocomplete: {
-      type: String,
-      default: 'off'
-    },
-    showPassword: {
-      type: Boolean,
-      default: false
-    },
-    showWordLimit: {
-      type: Boolean,
-      default: false
-    },
-    showTitle: {
-      type: Boolean,
-      default: false
-    },
-    validateEvent: {
-      type: Boolean,
-      default: true
-    },
-    // mobile特有属性
-    textareaTitle: {
-      type: String,
-      default: '标题'
-    },
-    displayOnly: {
-      type: Boolean,
-      default: false
-    },
-    displayOnlyContent: {
-      type: String,
-      default: ''
-    },
-    inputClass: {
-      type: String,
-      default: ''
-    },
-    frontClearIcon: {
-      type: Boolean,
-      default: false
-    }
-  },
+  props: inputProps,
   setup(props, context) {
     return $setup({ props, context, template })
   }

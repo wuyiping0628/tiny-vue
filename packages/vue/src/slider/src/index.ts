@@ -10,9 +10,10 @@
  *
  */
 import { $props, $prefix, $setup, defineComponent } from '@opentiny/vue-common'
+import type { PropType } from 'vue'
 import template from 'virtual-template?pc|mobile|mobile-first'
 
-const $constants = {
+export const $constants = {
   TIP_HEIGHT: 22,
   BUTTON_SIZE: 28,
   HALF_BAR_HEIGHT: 2,
@@ -20,6 +21,7 @@ const $constants = {
   PC_SLIDER_CLS: 'tiny-slider',
   PC_RANGE_CLS: 'tiny-slider__range',
   PC_BUTTON_CLS: 'tiny-slider__handle',
+  PC_LABEL_CLS: 'tiny-slider__mark-label',
   PC_LEFT_SVG_CLS: 'tiny-slider-left-svg',
   PC_RIGHT_SVG_CLS: 'tiny-slider-right-svg',
   MOBILE_TIP_CLS: 'tiny-mobile-slider__tips',
@@ -61,72 +63,82 @@ const $constants = {
   }
 }
 
+export const sliderProps = {
+  ...$props,
+  _constants: {
+    type: Object,
+    default: () => $constants
+  },
+  formatTooltip: Function,
+  disabled: {
+    type: Boolean,
+    default: false
+  },
+  height: {
+    type: String,
+    default: '300px'
+  },
+  max: {
+    type: Number,
+    default: 100
+  },
+  min: {
+    type: Number,
+    default: 0
+  },
+  modelValue: {
+    type: [Number, Array],
+    default: 0
+  },
+  numPages: {
+    type: Number,
+    default: 1
+  },
+  range: {
+    type: Boolean,
+    default: false
+  },
+  showInput: {
+    type: Boolean,
+    default: false
+  },
+  showTip: {
+    type: Boolean,
+    default: true
+  },
+  step: {
+    type: Number,
+    default: 1
+  },
+  vertical: {
+    type: Boolean,
+    default: false
+  },
+  unit: {
+    type: String,
+    default: '%'
+  },
+  showSteps: {
+    type: Boolean,
+    default: false
+  },
+  showLabel: {
+    type: Boolean,
+    default: false
+  },
+  changeCompat: {
+    type: Boolean,
+    default: false
+  },
+  // tiny 新增属性
+  marks: {
+    type: Object as PropType<Record<number, string>>
+  }
+}
+
 export default defineComponent({
   name: $prefix + 'Slider',
-  props: {
-    ...$props,
-    _constants: {
-      type: Object,
-      default: () => $constants
-    },
-    formatTooltip: Function,
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    height: {
-      type: String,
-      default: '300px'
-    },
-    max: {
-      type: Number,
-      default: 100
-    },
-    min: {
-      type: Number,
-      default: 0
-    },
-    modelValue: {
-      type: [Number, Array],
-      default: 0
-    },
-    numPages: {
-      type: Number,
-      default: 1
-    },
-    range: {
-      type: Boolean,
-      default: false
-    },
-    showInput: {
-      type: Boolean,
-      default: false
-    },
-    showTip: {
-      type: Boolean,
-      default: true
-    },
-    step: {
-      type: Number,
-      default: 1
-    },
-    vertical: {
-      type: Boolean,
-      default: false
-    },
-    unit: {
-      type: String,
-      default: '%'
-    },
-    showSteps: {
-      type: Boolean,
-      default: false
-    },
-    showLabel: {
-      type: Boolean,
-      default: false
-    }
-  },
+  props: sliderProps,
   setup(props, context) {
     return $setup({ props, context, template })
   }

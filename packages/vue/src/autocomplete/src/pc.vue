@@ -11,7 +11,7 @@
  -->
 <template>
   <div
-    class="tiny-autocomplete"
+    :class="['tiny-autocomplete', { 'show-auto-width': state.showAutoWidth }]"
     v-clickoutside="close"
     aria-haspopup="listbox"
     role="combobox"
@@ -23,7 +23,9 @@
       :display-only="displayOnly"
       ref="input"
       v-bind="f($props, $attrs)"
+      front-clear-icon
       @update:modelValue="handleChange"
+      :validate-event="false"
       @focus="handleFocus"
       @blur="handleBlur"
       @clear="handleClear"
@@ -48,8 +50,8 @@
     <transition name="tiny-zoom-in-top" @after-leave="doDestroy">
       <div
         ref="popper"
-        v-show="suggestionState.showPopper"
-        class="tiny-autocomplete tiny-autocomplete-suggestion tiny-popper"
+        v-show="hideLoading ? suggestionState.showPopper && !state.loading : suggestionState.showPopper"
+        class="tiny-autocomplete-suggestion tiny-popper"
         :class="[popperClass ? popperClass : '', { 'is-loading': !hideLoading && state.loading }]"
         :style="{ width: suggestionState.dropdownWidth }"
         role="region"
@@ -58,27 +60,42 @@
           tag="ul"
           wrap-class="tiny-autocomplete-suggestion__wrap"
           view-class="tiny-autocomplete-suggestion__list"
-          :margin-bottom-adjust="6"
         >
-          <li v-if="!hideLoading && state.loading" class="tiny-autocomplete-suggestion__list-loading">
-            <icon-loading width="1em" height="1em" />
-          </li>
-          <template v-else>
+          <slot
+            name="panel"
+            :loading="!hideLoading && state.loading"
+            :list="state.suggestions"
+            :highlighted="state.highlightedIndex"
+            :id="state.id"
+            :select="select"
+          >
             <li
-              v-for="(item, index) in state.suggestions"
-              :key="index"
-              class="tiny-autocomplete-suggestion__list-item"
-              :class="{ highlighted: state.highlightedIndex === index }"
-              @click="select(item)"
-              :id="`${state.id}-item-${index}`"
-              role="option"
-              :aria-selected="state.highlightedIndex === index"
+              v-if="!hideLoading && state.loading"
+              class="tiny-autocomplete-suggestion__list-item tiny-autocomplete-suggestion__list-loading"
+              role="loading"
             >
-              <slot :slotScope="item">
-                {{ item[valueKey] }}
-              </slot>
+              <icon-loading-shadow></icon-loading-shadow>
             </li>
-          </template>
+            <template v-else>
+              <li
+                v-for="(item, index) in state.suggestions"
+                :key="index"
+                class="tiny-autocomplete-suggestion__list-item"
+                :class="{
+                  highlighted: state.highlightedIndex === index,
+                  selected: modelValue === item[valueKey]
+                }"
+                @click="select(item)"
+                :id="`${state.id}-item-${index}`"
+                role="option"
+                :aria-selected="state.highlightedIndex === index"
+              >
+                <slot :slot-scope="item">
+                  {{ item[valueKey] }}
+                </slot>
+              </li>
+            </template>
+          </slot>
         </tiny-scrollbar>
       </div>
     </transition>
@@ -91,13 +108,13 @@ import { props, setup, directive, defineComponent } from '@opentiny/vue-common'
 import TinyScrollbar from '@opentiny/vue-scrollbar'
 import TinyInput from '@opentiny/vue-input'
 import Clickoutside from '@opentiny/vue-renderless/common/deps/clickoutside'
-import { iconLoading } from '@opentiny/vue-icon'
+import { IconLoadingShadow } from '@opentiny/vue-icon'
 
 export default defineComponent({
   components: {
     TinyInput,
     TinyScrollbar,
-    IconLoading: iconLoading()
+    IconLoadingShadow: IconLoadingShadow()
   },
   directives: directive({ Clickoutside }),
   props: [
@@ -127,8 +144,10 @@ export default defineComponent({
     'hideLoading',
     'popperAppendToBody',
     'highlightFirstItem',
-    'displayOnly'
+    'displayOnly',
+    'validateEvent'
   ],
+  emits: ['update:modelValue', 'focus', 'blur', 'clear', 'select', 'created'],
   setup(props, context) {
     return setup({ props, context, renderless, api })
   }

@@ -25,11 +25,9 @@
   width: 100%;
   outline: 0;
 
-  &&__multiple:not(&__collapse-tags):not(&__filterable) &__tags>span {
-
+  &&__multiple:not(&__collapse-tags):not(&__filterable) &__tags > span {
     // 兼容ie10-ie11
-    @media screen and (-ms-high-contrast: active),
-    (-ms-high-contrast: none) {
+    @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
       display: flex;
       flex-wrap: wrap;
       justify-content: flex-start;
@@ -48,11 +46,15 @@
 
   &&__collapse-tags {
     .@{select-prefix-cls}__tags {
-      &>span {
+      & > span {
         display: flex;
         width: 100%;
 
-        &>span:not(:only-child):first-child {
+        & > span {
+          display: flex;
+        }
+
+        & > span:not(:only-child):first-child {
           max-width: 70%;
         }
       }
@@ -60,29 +62,26 @@
 
     &.@{select-prefix-cls}__filterable {
       .@{select-prefix-cls}__tags {
-        &>span {
+        & > span {
           width: auto;
           max-width: 76%;
 
-          &>span:first-child {
+          & > span:first-child {
             flex: 1;
 
             // 兼容ie10-ie11
-            @media screen and (-ms-high-contrast: active),
-            (-ms-high-contrast: none) {
+            @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
               flex-basis: auto;
             }
           }
 
-          &>span:only-child,
-          &>span:not(:only-child):first-child {
+          & > span:only-child,
+          & > span:not(:only-child):first-child {
             max-width: 100%;
           }
 
-          &>span:not(:only-child):not(:first-child) {
-
-            @media screen and (-ms-high-contrast: active),
-            (-ms-high-contrast: none) {
+          & > span:not(:only-child):not(:first-child) {
+            @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
               // 兼容ie10-ie11
               flex-shrink: 0;
               flex-basis: auto;
@@ -105,10 +104,7 @@
     position: absolute;
     line-height: normal;
     white-space: normal;
-    padding-left: var(--ti-select-tags-wrap-padding-left);
-    padding-right: var(--ti-select-tags-wrap-padding-right);
-    padding-bottom: var(--ti-select-tags-wrap-padding-bottom);
-    padding-top: var(--ti-select-tags-wrap-padding-top);
+    padding: var(--tv-Select-tags-padding);
     z-index: 1;
     top: 50%;
     margin-left: 1px;
@@ -118,34 +114,50 @@
     flex-wrap: wrap;
     cursor: pointer;
 
-    &>span {
+    & > span {
       display: contents;
+
+      > span {
+        font-size: 0;
+
+        .tiny-tag.is-required {
+          cursor: not-allowed;
+          > svg {
+            cursor: not-allowed;
+          }
+        }
+      }
     }
 
+    .not-visible {
+      visibility: hidden;
+    }
+
+    /* 搜索框 */
     .@{select-prefix-cls}__input {
       cursor: pointer;
       border: none;
       outline: 0;
       padding: 0;
       margin-left: 8px;
-      color: var(--ti-select-input-text-color);
-      font-size: var(--ti-select-input-font-size);
-      height: 28px;
+      color: var(--tv-Select-text-color);
+      font-size: var(--tv-Select-font-size);
+      height: var(--tv-Select-height);
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
       background-color: transparent;
 
       &.is-mini {
-        height: var(--ti-select-input-mini-height);
+        height: var(--tv-Select-height-mini);
       }
 
       &.is-small {
-        height: var(--ti-select-input-small-height);
+        height: var(--tv-Select-height-small);
       }
 
       &.is-medium {
-        height: var(--ti-select-input-medium-height);
+        height: var(--tv-Select-height-medium);
       }
     }
 
@@ -157,23 +169,184 @@
       white-space: nowrap;
       box-sizing: border-box;
       border-color: transparent;
-      margin: var(--ti-select-tags-margin-top) var(--ti-select-tags-margin-right) var(--ti-select-tags-margin-bottom) var(--ti-select-tags-margin-left);
+      margin: var(--tv-Select-tag-margin);
       text-overflow: ellipsis;
       overflow: hidden;
       display: inline-flex;
       justify-content: flex-start;
       align-items: center;
+      max-width: 160px;
     }
 
     .@{select-prefix-cls}__tags-text {
+      display: inline-block;
       width: 100%;
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
+      vertical-align: bottom;
 
-      &+.@{tag-prefix-cls}__close {
+      & + .@{tag-prefix-cls}__close {
         flex-shrink: 0;
       }
+
+      // TODO: Aurora 多选禁用文本显示(评估是否删除）
+      &.is-disabled {
+        max-height: 24px;
+        display: inline-flex;
+
+        > span {
+          color: var(--tv-Select-text-color-disabled);
+          margin: var(--tv-Select-tags-margin-top) var(--tv-Select-tags-margin-right)
+            var(--tv-Select-tags-margin-bottom) var(--tv-Select-tags-margin-left);
+          display: inline-block;
+          width: 100%;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+      }
+    }
+
+    // 收起按钮
+    .@{select-prefix-cls}__collapse-text {
+      display: inline-flex;
+      align-items: center;
+      margin: var(--tv-Select-collapse-margin);
+      font-size: var(--tv-Select-font-size);
+      color: var(--tv-Select-collapse-text-color);
+
+      .tiny-svg {
+        margin: var(--tv-Select-collapse-margin);
+        fill: var(--tv-Select-icon-color);
+        font-size: var(--tv-Select-icon-size);
+      }
+    }
+  }
+
+  &.is-hover-expand,
+  &.is-click-expand {
+    vertical-align: top;
+
+    .@{select-prefix-cls}__tags-group {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+    }
+
+    &.is-hover {
+      .is-expand {
+        z-index: 2;
+      }
+    }
+
+    .@{select-prefix-cls}__tags {
+      height: var(--tv-Select-tags-height);
+      overflow: hidden;
+
+      &-collapse {
+        visibility: visible;
+        position: static;
+      }
+
+      .is-hidden {
+        visibility: hidden;
+        position: absolute;
+      }
+
+      > span > span {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .hidden {
+        visibility: hidden;
+      }
+    }
+
+    &.is-hover,
+    &.collapse-tag-clicked {
+      .@{select-prefix-cls}__tags {
+        height: auto;
+        overflow-y: auto;
+
+        &-collapse {
+          visibility: hidden;
+          position: absolute;
+
+          &.is-hidden {
+            margin: 0;
+          }
+        }
+
+        &.not-selected {
+          overflow-y: hidden;
+        }
+      }
+    }
+
+    & .is-expand {
+      position: absolute;
+      width: 100%;
+    }
+
+    &.@{select-prefix-cls}--small {
+      .@{select-prefix-cls}__tags {
+        padding-top: 2px;
+      }
+    }
+
+    &.@{select-prefix-cls}--mini {
+      .@{select-prefix-cls}__tags {
+        padding-top: 2px;
+      }
+    }
+  }
+
+  &.is-hover-expand.is-disabled {
+    .@{select-prefix-cls}__tags {
+      height: auto;
+
+      > span {
+        > span {
+          display: inline-block;
+        }
+      }
+    }
+  }
+
+  &.is-click-expand .@{select-prefix-cls}__tags-collapse {
+    visibility: visible;
+    position: static;
+
+    &.is-hidden {
+      visibility: hidden;
+      position: absolute;
+    }
+  }
+
+  &.is-disabled,
+  &.is-display-only {
+    cursor: not-allowed;
+
+    .@{input-prefix-cls} {
+      &__inner {
+        padding-right: 12px;
+      }
+
+      &__suffix {
+        display: 'inline-block';
+      }
+    }
+
+    .@{select-prefix-cls}__tags {
+      padding-right: 16px;
+    }
+
+    .@{select-prefix-cls}__tags.is-show-tag {
+      padding-right: 32px;
     }
   }
 
@@ -184,23 +357,26 @@
   & .@{input-prefix-cls} {
     display: block;
 
+    /** smb规范要求超长了显示 ... 比较合理，所以全部规范都增加省略号 */
+    .@{input-prefix-cls}__inner {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .@{input-prefix-cls}__inner[readonly] {
       cursor: pointer;
     }
 
     .@{select-prefix-cls}__caret {
-      fill: var(--ti-select-input-caret-icon-color);
-      font-size: var(--ti-select-input-caret-font-size);
+      fill: var(--tv-Select-icon-color);
+      font-size: var(--tv-Select-icon-size);
       transition: transform 0.3s;
       transform: rotateZ(180deg);
       cursor: pointer;
 
-      &.@{select-prefix-cls}__close {
-        margin-right: var(--ti-select-input-icon-close-margin-right);
-      }
-
       &:hover {
-        fill: var(--ti-select-input-caret-hover-icon-color);
+        fill: var(--tv-Select-icon-color-hover);
       }
 
       &.is-reverse {
@@ -208,61 +384,36 @@
       }
     }
 
+    .@{select-prefix-cls}__limit-txt,
+    .@{select-prefix-cls}__proportion-txt {
+      font-size: var(--tv-Select-font-size);
+      margin: var(--tv-Select-suffix-text-margin);
+      color: var(--tv-Select-suffix-text-color);
+    }
+
     .@{select-prefix-cls}__copy {
       cursor: pointer;
+      margin-right: var(--tv-Select-suffix-icon-margin-right);
     }
 
     .@{input-prefix-cls}__suffix {
-      top: var(--ti-select-input-icon-top);
+      &-inner {
+        font-size: 0;
+      }
     }
 
-    &-medium .@{input-prefix-cls}__suffix {
-      top: var(--ti-select-input-icon-top-medium);
-    }
-
-    &-small .@{input-prefix-cls}__suffix {
-      top: var(--ti-select-input-icon-top-small);
-    }
-
-    &-mini .@{input-prefix-cls}__suffix {
-      top: var(--ti-select-input-icon-top-mini);
+    & .@{input-prefix-cls}__suffix-inner {
+      overflow: hidden;
     }
 
     &.is-disabled {
       .@{select-prefix-cls}__caret {
-        fill: var(--ti-select-input-disabled-caret-text-color);
+        fill: var(--tv-Select-icon-color-disabled);
         cursor: not-allowed;
       }
 
       .@{input-prefix-cls}__inner {
         cursor: not-allowed;
-
-        &:hover {
-          border-color: var(--ti-select-input-disabled-hover-border-color);
-        }
-      }
-    }
-
-    &.is-focus .@{input-prefix-cls}__inner {
-      border-color: var(--ti-select-inner-border-color-active);
-    }
-  }
-
-  &__underline {
-
-    .@{input-prefix-cls},
-    .@{input-prefix-cls}.is-disabled {
-      .@{input-prefix-cls}__inner {
-        border-radius: 0;
-        border-top-width: 0px;
-        border-left-width: 0px;
-        border-right-width: 0px;
-        padding-left: 0px;
-        background-color: var(--ti-input-bg-color);
-      }
-
-      &__suffix {
-        right: 0px;
       }
     }
   }

@@ -10,6 +10,14 @@
  *
  */
 
+import type {
+  IDropdownVm,
+  IDropdownMenuState,
+  IDropdownMenuApi,
+  IDropdownMenuProps,
+  IDropdownMenuRenderlessParamUtils,
+  ISharedRenderlessParamHooks
+} from '@/types'
 import {
   toggleItem,
   updateOffset,
@@ -32,32 +40,39 @@ export const api = [
   'handleMouseleave'
 ]
 
-export const renderless = (props, hooks, instance) => {
-  const api = {}
+export const renderless = (
+  props: IDropdownMenuProps,
+  hooks: ISharedRenderlessParamHooks,
+  instance: IDropdownMenuRenderlessParamUtils
+): IDropdownMenuApi => {
+  const api = {} as IDropdownMenuApi
   const { reactive, provide, onMounted, inject } = hooks
-  const { nextTick, mode, vm, parent, dispatch, emit } = instance
-  const state = reactive({
+  const { nextTick, mode, vm, parent, dispatch, emit, designConfig } = instance
+
+  provide('dropdownMenuVm', vm)
+  provide('multiStage', props.multiStage)
+  const dropdownVm: IDropdownVm = inject('dropdownVm')
+
+  const state: IDropdownMenuState = reactive({
     offset: 0,
     scroller: null,
     children: [],
     size: '',
     showPopper: false,
+    initShowPopper: !dropdownVm.lazyShowPopper, // 辅助变量,
     label: '',
     showContent: false,
     selected: false,
-    selectedIndex: -1
+    selectedIndex: -1,
+    canvasHeight: inject('change-size', null)
   })
-
-  provide('dropdownMenuVm', vm)
-  provide('multiStage', props.multiStage)
-  const dropdownVm = inject('dropdownVm')
 
   if (mode === 'mobile') {
     nextTick(() => {
-      state.scroller = getScroller(vm.$refs.menu)
+      state.scroller = getScroller(vm.$refs.menu as HTMLElement)
     })
   } else {
-    useVuePopper({ api, hooks, props, instance, state, dropdownVm })
+    useVuePopper({ api, hooks, props, instance, state, dropdownVm, designConfig })
   }
 
   Object.assign(api, {
@@ -66,8 +81,8 @@ export const renderless = (props, hooks, instance) => {
     clickOutside: clickOutside({ props, state }),
     updateOffset: updateOffset({ props, state, vm }),
     mounted: mounted({ api, parent, state }),
-    handleMouseenter: handleMouseenter({ emit }),
-    handleMouseleave: handleMouseleave({ emit }),
+    handleMouseenter: handleMouseenter(emit),
+    handleMouseleave: handleMouseleave(emit),
     handleMenuItemClick: handleMenuItemClick({ dispatch, state })
   })
 

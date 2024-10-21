@@ -17,20 +17,23 @@
 
 .MediumColumnHeight() {
   @apply h-10;
+  @apply text-sm;
 }
 
 .SmallColumnHeight() {
-  height: 30px;
+  @apply h-9;
 }
 
 .MiniColumnHeight() {
-  height: 26px;
+  @apply h-8;
 }
 
 .CellEllipsis() {
   &:not(.col__actived) {
     .@{grid-cell-prefix-cls} {
       .TextEllipsis();
+      @apply leading-normal;
+
       & > .@{grid-checkbox-prefix-cls} {
         .TextEllipsis();
         @apply pl-0;

@@ -20,7 +20,7 @@
 @cell-tooltip: ~'@{grid-prefix-cls}-cell__tooltip';
 
 .@{grid-prefix-cls}__header-wrapper {
-  background-color: var(--ti-grid-header-background-color);
+  background-color: var(--tv-Grid-header-bg-color);
 
   // x轴方向虚拟滚动适配线
   .@{grid-prefix-cls}__repair {
@@ -29,14 +29,14 @@
     bottom: 0;
     height: 0;
     z-index: 1;
-    border-bottom: 1px solid var(--ti-grid-header-repair-border-color);
+    border-bottom: 1px solid transparent;
   }
 }
 
 .@{grid-header-prefix-cls}__column {
   position: relative;
-  font-size: var(--ti-grid-font-size);
-  color: var(--ti-grid-header-text-color);
+  font-size: var(--tv-Grid-font-size);
+  color: var(--tv-Grid-header-text-color);
 
   // 去掉最后一个竖线
   &:nth-last-of-type(2) {
@@ -45,6 +45,7 @@
     }
   }
 
+  // 在表格个性化场景，动态的设置冻结列，这里需要在非冻结列情况下消除之前设置的left和right样式，并提升权重覆盖style属性
   &:not(.fixed__column) {
     left: unset !important;
     right: unset !important;
@@ -62,11 +63,18 @@
     }
   }
 
+  &.col__ellipsis {
+    .@{grid-prefix-cls}-edit-icon {
+      flex-shrink: 0;
+    }
+  }
+
   .@{grid-prefix-cls}-required-icon {
-    color: var(--ti-grid-error-color);
-    line-height: 14px;
-    font-size: var(--ti-common-font-size-1);
+    color: var(--tv-Grid-header-required-icon-color);
+    line-height: 1;
+    font-size: var(--tv-Grid-font-size);
     align-self: baseline;
+    display: inline-block;
 
     &:before {
       content: '*';
@@ -74,13 +82,24 @@
       height: 10px;
       display: block;
     }
+    + .@{grid-prefix-cls}-cell-text {
+      width: auto;
+    }
+  }
+
+  .@{grid-prefix-cls}-cell-text {
+    width: auto;
   }
 
   .@{grid-prefix-cls}-edit-icon {
-    font-size: var(--ti-common-font-size-2);
-    margin-right: 4px;
-    order: -1;
-    fill: var(--ti-grid-column-icon-text-color);
+    font-size: var(--tv-Grid-icon-size);
+    margin-left: 4px;
+    flex-shrink: 0;
+    fill: var(--tv-Grid-icon-color);
+    + .@{grid-prefix-cls}-cell-text {
+      width: auto;
+      order: -1;
+    }
   }
 
   .@{grid-prefix-cls}-thead-partition,
@@ -94,7 +113,6 @@
     width: 14px;
     height: 100%;
     text-align: center;
-    z-index: 1;
     user-select: none;
 
     @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
@@ -111,8 +129,8 @@
 
       &:before {
         width: 1px;
-        height: var(--ti-grid-header-resizable-line-height);
-        background-color: var(--ti-grid-header-resizable-bg-color);
+        height: 16px;
+        background-color: var(--tv-Grid-header-divider-color);
       }
 
       &:after {
@@ -125,31 +143,12 @@
   .@{grid-prefix-cls}-resizable {
     cursor: col-resize;
   }
-
-  .@{grid-checkbox-prefix-cls} {
-    > input {
-      &:not(:checked) {
-        & + .@{grid-checkbox-prefix-cls}__icon {
-          &:hover {
-            border-color: var(--ti-grid-border-color);
-          }
-        }
-      }
-    }
-  }
-
-  .@{grid-checkbox-prefix-cls}.is__indeterminate {
-    > input {
-      & + .@{grid-checkbox-prefix-cls}__icon {
-        &:hover {
-          border-color: var(--ti-grid-primary-color);
-        }
-      }
-    }
-  }
 }
 
 .@{grid-prefix-cls}__header {
+  .@{grid-prefix-cls}-cell-text {
+    font-weight: var(--tv-Grid-header-font-weight);
+  }
   .@{header-suffix} {
     position: relative;
     min-height: 16px;
@@ -172,8 +171,14 @@
 
     & > .selection-dropdown-wrapper {
       position: absolute;
-      right: 0;
+      left: 50%;
+      transform: translateX(12px);
       top: 0;
+
+      .tiny-svg {
+        fill: var(--tv-Grid-icon-color);
+        vertical-align: middle;
+      }
     }
   }
 }

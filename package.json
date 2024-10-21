@@ -1,10 +1,19 @@
 {
   "name": "opentiny-vue",
-  "version": "3.7.12",
+  "version": "3.14.0",
   "private": true,
-  "packageManager": "pnpm@7.11.0",
+  "packageManager": "pnpm@8.3.1",
   "description": "An enterprise-class UI component library, support both Vue.js 2 and Vue.js 3, as well as PC and mobile.",
+  "author": "OpenTiny Team",
+  "license": "MIT",
   "homepage": "https://opentiny.design/tiny-vue",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:opentiny/tiny-vue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/tiny-vue/issues"
+  },
   "keywords": [
     "vue",
     "vue3",
@@ -16,37 +25,29 @@
     "renderless-components",
     "headless-components"
   ],
-  "author": "OpenTiny Team",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:opentiny/tiny-vue.git"
-  },
-  "bugs": {
-    "url": "https://github.com/opentiny/tiny-vue/issues"
-  },
-  "sideEffects": false,
-  "type": "module",
   "main": "packages/index.js",
   "engines": {
     "node": ">=16",
-    "pnpm": ">=7"
+    "pnpm": ">=6.35"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "postinstall": "pnpm build:internals",
+    "prepare": "husky install",
     "bootstrap": "pnpm --filter=\"!./packages/dist/**\" install",
-    "dev": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/vue3 dev",
-    "dev:saas": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/vue3 dev:saas",
-    "dev2": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/vue2 dev",
-    "dev2:saas": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/vue2 dev:saas",
-    "dev2.7": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/vue2.7 dev",
-    "dev2.7:saas": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/vue2.7 dev:saas",
-    "dev:docs": "pnpm -C examples/docs docs:dev",
-    "dev:react": "pnpm build:entry-react && pnpm -C examples/react-docs run dev",
+    "dev": "pnpm build:entry && pnpm -C examples/vue3 dev",
+    "dev:saas": "pnpm create:icon-saas && pnpm build:entry && pnpm -C examples/vue3 dev:saas",
+    "dev2": "pnpm build:entry && pnpm -C examples/vue2 dev",
+    "dev2:saas": "pnpm create:icon-saas && pnpm build:entry && pnpm -C examples/vue2 dev:saas",
+    "dev2.7": "pnpm build:entry && pnpm -C examples/vue2.7 dev",
+    "dev2.7:saas": "pnpm create:icon-saas && pnpm build:entry && pnpm -C examples/vue2.7 dev:saas",
     "// ---------- 启动官网文档 ----------": "",
-    "dev:site": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/sites start",
-    "dev:open-site": "pnpm build:entry && pnpm build:component-cssvar && pnpm -C examples/sites start:open",
+    "site": "pnpm build:entry && pnpm -C examples/sites start",
+    "site:open": "pnpm build:entry && pnpm -C examples/sites start:open",
+    "// ---------- 启动移动端组件官网文档 ----------": "",
+    "site:mobile": "pnpm build:entry && pnpm -C examples/sites start:mobile",
+    "// ---------- 启动saas官网文档 ----------": "",
+    "site:saas": "pnpm create:icon-saas && pnpm build:entry && pnpm -C examples/sites start:saas",
     "build:entry": "pnpm -C internals/cli build:entry",
     "create:ui": "pnpm -C internals/cli create:ui",
     "// ---------- 创建saas图标ts文件----------": "",
@@ -54,22 +55,36 @@
     "// ---------- 创建组件和模板打包入口 ----------": "",
     "create:mapping": "pnpm -C internals/cli create:mapping",
     "sync-icons": "pnpm -C internals/cli sync-icons",
+    "build:entry-app": "pnpm -C internals/cli build:entry-app",
     "// ---------- 打包运行时组件库 ----------": "",
     "build:runtime": "pnpm -C internals/cli build:runtime",
     "// ---------- 构建相关脚本 ----------": "",
-    "build:ui": "pnpm create:mapping && pnpm build:entry && pnpm build:component-cssvar && pnpm -C internals/cli build:ui",
+    "build:ui": "pnpm create:icon-saas && pnpm create:mapping && pnpm build:entry && pnpm -C internals/cli build:ui",
+    "build:chartTheme": "pnpm -C internals/cli build:chartTheme",
     "build:renderless": "pnpm -C packages/renderless build:fast",
     "build:theme": "pnpm -C packages/theme build:fast",
     "build:themeSaas": "pnpm -C packages/theme-saas build:fast",
     "build:themeMobile": "pnpm -C packages/theme-mobile build:fast",
-    "build:themejson": "pnpm -C packages/theme build:themejson",
-    "build:component-cssvar": "pnpm -C packages/theme build:component-cssvar",
+    "build:themejson": "gulp themeJson",
     "build:internals": "pnpm \"--filter=./internals/*\" build",
+    "build:vite-import": "pnpm --filter @opentiny/vue-vite-import build",
+    "build:virtual-template": "pnpm --filter @opentiny-internal/unplugin-virtual-template build",
+    "build:site": "pnpm i -g pnpm && pnpm build:vite-import && pnpm build:virtual-template && pnpm -C examples/sites build",
     "release:aurora": "pnpm -C internals/cli release:aurora",
     "// ---------- 使用pnpm批量发布npm包 ----------": "",
     "pub2": "pnpm --filter=\"./packages/dist2/**\" publish --tag v2-latest --no-git-checks --access=public",
     "pub3": "pnpm --filter=\"./packages/dist3/**\" publish --no-git-checks --access=public",
     "pub2.7": "pnpm --filter=\"./packages/dist2.7/**\" publish --tag v2.7-latest --no-git-checks --access=public",
+    "pub:aurora": "pnpm --filter=\"./packages/dist2/@aurora/**\" publish --no-git-checks --access=public",
+    "pub:theme": "pnpm --filter=\"./packages/theme/dist\" publish --no-git-checks --access=public",
+    "pub:themeMobile": "pnpm --filter=\"./packages/theme-mobile/dist/\" publish --no-git-checks --access=public",
+    "pub:themeSaas": "pnpm --filter=\"./packages/theme-saas/dist\" publish --no-git-checks --access=public",
+    "pub:renderless": "pnpm --filter=\"./packages/renderless/dist\" publish --no-git-checks --access=public",
+    "pub:runtime": "pnpm --filter=\"./packages/vue-runtime/\" publish --no-git-checks --access=public",
+    "pub:all": "pnpm pub2 && pnpm pub3 && pnpm pub:theme && pnpm pub:themeMobile && pnpm pub:themeSaas && pnpm pub:renderless",
+    "pub:site": "pnpm -C examples/sites pub",
+    "// ---------- 自动化发测试包 ----------": "",
+    "auto-build-pub": "pnpm -C internals/automate auto-build-pub",
     "// ---------- unit单元测试 ----------": "",
     "test:unit2": "pnpm -C examples/vue2 test:unit",
     "test:unit2.7": "pnpm -C examples/vue2.7 test:unit",
@@ -78,14 +93,18 @@
     "test:e2e2": "pnpm -C examples/vue2 test:e2e --project=chromium",
     "test:e2e2.7": "pnpm -C examples/vue2.7 test:e2e --project=chromium",
     "test:e2e3": "pnpm -C examples/vue3 test:e2e --project=chromium",
+    "test:e2e2:mobile": "pnpm -C examples/vue2 test:e2e --project=android",
+    "test:e2e2.7:mobile": "pnpm -C examples/vue2.7 test:e2e --project=android",
+    "test:e2e3:mobile": "pnpm -C examples/vue3 test:e2e --project=android",
     "// ---------- playwright下载chromium、firefox等浏览器内核 ----------": "",
     "install:browser": "pnpm -C examples/vue3 install:browser",
     "// ---------- e2e测试代码生成器 ----------": "",
     "codegen": "pnpm -C examples/vue3 codegen",
+    "codegen:mobile": "pnpm -C examples/vue3 codegen --device=\"Pixel 5\" ",
     "format": "prettier --write --cache packages/**/{*.vue,*.js,*.ts,*.jsx,*.tsx,*.less} examples/**/{*.vue,*.js,*.ts,*.jsx,*.tsx} internals/**/{*.js,*.ts}",
     "lint": "eslint \"packages/**/{*.vue,*.js,*.ts}\" --quiet --fix",
     "lint:doc": "eslint \"examples/**/{*.vue,*.js,*.ts}\" --quiet --fix",
-    "clean:build": "rimraf packages/dist2 packages/dist3 packages/renderless/dist packages/dist2.7",
+    "clean:build": "rimraf packages/dist2 packages/dist3 packages/dist2.7 packages/renderless/dist packages/theme/dist packages/theme-saas/dist packages/theme-mobile/dist",
     "clean:dependencies": "rm -rf node_modules /**/node_modules",
     "// ---------- 构建【mf】版本 ----------": "",
     "preci:deployMfPatch": "pnpm clean:build && lerna version prepatch --conventional-prerelease --include-merged-tags --preid mf --no-push --yes",
@@ -112,21 +131,30 @@
     "ci:deployBeta": "pnpm build:ui",
     "postci:deployBeta": "lerna publish from-package --yes --dist-tag beta",
     "analyse:depends": "pnpm --filter @opentiny/analyse_depends start",
+    "// ---------- react 相关脚本命令 ----------": "",
+    "dev:react": "pnpm create:mapping-react && pnpm build:entry-react && pnpm -C examples/react-docs run dev",
     "build:entry-react": "pnpm -C internals/cli build:entry-react",
     "create:mapping-react": "pnpm -C internals/cli create:mapping-react",
     "build:react": "pnpm -C internals/cli build:react",
     "build:ui-react": "pnpm create:mapping-react && pnpm build:entry-react && pnpm build:react",
     "pub:react": "pnpm --filter=\"./packages/dist-react/**\" publish --no-git-checks --access=public",
     "dev:react-site": "pnpm --filter @opentiny/react-site start",
-    "build:react-site": "pnpm --filter @opentiny/react-site build"
+    "build:react-site": "pnpm --filter @opentiny/react-site build",
+    "prettier": "prettier --config .prettierrc --write .",
+    "// ---------- openinula 相关脚本命令 ----------": "",
+    "dev:openinula": "pnpm -C examples/openinula-docs run dev",
+    "// ---------- 预览发布后的solid组件 ----------": "",
+    "preview:solid": "pnpm -C examples/solid-demo run dev",
+    "build:solid": "pnpm -C internals/cli build:solid",
+    "pub:solid": "pnpm --filter=\"./packages/dist-solid/**\" publish --no-git-checks --access=public --registry=https://registry.npmjs.org"
   },
   "dependencies": {
-    "@vue/composition-api": "1.2.2",
+    "@vue/composition-api": "1.7.2",
     "color": "^4.2.3",
     "cropperjs": "1.5.12",
-    "crypto-js": "4.1.1",
+    "crypto-js": "4.2.0",
     "echarts": "5.4.1",
-    "echarts-liquidfill": "3.0.0",
+    "echarts-liquidfill": "3.1.0",
     "echarts-wordcloud": "2.0.0",
     "fastdom": "1.0.11",
     "shepherd.js": "11.0.1",
@@ -134,17 +162,17 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.38.6",
-    "@commitlint/cli": "^17.3.0",
-    "@commitlint/config-conventional": "^17.3.0",
+    "@commitlint/config-conventional": "^18.4.3",
     "@types/color": "^3.0.3",
     "@types/eslint": "^8.4.10",
     "@types/node": "^18.11.18",
     "@types/shelljs": "^0.8.12",
-    "@typescript-eslint/parser": "^5.48.0",
+    "@typescript-eslint/parser": "^6.12.0",
     "@volar-plugins/eslint": "^2.0.0",
     "@volar-plugins/prettier": "^2.0.0",
     "@volar-plugins/prettyhtml": "^2.0.0",
     "@vue/tsconfig": "^0.4.0",
+    "commitlint": "^18.4.3",
     "depcheck": "1.4.3",
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.8.0",
@@ -157,46 +185,31 @@
     "gulp-less": "^5.0.0",
     "gulp-svg-inline": "^1.0.1",
     "gulp-transform": "^3.0.5",
+    "husky": "^8.0.3",
     "lerna": "^6.4.0",
-    "lint-staged": "^13.0.3",
+    "lint-staged": "^15.2.0",
     "minimist": "^1.2.8",
     "node-xlsx": "^0.21.0",
-    "nx": "^15.4.5",
     "prettier": "^3.0.0",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.5",
     "shx": "^0.3.4",
     "typescript": "^5.0.0",
     "vite": "^4.3.8",
-    "vue": "^3.3.4",
+    "vue": "^3.4.23",
     "vue-tsc": "^1.6.5"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts,jsx,tsx,vue}": [
-      "prettier --write",
-      "eslint --fix"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
   },
   "pnpm": {
     "patchedDependencies": {
-      "depcheck@1.4.3": "patches/depcheck@1.4.3.patch"
+      "depcheck@1.4.3": "patches/depcheck@1.4.3.patch",
+      "tsup@7.2.0": "patches/tsup@7.2.0.patch"
     },
     "overrides": {
-      "@vue/compiler-sfc@3": "3.3.4",
-      "@vue/runtime-core@3": "3.3.4",
-      "@vue/runtime-dom@3": "3.3.4",
-      "@vue/shared@3": "3.3.4",
+      "@vue/compiler-sfc@3": "3.4.23",
+      "@vue/runtime-core@3": "3.4.23",
+      "@vue/runtime-dom@3": "3.4.23",
+      "@vue/shared@3": "3.4.23",
+      "@playwright/test": "1.42.1",
       "cropperjs": "1.5.12",
       "echarts": "5.4.1",
       "follow-redirects": "1.14.8",
@@ -212,10 +225,10 @@
       "vue-template-compiler@2.7": "2.7.10",
       "vue@2.6": "2.6.14",
       "vue@2.7": "2.7.10",
-      "vue@3": "3.3.4",
+      "vue@3": "3.4.23",
       "vue2": "npm:vue@2.6.14",
       "vue2.7": "npm:vue@2.7.10",
-      "vue3": "npm:vue@3.3.4",
+      "vue3": "npm:vue@3.4.23",
       "vite": "^4.3.8"
     },
     "packageExtensions": {
@@ -236,7 +249,7 @@
       },
       "vite-plugin-dts": {
         "peerDependencies": {
-          "vue": "^3.3.4"
+          "vue": "^3.4.23"
         }
       },
       "vite-plugin-md": {

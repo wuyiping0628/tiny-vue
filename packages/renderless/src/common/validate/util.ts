@@ -15,8 +15,11 @@ import { log } from '../xss'
 
 const formatRegExp = /%[sdj%]/g
 
-export let warning = () => undefined
+export const warning = () => undefined
 
+/**
+ * @description 转换返回错误的数据结构
+ */
 export function convertFieldsError(errors) {
   if (!errors || !errors.length) {
     return null
@@ -33,17 +36,21 @@ export function convertFieldsError(errors) {
   return fields
 }
 
-export function format(...args) {
-  let i = 1
-  const checkData = args[0]
-  const len = args.length
-
-  if (typeof checkData === 'function') {
-    return checkData.apply(null, args.slice(1))
+/**
+ * @description 生成校验错误的提示信息
+ * @param i18nTemplate 带占位符的字符串
+ * @param rest 替换占位符的字符串
+ * 例：format('%s 必须等于 %s', 'A', 'B') 返回 A 必须等于 B
+ */
+export function format(i18nTemplate: Function | string, ...rest: string[]) {
+  if (typeof i18nTemplate === 'function') {
+    return i18nTemplate(...rest)
   }
 
-  if (typeof checkData === 'string') {
-    let str = String(checkData).replace(formatRegExp, (matchChar) => {
+  if (typeof i18nTemplate === 'string') {
+    let i = 0
+    const len = rest.length
+    let str = String(i18nTemplate).replace(formatRegExp, (matchChar) => {
       if (matchChar === '%%') {
         return '%'
       }
@@ -55,14 +62,14 @@ export function format(...args) {
       switch (matchChar) {
         case '%j':
           try {
-            return JSON.stringify(args[i++])
+            return JSON.stringify(rest[i++])
           } catch (e) {
             return '[Circular]'
           }
         case '%d':
-          return Number(args[i++])
+          return Number(rest[i++])
         case '%s':
-          return String(args[i++])
+          return String(rest[i++])
         default:
           return matchChar
       }
@@ -71,11 +78,14 @@ export function format(...args) {
     return str
   }
 
-  return checkData
+  return i18nTemplate
 }
 
+/**
+ * @description 判断是否string类型
+ */
 function isNativeStringType(type) {
-  return ~[
+  return [
     'string',
     'url',
     'hex',
@@ -94,9 +104,11 @@ function isNativeStringType(type) {
     'acceptImg',
     'acceptFile',
     'fileSize'
-  ].indexOf(type)
+  ].includes(type)
 }
-
+/**
+ * @description 判断对应的类型是否是空值
+ */
 export function isEmptyValue(data, dataType) {
   if (isNull(data)) {
     return true
@@ -113,17 +125,21 @@ export function isEmptyValue(data, dataType) {
   return false
 }
 
+/** TINY_DUP  type.ts  TINY_NO_USED */
 export function isEmptyObject(data) {
   return Object.keys(data).length === 0
 }
 
+/**
+ * @description 并行处理校验规则
+ */
 function asyncParallelArray(arrData, func, callback) {
   let count = 0
   const results = []
   const arrLength = arrData.length
 
   function checkCount(errors) {
-    results.push.apply(results, errors)
+    results.push(...errors)
 
     count++
 
@@ -137,6 +153,9 @@ function asyncParallelArray(arrData, func, callback) {
   })
 }
 
+/**
+ * @description 串行处理校验规则
+ */
 function asyncSerialArray(arr, fn, cb) {
   let idx = 0
   const arrLength = arr.length
@@ -160,16 +179,22 @@ function asyncSerialArray(arr, fn, cb) {
   checkNext([])
 }
 
+/**
+ * @description 将一层数据平铺开
+ */
 function flattenObjArr(objArr) {
   const result = []
 
   Object.keys(objArr).forEach((item) => {
-    result.push.apply(result, objArr[item])
+    result.push(...objArr[item])
   })
 
   return result
 }
 
+/**
+ * @description 转换返回错误的数据结构
+ */
 export function asyncMap(objArray, option, func, callback) {
   if (option.first) {
     const pending = new Promise((resolve, reject) => {
@@ -200,7 +225,7 @@ export function asyncMap(objArray, option, func, callback) {
   const pending = new Promise((resolve, reject) => {
     const errorFn = reject
     const next = (errors) => {
-      results.push.apply(results, errors)
+      results.push(...errors)
       total++
       if (total === objArrLength) {
         callback(results)
@@ -210,7 +235,7 @@ export function asyncMap(objArray, option, func, callback) {
 
     objArrayKeys.forEach((key) => {
       const arr = objArray[key]
-      if (~firstFields.indexOf(key)) {
+      if (firstFields.includes(key)) {
         asyncSerialArray(arr, func, next)
       } else {
         asyncParallelArray(arr, func, next)
@@ -224,6 +249,9 @@ export function asyncMap(objArray, option, func, callback) {
   return pending
 }
 
+/**
+ * @description 处理返回的错误
+ */
 export function complementError(rule) {
   return (onError) => {
     if (onError && onError.message) {
@@ -238,6 +266,9 @@ export function complementError(rule) {
   }
 }
 
+/**
+ * @description 深度合并
+ */
 export function deepMerge(target, sources) {
   if (!sources) {
     return target

@@ -9,13 +9,8 @@
  * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
  *
  */
-import {
-  IButtonState,
-  ISharedRenderlessParamHooks,
-  IButtonProps,
-  IButtonApi,
-  IButtonRenderlessParamUtils
-} from '@/types'
+import type { ISharedRenderlessParamHooks, IButtonProps, IButtonApi, IButtonRenderlessParamUtils } from '@/types'
+
 import { handleClick, clearTimer } from './index'
 
 export const api = ['state', 'handleClick']
@@ -27,8 +22,8 @@ export const renderless = (
 ) => {
   parent.tinyForm = parent.tinyForm || inject('form', null)
 
-  const state: IButtonState = reactive({
-    timer: undefined,
+  const state = reactive({
+    timer: 0,
     disabled: props.disabled,
     plain: computed(() => props.plain || (parent.buttonGroup || {}).plain),
     formDisabled: computed(() => (parent.tinyForm || {}).disabled),

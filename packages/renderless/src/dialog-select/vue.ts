@@ -22,7 +22,8 @@ import {
   doAutoLookup,
   multiTreeRadio,
   multiGridRadioChange,
-  watchMulti
+  watchMulti,
+  clearStatus
 } from './index'
 
 export const api = [
@@ -43,7 +44,8 @@ export const api = [
   'onFooterCancel',
   'onFooterConfirm',
   'multiTreeRadio',
-  'multiGridRadioChange'
+  'multiGridRadioChange',
+  'clearStatus'
 ]
 
 export const renderless = (props, { reactive, computed, watch }, { vm, nextTick, emit }) => {
@@ -54,8 +56,8 @@ export const renderless = (props, { reactive, computed, watch }, { vm, nextTick,
     selectedDatas: [],
     selectedValues: [],
     multiGridStore: {
-      selectConfig: computed(() => api.computedConfig()),
-      radioConfig: computed(() => api.computedConfig()),
+      selectConfig: computed(() => api.computedConfig('select')),
+      radioConfig: computed(() => api.computedConfig('radio')),
       inited: false,
       loading: false
     },
@@ -69,7 +71,8 @@ export const renderless = (props, { reactive, computed, watch }, { vm, nextTick,
     },
     lookupStore: {
       datas: []
-    }
+    },
+    theme: vm.theme
   })
 
   state.temporary = {}
@@ -93,7 +96,7 @@ export const renderless = (props, { reactive, computed, watch }, { vm, nextTick,
 
   Object.assign(api, {
     multiGridSelectAll: multiGridSelectAll({ api, props, state }),
-    multiGridSelectChange: multiGridSelectChange({ api, props, state }),
+    multiGridSelectChange: multiGridSelectChange({ api, props, state, vm }),
     multiTreeAfterLoad: multiTreeAfterLoad({ api, props, state, vm }),
     multiTreeCheck: multiTreeCheck({ api, props, state, vm, nextTick }),
     multiTreeFilterPlain: multiTreeFilterPlain({ api, props, state }),
@@ -102,7 +105,8 @@ export const renderless = (props, { reactive, computed, watch }, { vm, nextTick,
     queryGridData: queryGridData({ api, props, state }),
     setChecked: setChecked({ api, props, state }),
     multiTreeRadio: multiTreeRadio({ api, props }),
-    watchMulti: watchMulti({ api, state, props })
+    watchMulti: watchMulti({ api, state, props }),
+    clearStatus: clearStatus(api)
   })
 
   watch(

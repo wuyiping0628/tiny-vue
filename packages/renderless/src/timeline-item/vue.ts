@@ -18,25 +18,50 @@ import {
   getDate,
   computedCurrent,
   computedIsReverse,
-  computedSpace,
-  computedItemStyle
+  computedWidth,
+  computedItemStyle,
+  computedIconClass
 } from './index'
+import type {
+  ITimelineItemApi,
+  ITimelineItemProps,
+  ITimelineItemRenderlessParamUtils,
+  ITimelineItemState,
+  ISharedRenderlessParamHooks,
+  ITimelineInject
+} from '@/types'
 
 export const api = ['state', 'handleClick', 'getStatusCls', 'getStatus', 'getDate', 'rootProps']
 
-export const renderless = (props, { computed, reactive, inject }, { t, emit, constants }) => {
-  const api = {}
+export const renderless = (
+  props: ITimelineItemProps,
+  { computed, reactive, inject, onUnmounted }: ISharedRenderlessParamHooks,
+  { t, emit, constants }: ITimelineItemRenderlessParamUtils
+): ITimelineItemApi => {
+  const api = {} as ITimelineItemApi
 
-  const { timelineItems, nodes, props: rootProps } = inject('nodesInject')
-  timelineItems.push(props.node)
+  const { state: rootState, props: rootProps } = inject('nodesInject') as ITimelineInject
 
-  const state = reactive({
-    nodesLength: computed(() => nodes.length),
+  // 标签式使用时， 需要把自身回传给rootProps
+  if (!rootState.itemsArray.includes(props.node)) {
+    rootState.itemsArray.push(props.node)
+  }
+
+  onUnmounted(() => {
+    if (rootState.itemsArray.includes(props.node)) {
+      rootState.itemsArray.splice(rootState.itemsArray.indexOf(props.node), 1)
+    }
+  })
+
+  const state: ITimelineItemState = reactive({
+    nodesLength: computed(() => rootState.nodes.length),
     current: computed(() => api.computedCurrent()),
     isReverse: computed(() => api.computedIsReverse()),
-    computedSpace: computed(() => api.computedSpace()),
+    computedSpace: computed(() => api.computedWidth(props.space || api.rootProps.space)),
     computedItemCls: computed(() => api.computedItemCls()),
-    computedItemStyle: computed(() => api.computedItemStyle())
+    computedItemStyle: computed(() => api.computedItemStyle()),
+    computedLineWidth: computed(() => api.computedWidth(props.lineWidth || api.rootProps.lineWidth)),
+    iconClass: computed(() => api.computedIconClass())
   })
 
   Object.assign(api, {
@@ -45,12 +70,13 @@ export const renderless = (props, { computed, reactive, inject }, { t, emit, con
     getDate,
     computedCurrent: computedCurrent({ state, api }),
     computedIsReverse: computedIsReverse(api),
-    computedItemCls: computedItemCls({ props, api }),
+    computedItemCls: computedItemCls({ props, api, state }),
     computedItemStyle: computedItemStyle({ props, state, api }),
-    computedSpace: computedSpace({ props, api }),
+    computedWidth: computedWidth(),
     getStatus: getStatus({ state, t }),
-    handleClick: handleClick({ emit, state }),
-    getStatusCls: getStatusCls({ constants, state })
+    handleClick: handleClick({ emit, state, props }),
+    getStatusCls: getStatusCls({ constants, state, props }),
+    computedIconClass: computedIconClass({ props, api })
   })
 
   return api

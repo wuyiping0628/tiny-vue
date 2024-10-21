@@ -1,64 +1,50 @@
-import {IColorSelectPanelRef as Ref} from '@/types';
-import Color from './utils/color'
-import { onConfirm, onCancel, onHSVUpdate, onAlphaUpdate } from '.'
+import type { ISharedRenderlessParamHooks, ISharedRenderlessParamUtils } from '@/types'
+import type { Ref } from 'vue'
+import { toggleVisible, useEvent } from './index'
 
-export const api = [
-  'state',
-  'changeVisible',
-  'cursor',
-  'onColorUpdate',
-  'onHueUpdate',
-  'onSVUpdate',
-  'onConfirm',
-  'onCancel',
-  'onAlphaUpdate',
-  'alpha'
-]
+export const api = ['state', 'changeVisible', 'onConfirm', 'onCancel', 'onHueUpdate', 'onSVUpdate', 'onColorUpdate']
 
-export const renderless = (
-  props,
-  context,
-  { emit }
-) => {
-  const { modelValue, visible } = context.toRefs(props)
-  const hex = context.ref(modelValue.value ?? 'transparent')
-  const res = context.ref(modelValue.value ?? 'transparent')
-  const triggerBg = context.ref(modelValue.value ?? 'transparent')
-  const isShow = context.ref(visible?.value ?? false)
-  const cursor: Ref<HTMLElement> = context.ref()
-  const changeVisible = (state: boolean) => {
-    isShow.value = state
-  }
-  const color = new Color(hex.value, props.alpha)
-  const state = context.reactive({
+export const renderless = (props, ctx: ISharedRenderlessParamHooks, { emit }: ISharedRenderlessParamUtils) => {
+  const { modelValue, visible, predefine, size, history } = ctx.toRefs(props)
+  const isShow = ctx.ref(visible.value)
+  const hex = ctx.ref(modelValue.value ?? 'transparent')
+  const stack: Ref<string[]> = ctx.ref([...(history?.value ?? [])])
+  const predefineStack: Ref<string[]> = ctx.ref([...(predefine?.value ?? [])])
+  ctx.watch(
+    predefine,
+    (newPredefine: string[]) => {
+      predefineStack.value = [...newPredefine]
+    },
+    { deep: true }
+  )
+  ctx.watch(
+    history,
+    (newHistory: string[]) => {
+      stack.value = [...newHistory]
+    },
+    { deep: true }
+  )
+  const state = ctx.reactive({
     isShow,
     hex,
-    color,
-    triggerBg,
-    defaultValue: modelValue,
-    res
+    triggerBg: ctx.ref(modelValue.value),
+    size,
+    stack,
+    predefineStack
   })
-  context.watch(modelValue, (newValue) => {
-    hex.value = newValue
-    res.value = newValue
-    triggerBg.value = newValue
-    color.reset(hex.value)
+  ctx.watch(props, () => {
+    hex.value = props.modelValue
   })
-  context.watch(visible, (visible) => {
-    isShow.value = visible
+  ctx.watch(hex, () => {
+    emit('update:modelValue', hex.value)
   })
-  const { onHueUpdate, onSVUpdate } = onHSVUpdate(color, res, hex)
-  const { update } = onAlphaUpdate(color, res)
+  const changeVisible = toggleVisible(isShow)
+  const { onConfirm, onCancel } = useEvent(hex, emit, changeVisible)
   const api = {
     state,
     changeVisible,
-    onHueUpdate,
-    onSVUpdate,
-    onConfirm: onConfirm(hex, triggerBg, res, emit, isShow),
-    onCancel: onCancel(res, triggerBg, emit, isShow, hex, color),
-    onAlphaUpdate: update,
-    cursor,
-    alpha: props.alpha
+    onConfirm,
+    onCancel
   }
   return api
 }

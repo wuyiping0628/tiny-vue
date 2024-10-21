@@ -10,10 +10,15 @@
  *
  -->
 <template>
-  <div class="tiny-slider__wrapper" style="position: relative">
+  <div class="tiny-slider-container" :class="[!vertical && 'tiny-slider-container__horizontal']">
     <div
+      ref="slider"
       role="tiny-slider"
-      :class="['tiny-slider', { 'tiny-slider__vertical': vertical, disabled: state.disabled }]"
+      :class="[
+        'tiny-slider',
+        { 'tiny-slider__vertical': vertical, disabled: state.disabled },
+        !showInput || state.isDouble ? (state.showAutoWidth ? 'show-auto-width' : '') : ''
+      ]"
       :style="{ height: vertical ? height : '' }"
       @mousedown="bindMouseDown"
     >
@@ -62,14 +67,52 @@
           ></path>
         </svg>
       </div>
-      <div class="tiny-slider__tips" v-show="showTip && state.showTip" :style="state.tipStyle">
+      <div ref="sliderTip" class="tiny-slider__tips" v-show="showTip && state.showTip" :style="state.tipStyle">
         {{ state.tipValue }}
       </div>
+      <div v-if="state.markList">
+        <template v-for="mark in state.markList" :key="mark.value">
+          <div class="tiny-slider__mark-point" :style="mark.positionStyle"></div>
+          <div class="tiny-slider__mark-label" :style="mark.positionStyle">{{ mark.label }}</div>
+        </template>
+      </div>
     </div>
-    <template v-if="showInput && !state.isDouble">
-      <div class="tiny-slider__input">
-        <slot :slot-scope="state.activeValue">
-          <input type="text" v-model="state.activeValue" :disabled="state.disabled" /><span>%</span>
+
+    <template v-if="showInput">
+      <div class="tiny-slider__input" :class="{ 'is-disabled': state.disabled }">
+        <slot :slot-scope="state.slotValue">
+          <tiny-input
+            v-if="!state.isDouble"
+            v-model="state.slotValue"
+            type="text"
+            :disabled="state.disabled"
+            @change="inputOnChange"
+            @focus="handleSlotInputFocus"
+            @blur="handleSlotInputBlur"
+            @input="handleSlotInput($event)"
+          >
+          </tiny-input>
+
+          <template v-else>
+            <tiny-input
+              v-model="state.slotValue[0]"
+              :disabled="state.disabled"
+              @focus="handleSlotInputFocus"
+              @blur="handleSlotInputBlur"
+              @input="handleSlotInput($event)"
+            ></tiny-input>
+
+            <span class="tiny-slider__input__split">-</span>
+            <tiny-input
+              v-model="state.slotValue[1]"
+              :disabled="state.disabled"
+              @focus="handleSlotInputFocus"
+              @blur="handleSlotInputBlur"
+              @input="handleSlotInput($event, false)"
+            >
+            </tiny-input>
+          </template>
+          <span class="tiny-slider__input__unit">{{ unit }}</span>
         </slot>
       </div>
     </template>
@@ -79,6 +122,8 @@
 <script lang="ts">
 import { renderless, api } from '@opentiny/vue-renderless/slider/vue'
 import { props, setup, defineComponent } from '@opentiny/vue-common'
+import Input from '@opentiny/vue-input'
+import type { ISliderApi } from '@opentiny/vue-renderless/types/slider.type'
 import '@opentiny/vue-theme/slider/index.less'
 
 export default defineComponent({
@@ -93,13 +138,19 @@ export default defineComponent({
     'step',
     'numPages',
     'showTip',
+    'marks',
     'showInput',
+    'unit',
     'height',
     'range',
-    'formatTooltip'
+    'formatTooltip',
+    'changeCompat'
   ],
+  components: {
+    TinyInput: Input
+  },
   setup(props, context) {
-    return setup({ props, context, renderless, api })
+    return setup({ props, context, renderless, api }) as unknown as ISliderApi
   }
 })
 </script>

@@ -10,19 +10,21 @@
 *
 */
 
-.component-css-vars-time-select() {
-  // 时间选择选项高度
-  --ti-time-select-item-height: var(--ti-common-size-height-normal);
+.inject-TimeSelect-vars() {
   // 时间选择选项字体色
-  --ti-time-select-item-text-color: var(--ti-common-color-text-primary);
+  --tv-TimeSelect-item-text-color: var(--tv-color-text);
   // 时间选择选项字号
-  --ti-time-select-item-font-size: var(--ti-common-font-size-base);
-  // 时间选择选项行高
-  --ti-time-select-item-line-height: var(--ti-common-size-height-normal);
+  --tv-TimeSelect-item-font-size: var(--tv-font-size-md);
   // 时间选择选项左右内边距
-  --ti-time-select-item-padding-horizontal: var(--ti-common-size-2x);
+  --tv-TimeSelect-item-padding-horizontal: var(--tv-space-xl);
   // 时间选择选项悬浮背景色
-  --ti-time-select-item-hover-bg-color: var(--ti-common-color-selected-background);
+  --tv-TimeSelect-item-hover-bg-color: var(--tv-color-bg-hover);
   // 时间选择选项禁用文本色
-  --ti-time-select-item-disabled-text-color: var(--ti-common-color-text-disabled);
+  --tv-TimeSelect-item-disabled-text-color: var(--tv-color-text-disabled);
+  // 时间选择选项悬浮背景色(选中项)
+  --tv-TimeSelect-item-select-hover-bg-color: var(--tv-color-bg-active);
+  // 时间选择选项字体色(选中项)
+  --tv-TimeSelect-item-selected-text-color: var(--tv-color-text-active);
+  // 面板高度
+  --tv-TimeSelect-content-padding-top: var(--tv-space-md);
 }

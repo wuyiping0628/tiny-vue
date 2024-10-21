@@ -1,3 +1,6 @@
+import Contributors from '@/data/contributors'
+import ContributorMap from '@/data/contributorMap'
+
 const baseUrl = import.meta.env.BASE_URL
 
 /**
@@ -17,17 +20,17 @@ const $split = (target, splitor = '/', pos = 0) => target.split(splitor).slice(p
 
 /**
  * 延时函数
- * @example $delay(300).then(()=>{   })
+ * @example $delay(300).then(() =>{   })
  */
 const $delay = (time) => new Promise((resolve) => setTimeout(resolve, time))
 
 /**
  * 空闲函数
- * @example $idle().then(()=>{   })
+ * @example $idle().then(() =>{   })
  */
 const $idle = () => new Promise((resolve) => (window.requestIdleCallback || window.requestAnimationFrame)(resolve))
 
-const $pub = (url) => {
+const pubUrl = (url) => {
   return baseUrl + url
 }
 
@@ -37,7 +40,8 @@ const $pub = (url) => {
  * @returns
  */
 const fetchDemosFile = (path) => {
-  return fetch(baseUrl + path, {
+  const filePath = baseUrl + path
+  return fetch(filePath, {
     method: 'GET',
     headers: {
       'Content-Type': 'text/plain;charset=UTF-8'
@@ -45,13 +49,33 @@ const fetchDemosFile = (path) => {
   }).then((res) => {
     if (res.ok) {
       return res.text().then((text) => {
-        return text.replace(/(\$\{)?import\.meta\.env\.VITE_APP_BUILD_BASE_URL(\})?/g, (str) => {
+        // 处理相对路径引入
+        text = text.replace(/import.+('|")((\.\/|\.\.\/).+)('|")/g, (...args) => {
+          const [matchStr, , relativePath, type] = args
+          const pathArr = filePath.split('/')
+          if (type === './') {
+            const relativeFilename = relativePath.replace('./', '')
+            pathArr.splice(-1, 1, relativeFilename)
+            return matchStr.replace(relativePath, pathArr.join('/'))
+          } else if (type === '../') {
+            const relativePathArr = relativePath.split('../')
+            const len = relativePathArr.length
+            pathArr.splice(-len)
+            pathArr.push(relativePathArr[len - 1])
+            return matchStr.replace(relativePath, pathArr.join('/'))
+          } else {
+            return matchStr
+          }
+        })
+        // 处理静态资源路径
+        text = text.replace(/(\$\{)?import\.meta\.env\.VITE_APP_BUILD_BASE_URL(\})?/g, (str) => {
           if (str.startsWith('$')) {
             return import.meta.env.VITE_APP_BUILD_BASE_URL
           } else {
             return `'${import.meta.env.VITE_APP_BUILD_BASE_URL}'`
           }
         })
+        return text
       })
     } else {
       throw new Error(res.statusText)
@@ -59,4 +83,24 @@ const fetchDemosFile = (path) => {
   })
 }
 
-export { $clone, $split, $delay, $idle, $pub, fetchDemosFile }
+/**
+ * 获取组件的贡献者
+ * @param {string} cmpId 组件id
+ * @returns string[] 贡献者信息列表
+ */
+const getCmpContributors = (cmpId) => {
+  const contributorIds = ContributorMap[cmpId]
+  let contributorInfo = []
+  if (contributorIds?.length) {
+    contributorIds.forEach((id) => {
+      let developer = Contributors.find((i) => i.id === id)
+      if (developer) {
+        contributorInfo.push(developer)
+      }
+    })
+  }
+
+  return contributorInfo
+}
+
+export { $clone, $split, $delay, $idle, pubUrl, fetchDemosFile, getCmpContributors }

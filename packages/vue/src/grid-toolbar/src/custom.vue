@@ -1,14 +1,14 @@
 <!--
- * Copyright (c) 2022 - present TinyVue Authors.
- * Copyright (c) 2022 - present Huawei Cloud Computing Technologies Co., Ltd.
- *
- * Use of this source code is governed by an MIT-style license.
- *
- * THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL BE USEFUL,
- * BUT WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR
- * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
- *
- -->
+* Copyright (c) 2022 - present TinyVue Authors.
+* Copyright (c) 2022 - present Huawei Cloud Computing Technologies Co., Ltd.
+*
+* Use of this source code is governed by an MIT-style license.
+*
+* THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL BE USEFUL,
+* BUT WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR
+* A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
+*
+-->
 <template>
   <tiny-modal
     width="600"
@@ -20,37 +20,14 @@
   >
     <template #default>
       <div class="tiny-grid-custom tiny-grid__wrapper" v-if="visible">
-        <div class="tiny-grid-custom__tabs">
-          <div class="tiny-grid-custom__tabs-head">
-            <ul>
-              <li
-                @click="activeName = 'base'"
-                :class="{
-                  'tiny-grid-custom__tabs-selected': activeName === 'base'
-                }"
-              >
-                <span>{{ t('ui.grid.individuation.tabs.base.title') }}</span>
-              </li>
-              <li
-                v-if="other"
-                @click="activeName = 'other'"
-                :class="{
-                  'tiny-grid-custom__tabs-selected': activeName === 'other'
-                }"
-              >
-                <span>{{ t('ui.grid.individuation.tabs.other.title') }}</span>
-              </li>
-            </ul>
-          </div>
+        <tiny-tabs v-model="activeName" class="tiny-grid-custom__tabs">
           <div class="tiny-grid-custom__tabs-body">
-            <div
-              v-show="activeName === 'base'"
-              :class="['tabs-body-item', animateShow === 'base' ? 'active-item' : '']"
-            >
-              <div class="tiny-grid-custom__alert">
-                <component class="tiny-svg-size" is="icon-help" />
-                <p>{{ t('ui.grid.individuation.tabs.base.tips') }}</p>
-              </div>
+            <tiny-tab-item class="tabs-body-item" :title="t('ui.grid.individuation.tabs.base.title')" name="base">
+              <tiny-alert
+                class="tiny-grid-custom__alert"
+                :description="t('ui.grid.individuation.tabs.base.tips')"
+                :closable="false"
+              ></tiny-alert>
               <tiny-grid
                 class="tiny-grid-custom__setting"
                 :auto-resize="true"
@@ -108,15 +85,18 @@
                   </template>
                 </tiny-grid-column>
               </tiny-grid>
-            </div>
-            <div
-              v-show="activeName === 'other'"
-              :class="['tabs-body-item', animateShow === 'other' ? 'active-item' : '']"
+            </tiny-tab-item>
+            <tiny-tab-item
+              v-if="other"
+              class="tabs-body-item"
+              :title="t('ui.grid.individuation.tabs.other.title')"
+              name="other"
             >
-              <div class="tiny-grid-custom__alert">
-                <component class="tiny-svg-size" is="icon-help" />
-                <p>{{ t('ui.grid.individuation.tabs.other.tips') }}</p>
-              </div>
+              <tiny-alert
+                class="tiny-grid-custom__alert"
+                :description="t('ui.grid.individuation.tabs.other.tips')"
+                :closable="false"
+              ></tiny-alert>
               <ul class="tiny-grid-custom__setting other-setting">
                 <li class="setting-item">
                   <span class="label">{{ t('ui.grid.individuation.tabs.other.sortType') }}</span>
@@ -142,27 +122,31 @@
                   </span>
                 </li>
               </ul>
-            </div>
+            </tiny-tab-item>
             <tiny-custom-switch
               v-if="multipleHistory && activeName === 'base'"
               ref="switch"
               :history-config="historyConfig"
             ></tiny-custom-switch>
           </div>
-        </div>
+        </tiny-tabs>
+
         <div
           v-if="!multipleHistory || (multipleHistory && activeName === 'base')"
           class="tiny-grid-custom__footer"
           :dir="TinyTheme === 'saas' ? 'rtl' : 'ltr'"
         >
-          <tiny-button type="primary" @click="saveSettings" :disabled="saveDisabled">
-            {{ t('ui.grid.individuation.saveBtn') }}
-          </tiny-button>
           <tiny-button @click="handleReset">
             {{ t('ui.grid.individuation.resetBtn') }}
           </tiny-button>
+          <tiny-button v-if="showHideAll" @click="showOrHideAllColumns(!showAll)">{{
+            showAll ? t('ui.grid.individuation.hideAll') : t('ui.grid.individuation.showAll')
+          }}</tiny-button>
           <tiny-button @click="cancelSettings">
             {{ t('ui.grid.individuation.cancelBtn') }}
+          </tiny-button>
+          <tiny-button type="primary" @click="saveSettings" :disabled="saveDisabled">
+            {{ t('ui.grid.individuation.saveBtn') }}
           </tiny-button>
         </div>
       </div>
@@ -175,7 +159,7 @@ import Button from '@opentiny/vue-button'
 import Modal from '@opentiny/vue-modal'
 import { t } from '@opentiny/vue-locale'
 import Grid, { GridRadio, GridColumn } from '@opentiny/vue-grid'
-import { find, mapTree } from '@opentiny/vue-renderless/grid/static'
+import { arrayEach, find, mapTree, isNull } from '@opentiny/vue-renderless/grid/static'
 import {
   IconEyeopen,
   IconEyeclose,
@@ -184,20 +168,23 @@ import {
   IconMinus,
   IconDescending,
   IconAscending,
-  IconHelp,
   IconLeftFrozen,
   IconRightFrozen
 } from '@opentiny/vue-icon'
 import Select from '@opentiny/vue-select'
+import Alert from '@opentiny/vue-alert'
+import Tabs from '@opentiny/vue-tabs'
+import TabItem from '@opentiny/vue-tab-item'
 import Option from '@opentiny/vue-option'
 import CustomSwitch from './custom-switch.vue'
 import { extend } from '@opentiny/vue-renderless/common/object'
-import { isNull } from '@opentiny/vue-renderless/grid/static'
-import { appProperties } from '@opentiny/vue-common'
-import { $props, defineComponent } from '@opentiny/vue-common'
+import { $props, defineComponent, appProperties } from '@opentiny/vue-common'
 
 export default defineComponent({
   components: {
+    TinyAlert: Alert,
+    TinyTabs: Tabs,
+    TinyTabItem: TabItem,
     TinyModal: Modal,
     TinyButton: Button,
     TinyRadio: GridRadio,
@@ -214,7 +201,6 @@ export default defineComponent({
     IconMinus: IconMinus(),
     IconDescending: IconDescending(),
     IconAscending: IconAscending(),
-    IconHelp: IconHelp(),
     TinyCustomSwitch: CustomSwitch
   },
   name: 'TinyGridCustom',
@@ -258,7 +244,9 @@ export default defineComponent({
     },
     numberSorting: Boolean,
     multipleHistory: [Object, Boolean],
-    resetMethod: Function
+    resetMethod: Function,
+    showHideAll: Boolean,
+    fixedSorting: Boolean
   },
   emits: ['input', 'saveSettings', 'resetSettings', 'cancelSettings', 'showModal'],
   data() {
@@ -316,11 +304,11 @@ export default defineComponent({
     showFixed() {
       return (this as any).$grid
     },
-    TinyTable() {
-      return ((this as any).$grid && (this as any).$grid.$refs.TinyTable) || {}
+    tinyTable() {
+      return ((this as any).$grid && (this as any).$grid.$refs.tinyTable) || {}
     },
     isGroup() {
-      return this.TinyTable.isGroup
+      return this.tinyTable.isGroup
     },
     historyConfig() {
       const multipleHistory =
@@ -367,17 +355,42 @@ export default defineComponent({
 
               return column
             }
+
+            return undefined
           })
           .filter((i) => i)
       }
       if (configs.length && (this as any).$grid) {
         const { collectColumn } = (this as any).$grid.getTableColumn()
-        const columns = getColNodes(collectColumn)
+        let columns = getColNodes(collectColumn)
+
+        columns = this.doFixedSorting(columns)
 
         this.initNumberSorting(columns)
 
         return columns
       }
+    },
+    doFixedSorting(columns) {
+      if (this.isGroup || !this.fixedSorting) {
+        return columns
+      }
+
+      const fixedLeft = []
+      const normal = []
+      const fixedRight = []
+
+      columns.forEach((column) => {
+        if (!column.fixed) {
+          normal.push(column)
+        } else if (column.fixed === 'left') {
+          fixedLeft.push(column)
+        } else if (column.fixed === 'right') {
+          fixedRight.push(column)
+        }
+      })
+
+      return [...fixedLeft, ...normal, ...fixedRight]
     },
     initNumberSorting(columns) {
       if (this.isGroup) return
@@ -426,6 +439,10 @@ export default defineComponent({
 
       if (!this.isGroup) {
         column.fixed = fixed ? (fixed === 'left' ? 'right' : undefined) : 'left'
+        if (this.fixedSorting) {
+          this.columns = this.doFixedSorting(this.columns)
+          this.initNumberSorting(this.columns)
+        }
       } else {
         for (let i = 0; i < this.columns.length; i++) {
           if (this.columns[i].children) {
@@ -467,6 +484,37 @@ export default defineComponent({
           changeFixed(rightColumns, leftColumns, column, 'left')
         }
       }
+    },
+    handleOrder(column) {
+      const { columns, tinyTable } = this
+      const { sortOpts } = tinyTable
+      const { multipleColumnSort } = sortOpts
+
+      // 设置当前列排序类型
+      column.order = tinyTable.toggleColumnOrder(column)
+
+      // 如果当前列排序类型存在，并且是单列排序，就清空其它列的排序类型
+      if (column.order && !multipleColumnSort) {
+        arrayEach(columns, (col) => col !== column && (col.order = null))
+      }
+    },
+    handleVisible(column) {
+      const visibleColumnCount = this.tinyTable.visibleColumn.filter((item) => item.visible).length
+      // 当前列是最后一个未隐藏列时，要对其进行隐藏时，进行提示
+
+      if (column.visible && visibleColumnCount === 1) {
+        // 最后一条显示的列不能隐藏
+        Modal.message({ id: 'customSetting', message: t('ui.grid.individuation.hideMsg'), status: 'warning' })
+      } else {
+        column.visible = !column.visible
+      }
+    },
+    showOrHideAllColumns(visible: boolean) {
+      this.columns.forEach((col) => {
+        col.visible = visible
+      })
+
+      this.showAll = visible
     },
     handlerSetting(type, column) {
       const invisibleCols = this.fullColumn.filter((item) => item.visible).length
@@ -556,6 +604,7 @@ export default defineComponent({
         return props1.length === props2.length && props1.sort().join(',') === props2.sort().join(',')
       }
 
+      // 用户自定义重置方法
       if (typeof this.resetMethod === 'function') {
         this.resetMethod().then((sourceSettings) => {
           this.buildSettings()
@@ -577,7 +626,7 @@ export default defineComponent({
               let settingColumns = []
               let gridColumns = []
 
-              columns.map((source) => {
+              columns.forEach((source) => {
                 let settingCol = find(this.settings.columns, (item) => source.property === item.property)
                 let targetCol = find(this.columns, (item) => source.property === item.property)
 

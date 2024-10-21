@@ -15,10 +15,28 @@ export default {
   'zh-TW': '中国台湾',
   hello: '你好 {name}',
   code: 'zh-CN',
+  yes: '是',
+  no: '否',
   ui: {
-    buttonMessage: {
-      cancel: '取消',
-      confirm: '确定'
+    input: {
+      close: '关闭',
+      more: '更多',
+      detail: '详细信息'
+    },
+    numeric: {
+      equalTo: '等于',
+      notEqualTo: '不等于',
+      moreThan: '大于',
+      moreThanOrEqualTo: '大于等于',
+      lessThan: '小于',
+      lessThanOrEqualTo: '小于等于',
+      empty: '为空',
+      nonEmpty: '不为空'
+    },
+    queryBuilder: {
+      addItem: '新增条件',
+      addGroup: '新增子条件组',
+      removeGroup: '移除条件组'
     },
     wizard: {
       previousStep: '上一步',
@@ -46,7 +64,15 @@ export default {
     amount: {
       currency: '币种',
       amount: '金额',
-      date: '日期'
+      date: '日期',
+      equalTo: '等于',
+      notEqualTo: '不等于',
+      moreThan: '大于',
+      moreThanOrEqualTo: '大于等于',
+      lessThan: '小于',
+      lessThanOrEqualTo: '小于等于',
+      empty: '为空',
+      nonEmpty: '不为空'
     },
     actionMenu: {
       moreText: '更多'
@@ -59,10 +85,19 @@ export default {
       edit: '编辑',
       more: '更多',
       reset: '重置',
+      clear: '清空',
+      comma: '，'
     },
     button: {
       cancel: '取消',
-      confirm: '确认'
+      confirm: '确定'
+    },
+    buttonGroup: {
+      noData: '暂无数据'
+    },
+    buttonMessage: {
+      cancel: '取消',
+      confirm: '确定'
     },
     cell: {
       placeholder: '请选择'
@@ -82,19 +117,23 @@ export default {
       total: '总计',
       value: '数值'
     },
-    colorSelectPanel:{
+    colorSelectPanel: {
       confirm: '选择',
       cancel: '取消',
       predefine: '预定义颜色',
       history: '历史记录',
       empty: '暂无'
     },
-    creditCardForm: {
-      submit: '提交'
-    },
     crop: {
-      cropImage: '图片裁剪',
-      croppedImage: '裁剪后图像'
+      choose: '选择图片',
+      zoomOut: '缩小10%',
+      zoomIn: '放大10%',
+      rotate_45: '逆时针旋转45°',
+      rotate45: '顺时针旋转45°',
+      closeCropArea: '隐藏选区',
+      reset: '重置视图',
+      closeCrop: '退出裁剪',
+      cropImage: '选择区域'
     },
     datepicker: {
       clear: '清空',
@@ -152,7 +191,12 @@ export default {
       },
       timezone: '选择时区',
       year: '年',
-      to: '至'
+      hour: '时',
+      minute: '分',
+      second: '秒',
+      to: '至',
+      yearMonth: '{year}年{month}月',
+      yearMonthDay: '{year}年{month}月{day}日'
     },
     richTextEditor: {
       bold: '加粗',
@@ -170,7 +214,7 @@ export default {
       taskList: '任务列表',
       quote: '引用',
       codeBlock: '代码块',
-      formatClear: '清楚标记',
+      formatClear: '清除标记',
       nodeDelete: '删除节点',
       undo: '回退',
       redo: '前进',
@@ -183,7 +227,9 @@ export default {
       img: '图片',
       color: '颜色',
       table: '表格',
-      backgroundColor: '文字背景色'
+      backgroundColor: '文字背景色',
+      localResources: '本地资源',
+      resourceLink: '资源链接'
     },
     calendar: {
       showType: {
@@ -205,15 +251,6 @@ export default {
       name: '名称',
       search: '辅助查询',
       selected: '已选'
-    },
-    detailpage: {
-      saveButtonText: '确认',
-      cancelButtonText: '取消',
-      localTips: '不能全部隐藏',
-      localTitle: '数据',
-      valueTitle: '勾选隐藏',
-      labelTitle: '文本字段',
-      dialogTitle: '个性化标题'
     },
     dialogBox: {
       confirm: '确定',
@@ -246,13 +283,15 @@ export default {
       folder: '文件所在文件夹层数已超过 5 层，将不会上传该文件',
       init: '服务报错，请重试',
       token: '请先进行 EDM 鉴权，获取 token',
-      exceed: '文件上传失败：大小超过限制（{maxSize}MB）',
-      largeFile: '文件大小超出限制 2G ！！！',
-      fileSize: '{name}大小不能小于 ',
+      exceed: '文件大小超过限制（{maxSize}）',
+      largeFile: '文件大小超出限制 2G ！！',
+      fileSize: '文件大小低于限制（{minSize}{sizeUnit}）',
       deleteTip: '按 delete 键可删除',
       downloadFile: '下载文件',
       previewFile: '预览文件',
       updateFile: '更新文件',
+      reUploadFile: '重新上传',
+      cancelFile: '取消上传',
       deleteFile: '删除文件',
       empty: '是空文件！',
       kiaScanTip: '抱歉，从公网接入下载文档，需要通过KIA检测；当前文档正在KIA检测中，请稍后几分钟后再下载！',
@@ -261,13 +300,24 @@ export default {
       calcHash: '文档正在计算加密中',
       uploadFile: '文件上传',
       downloadAll: '全部下载',
-      onlySupport: '仅支持{type}格式文件',
-      fileNotLessThan: '文件不能小于',
-      fileNotMoreThan: '文件不能超过',
-      notSupport: '文件上传失败：不支持该格式（.{format}）',
+      onlySupport: '支持{type}格式文件',
+      fileNotLessThan: '单个文件不能小于',
+      fileNotMoreThan: '单个文件不能超过',
+      fileSizeRange: '单个文件大小需在{moreThan}~{lessThan}之间',
+      notSupport: '格式（.{format}）暂不支持',
+      notSupportNoSuffix: '暂不支持无后缀文件',
+      notSupportSpecialCharacters: '文件名包含特殊字符，请重命名后上传',
       attachment: '附件',
       uploadList: '上传列表',
-      numberExceed: '文件上传失败：批量上传个数超过限制（{number}）'
+      numberExceed: '批量上传个数超过限制（{number}）',
+      numberLimit: '最多上传{number}个文件',
+      encryptDialogTitle: '水印及加密设置',
+      addWatermark: '添加水印',
+      encrypted: '加密',
+      docPreview: '文档预览',
+      networkError: '网络出错',
+      pictureNetworkError: '网络出错，上传失败',
+      reUploadTip: '{number}个文件上传失败！'
     },
     uploadList: {
       pictureUploading: '图片上传中',
@@ -320,7 +370,12 @@ export default {
         dargFixed: '固定列不允许拖动',
         remoteMethod: '个性化模板管理远端存储需要设置 multipleHistory.remoteMethod',
         remoteSelectedMethod: '个性化模板管理远端存储需要设置 multipleHistory.remoteSelectedMethod',
-        chainCallError: '列的默认插槽中存在语法错误，请检查。'
+        chainCallError: '列的默认插槽中存在语法错误，请检查。',
+        renderParamError: '期望配置一个生成 VNode 的渲染方法。',
+        classComponentError: '类组件渲染出错。',
+        groupColumnFixedError: '同一个分组内不能设置不同的固定类型。',
+        missingValueFormat: '渲染器无法格式化日期字符串，需要提供 valueFormat 源日期格式配置。',
+        clipboardWriteError: '剪切板写入错误'
       },
       filter: {
         allFilter: '全部',
@@ -373,6 +428,8 @@ export default {
         reserveTemplateName: '如未填写名称将保留之前的名称',
         resetBtn: '重置',
         saveBtn: '确定',
+        hideAll: '全部隐藏',
+        showAll: '全部显示',
         tabs: {
           base: {
             title: '基础设置',
@@ -394,7 +451,8 @@ export default {
         switchapply: '使用',
         switchedit: '编辑',
         switchdel: '删除',
-        switchconfirm: '确认',
+        switchconfirm: '确定',
+        switchdelconfirm: '删除确认',
         switchonlytemp: '保存模板',
         switchtempapply: '保存并使用模板',
         switchtempoverwrite: '覆盖并使用模板',
@@ -415,7 +473,13 @@ export default {
       remark: '备注'
     },
     imageViewer: {
-      loadErrorAlt: '加载失败'
+      loadErrorAlt: '加载失败',
+      save: '保存图片',
+      del: '删除图片',
+      thumbnail: '缩略图',
+      menu: '目录',
+      hide: '隐藏侧边栏',
+      show: '显示侧边栏'
     },
     navMenu: {
       moreText: '更多'
@@ -432,8 +496,8 @@ export default {
       pageClassifier: '页',
       pagesize: '条/页',
       prev: '上一页',
-      total: '总条数',
-      totals: '总计：',
+      total: '共',
+      totals: '总条数：',
       jump: '跳至',
       hundredThousand: '10万+',
       million: '100万+',
@@ -466,6 +530,13 @@ export default {
       errorTypeTips: '上传文件类型不匹配',
       errorNumTips: '上传文件数量超出限制,已取消该操作',
       errorSizeTips: '上传文件大小超出限制',
+      confirmDeleteTips: '确定要删除该文件吗？',
+      delete: '删除',
+      waitUpload: '等待上传',
+      operation: '操作',
+      success: '上传成功',
+      listTip: '共{0}条数据：',
+      errorListTip: '其中{0}条出错，请修改后重试',
       limitUploadFileNumber: '上传文件数限制为',
       limitUploadFileType: '上传文件类型限制为',
       limitUploadFileSize: '上传文件大小不超过'
@@ -483,10 +554,25 @@ export default {
       loading: '加载中',
       noMatch: '无匹配数据',
       noData: '暂无相关数据',
-      placeholder: '请选择'
+      placeholder: '请选择',
+      pleaseSearch: '请搜索',
+      search: '搜索',
+      selected: '已选',
+      selectedNum: '已选 {num} 个',
+      noSearchData: '无相关搜索结果，请重新输入',
+      add: '新增',
+      collapse: '收起'
     },
     search: {
       placeholder: '搜索'
+    },
+    signature: {
+      confirm: '确认',
+      rewrite: '重写',
+      cancel: '取消',
+      tips: '请手写签名',
+      resign: '重新签名',
+      placeholder: '请在此签名（必填）'
     },
     tabs: {
       moreItem: '更多'
@@ -498,7 +584,7 @@ export default {
       placeholder: '请输入内容进行筛选'
     },
     treeMenu: {
-      placeholder: '请输入内容进行筛选'
+      placeholder: '输入关键字搜索'
     },
     transfer: {
       filterPlaceholder: '请输入搜索内容',
@@ -509,12 +595,16 @@ export default {
       titles: ['列表 1', '列表 2']
     },
     tree: {
+      loading: '加载中',
       emptyText: '暂无数据',
       switchText: '同时勾选下级',
-      deleteTip: '删除后数据不可恢复，确定删除吗？',
-      preserveSubnodeTip: '该节点存在下级节点，是否保留下级节点数据？',
-      preserveSubnodeData: '保留下级节点数据',
-      newNodeTitle: '新增下级'
+      edit: '编辑',
+      delete: '删除',
+      addChild: '新增下级',
+      newNodeTitle: '新增下级',
+      deleteTip1: '删除后数据不可恢复，确定删除吗？',
+      deleteTip2: '该节点存在下级节点，是否保留下级节点数据？',
+      deleteTip3: '保留下级节点数据'
     },
     usercard: {
       address: '地址',
@@ -595,6 +685,11 @@ export default {
       placeholder: '在此处插入文本...',
       maxLength: '文本长度超过限制，支持的最大长度是 '
     },
+    fluentEditor: {
+      undo: '撤销',
+      redo: '重做',
+      lineheight: '行高'
+    },
     steps: {
       done: '已完成',
       doing: '进行中',
@@ -621,7 +716,8 @@ export default {
     },
     currency: {
       defaultCurrency: '默认币种',
-      setDefault: '设为默认'
+      setDefault: '设为默认',
+      chooseCurrency: '选择币种'
     },
     calendarBar: {
       week: { 0: '日', 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六' },
@@ -656,6 +752,16 @@ export default {
         12: '12'
       }
     },
+    calendarView: {
+      week: { 0: '日', 1: '一', 2: '二', 3: '三', 4: '四', 5: '五', 6: '六' },
+      weekDays: { 0: '周日', 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六' },
+      backToday: '回今天',
+      new: '新增',
+      noSchedule: '暂无日程',
+      year: '年',
+      month: '月',
+      dateFormat: 'yyyy 年 MM 月'
+    },
     selectedBox: {
       select: '已选（%s）',
       allSelect: '已全选（%s）',
@@ -670,6 +776,11 @@ export default {
     },
     dialogSelect: {
       treeSearch: '请输入关键字并回车'
+    },
+    loadList: {
+      errorText: '出错了',
+      loadingText: '加载中...',
+      finishedText: '没有更多了'
     }
   },
   validation: {
@@ -699,7 +810,7 @@ export default {
     string: {
       len: '%s 必须是 %s 个字符',
       min: '%s 必须至少为 %s 个字符',
-      max: '%s不 能大于 %s 个字符',
+      max: '%s 不能大于 %s 个字符',
       range: '%s 必须介于 %s 和 %s 个字符之间'
     },
     types: {

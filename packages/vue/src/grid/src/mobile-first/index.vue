@@ -1,23 +1,29 @@
 <template>
-  <div data-tag="tiny-table-wrapper" class="scrollbar-size-0" :class="wrapperClass" :style="wrapperStyle">
+  <div
+    ref="warpperElem"
+    data-tag="tiny-table-wrapper"
+    class="scrollbar-size-0"
+    :class="wrapperClass"
+    :style="wrapperStyle"
+    @scroll="scrollEvent"
+  >
     <exception
       tiny_mode="mobile-first"
+      tiny_mode_root
       v-if="exceptionVisible"
       class="min-h-[theme(spacing.72)]"
       component-page
       type="nodata"
     ></exception>
-    <div
-      data-tag="tiny-table"
-      :class="tableClass"
-      :style="listView || ganttView ? '' : 'grid-template-columns: repeat(auto-fit, minmax(theme(spacing.80), 1fr))'"
-      ref="table"
-    >
+    <div data-tag="tiny-table" :class="[tableClass, cardClass]" ref="table">
       <template v-if="listView">
         <list-view />
       </template>
       <template v-else-if="ganttView">
         <gantt-view />
+      </template>
+      <template v-else-if="customView">
+        <custom-view />
       </template>
       <template v-else>
         <table-row
@@ -45,9 +51,10 @@ import TableRow from './table-row.vue'
 import GlobalConfig from '../config'
 import ListView from './list-view.vue'
 import GanttView from './gantt-view.vue'
+import CustomView from './custom-view.vue'
 
 export default defineComponent({
-  components: { TableRow, Tooltip, Exception, ListView, GanttView },
+  components: { TableRow, Tooltip, Exception, ListView, GanttView, CustomView },
   provide() {
     return { $mftable: this }
   },
@@ -56,7 +63,8 @@ export default defineComponent({
     tableData: Array,
     cardConfig: Object,
     listConfig: Object,
-    ganttConfig: Object
+    ganttConfig: Object,
+    customConfig: Object
   },
   data() {
     return {
@@ -99,12 +107,19 @@ export default defineComponent({
 
       return viewType === GANTT
     },
+    customView() {
+      const { config } = this as any
+      const { viewType } = config?.tableVm?.$grid
+      const { CUSTOM } = GlobalConfig.viewConfig
+
+      return viewType === CUSTOM
+    },
     wrapperClass() {
       const { config } = this as any
       return mergeClass(
         'w-full h-full overflow-y-auto',
         config?.tableVm?.viewCls('mfTable'),
-        this.exceptionVisible ? 'border border-solid border-color-border-separator rounded-sm' : ''
+        this.exceptionVisible ? 'sm:border sm:border-solid sm:border-color-border-separator rounded-sm' : ''
       )
     },
     tableClass() {
@@ -113,13 +128,21 @@ export default defineComponent({
 
       return cardView ? mergeClass(tableCls, 'grid gap-3') : tableCls
     },
+    cardClass() {
+      const { listView, ganttView, cardConfig, customView } = this as any
+      let smallCls = 'grid-cols-[repeat(auto-fill,minmax(theme(spacing.64),1fr))]'
+      let defaultCls = 'grid-cols-[repeat(auto-fill,minmax(theme(spacing.80),1fr))]'
+
+      return listView || ganttView || customView ? '' : cardConfig?.cardSize === 'small' ? smallCls : defaultCls
+    },
     rowClass() {
-      const { cardView } = this as any
-      let rowCls = 'border-b border-solid border-color-border-separator last:border-white py-3'
+      const { cardView, cardConfig } = this as any
+      let rowCls = 'border-b-0.5 sm:border-b border-solid border-color-border-separator last:border-color-bg-1 py-3'
 
       if (cardView) {
         rowCls =
-          'border-0.5 sm:border border-solid border-color-border-separator p-3 rounded min-w-[theme(spacing.80)] hover:shadow-lg'
+          'border-0 sm:border border-solid border-color-border-separator p-3 rounded hover:shadow-lg bg-color-bg-1'
+        rowCls += cardConfig?.cardSize === 'small' ? ' min-w-[theme(spacing.64)]' : ' min-w-[theme(spacing.80)]'
       }
 
       return rowCls
@@ -129,40 +152,56 @@ export default defineComponent({
       const defaultView = config?.tableVm?.$grid?.viewType === GlobalConfig.viewConfig.DEFAULT
       const displayStyle = defaultView ? 'display:none;' : ''
       const heightStyle = wrapperHeight ? `height:${wrapperHeight}px;` : ''
+      const maxHeight = config?.tableVm?.$grid?.maxHeight
+      let maxHeightStyle
+      if (isScale(maxHeight)) {
+        maxHeightStyle = `max-height:${maxHeight};`
+      } else if (toNumber(maxHeight)) {
+        maxHeightStyle = `max-height:${toNumber(maxHeight)}px;`
+      } else {
+        maxHeightStyle = ''
+      }
 
-      return `${displayStyle}${heightStyle}`
+      return `${displayStyle}${heightStyle}${maxHeightStyle}`
     },
     exceptionVisible() {
       const { config, tableData } = this as any
       const { viewType } = config?.tableVm?.$grid
-      const { CARD, LIST, GANTT } = GlobalConfig.viewConfig
+      const { CARD, LIST, MF } = GlobalConfig.viewConfig
       const isException = tableData.length === 0
 
-      return isException && (viewType === CARD || viewType === LIST || viewType === GANTT)
+      return isException && (viewType === CARD || viewType === LIST || viewType === MF)
     }
   },
   watch: {
-    'config.tableVm.tableColumn': function () {
-      this.mapColumns()
+    'config.tableVm.tableColumn': {
+      handler() {
+        this.mapColumns()
+      },
+      immediate: true
     },
-    'config.tableVm.viewType': function () {
-      this.rowKey++
+    'config.tableVm.viewType': {
+      handler() {
+        this.rowKey++
+      },
+      immediate: true
     },
-    'config.tableVm.height': function () {
-      this.getWrapperHeight()
+    'config.tableVm.height': {
+      handler() {
+        this.getWrapperHeight()
+      },
+      immediate: true
+    },
+    'config.tableVm.parentHeight': {
+      handler() {
+        this.getWrapperHeight()
+      },
+      immediate: true
     },
     'config.tableVm.currentRow': {
       handler(value) {
         this.currentRow = value
-      },
-      immediate: true
-    },
-    currentRow: {
-      handler(value) {
-        if (value) {
-          const { config } = this as any
-          this.currentRowId = getRowid(config.tableVm, value)
-        }
+        this.setCurrentRowId()
       },
       immediate: true
     }
@@ -173,12 +212,13 @@ export default defineComponent({
   methods: {
     mapColumns() {
       const { config, typeColumns, firstFewPropertyColumn } = this as any
-      const { cardConfig = {}, listConfig = {}, ganttConfig = {} } = this as any
+      const { cardConfig = {}, listConfig = {}, ganttConfig = {}, customConfig = {} } = this as any
       const tableColumn: Array<Column> = config?.tableVm?.tableColumn
       const { primaryField, contentFields, selectable, renderLink, operable, few = 4 } = cardConfig as CardConfig
       const { renderList } = listConfig
       const { renderGantt } = ganttConfig
-      let fieldName = ''
+      const { renderCustom } = customConfig
+      let fieldName: string = ''
       let fieldNames: Array<string> = []
       let propCols: Array<Column> = firstFewPropertyColumn(tableColumn, few)
 
@@ -189,6 +229,7 @@ export default defineComponent({
       let slotLink: Function
       let slotList: Function
       let slotGantt: Function
+      let slotCustom: Function
 
       if (primaryField) {
         fieldName = fnField(primaryField)
@@ -221,9 +262,10 @@ export default defineComponent({
       slotLink = config?.tableVm?.$grid?.slots?.link || renderLink
       slotList = config?.tableVm?.$grid?.slots?.list || renderList
       slotGantt = config?.tableVm?.$grid?.slots?.gantt || renderGantt
+      slotCustom = config?.tableVm?.$grid?.slots?.custom || renderCustom
 
       Object.assign(this, { primaryColumn, contentColumns, operationColumn, selectionColumn })
-      Object.assign(this, { slotLink, slotList, slotGantt })
+      Object.assign(this, { slotLink, slotList, slotGantt, slotCustom })
     },
     typeColumns(columns: Array<Column>, types: Array<String>, field?: string) {
       const cols = types.map((type) => columns.find((column) => column.visible && column[field || 'property'] === type))
@@ -264,10 +306,15 @@ export default defineComponent({
 
       if (highlightCurrentRow) {
         this.currentRow = row
+        this.setCurrentRowId()
         config?.tableVm?.triggerCurrentRowEvent(e, { $table: config?.tableVm, row })
       }
 
       emitEvent.call(this, 'card-click', [row, e])
+    },
+    scrollEvent(event) {
+      const { scrolLeft, scrollTop } = this.$refs.warpperElem
+      this.emitEvent('scroll', [{ type: 'body', $table: this.config?.tableVm, scrolLeft, scrollTop }, event])
     },
     cfg(row: Object): Datas {
       const { config, cardView, selectionColumn, slotLink, primaryColumn } = this as any
@@ -298,7 +345,7 @@ export default defineComponent({
     getWrapperHeight() {
       const { config } = this as any
       const $grid = config?.tableVm?.$grid
-      const height = $grid?.height
+      const height = $grid?.height === 'auto' ? '100%' : $grid?.height
       const parentHeight = config?.tableVm?.parentHeight
 
       this.wrapperHeight = isScale(height) ? Math.floor((parseInt(height) / 100) * parentHeight) : toNumber(height)
@@ -339,6 +386,12 @@ export default defineComponent({
     hideTooltip() {
       this.tooltipVisible = false
       this.tooltipContent = ''
+    },
+    setCurrentRowId() {
+      const { config, currentRow } = this as any
+      if (currentRow) {
+        this.currentRowId = getRowid(config.tableVm, currentRow)
+      }
     }
   }
 })

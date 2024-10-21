@@ -10,12 +10,13 @@
  *
  */
 
+import type { ITooltipApi, ITooltipRenderlessParams, ITooltipState } from '@/types'
 import debounce from '../common/deps/debounce'
 import { on, off, addClass, removeClass } from '../common/deps/dom'
 
 export const show =
-  ({ api, state, props }) =>
-  (event) => {
+  ({ api, state, props }: Pick<ITooltipRenderlessParams, 'api' | 'state' | 'props'>) =>
+  (event?: MouseEvent) => {
     const defaultDelay = 200
     const delay = event && event.type === 'mouseenter' ? defaultDelay : 0
     // 如果指定 visible='auto', 则只有超长时，才显示tip。
@@ -29,53 +30,53 @@ export const show =
     api.handleShowPopper(delay)
   }
 
-export const hide = (api) => () => {
+export const hide = (api: ITooltipApi) => () => {
   api.setExpectedState(false)
   api.debounceClose()
 }
 
 export const handleFocus =
-  ({ api, state }) =>
+  ({ api, state }: Pick<ITooltipRenderlessParams, 'api' | 'state'>) =>
   () => {
     state.focusing = true
     api.show()
   }
 export const handleBlur =
-  ({ api, state }) =>
+  ({ api, state }: Pick<ITooltipRenderlessParams, 'api' | 'state'>) =>
   () => {
     state.focusing = false
     api.hide()
   }
 
 export const removeFocusing =
-  ({ api, state }) =>
+  ({ api, state }: Pick<ITooltipRenderlessParams, 'api' | 'state'>) =>
   () => {
     state.focusing = false
     api.show()
   }
 
 export const handleShowPopper =
-  ({ props, state }) =>
-  (delay) => {
+  ({ props, state }: Pick<ITooltipRenderlessParams, 'state' | 'props'>) =>
+  (delay: number) => {
     if (!state.expectedState || props.manual) {
       return
     }
 
     clearTimeout(state.timeout)
 
-    state.timeout = setTimeout(() => {
+    state.timeout = window.setTimeout(() => {
       state.showPopper = true
     }, props.openDelay || delay)
 
     if (props.hideAfter > 0) {
-      state.timeoutPending = setTimeout(() => {
+      state.timeoutPending = window.setTimeout(() => {
         state.showPopper = false
       }, props.hideAfter)
     }
   }
 
 export const handleClosePopper =
-  ({ api, props, state }) =>
+  ({ api, props, state }: Pick<ITooltipRenderlessParams, 'api' | 'state' | 'props'>) =>
   () => {
     if ((props.enterable && state.expectedState) || props.manual) {
       return
@@ -96,14 +97,19 @@ export const handleClosePopper =
 
 /* istanbul ignore next */
 export const handleDocumentClick =
-  ({ props, api, state, popperVmRef }) =>
-  (event) => {
+  ({ props, api, state, popperVmRef }: Pick<ITooltipRenderlessParams, 'api' | 'state' | 'props' | 'popperVmRef'>) =>
+  (event: MouseEvent) => {
     if (props.manual) return
 
     const reference = state.referenceElm
     const $el = popperVmRef.popper
 
-    if (!$el || !reference || $el.contains(event.target) || reference.contains(event.target)) {
+    if (
+      !$el ||
+      !reference ||
+      $el.contains(event.target as HTMLElement) ||
+      reference.contains(event.target as HTMLElement)
+    ) {
       return
     }
 
@@ -114,10 +120,10 @@ export const handleDocumentClick =
   }
 
 export const setExpectedState =
-  ({ api, state }) =>
-  (value) => {
+  ({ state }: Pick<ITooltipRenderlessParams, 'state'>) =>
+  (value: boolean) => {
     if (state.expectedState === false) {
-      clearTimeout(api.timeoutPending)
+      clearTimeout(state.timeoutPending)
     }
 
     state.expectedState = value
@@ -125,7 +131,7 @@ export const setExpectedState =
 
 /* istanbul ignore next */
 export const destroyed =
-  ({ state, api }) =>
+  ({ state, api, vm }: Pick<ITooltipRenderlessParams, 'state' | 'api' | 'vm'>) =>
   () => {
     const reference = state.referenceElm
 
@@ -140,21 +146,19 @@ export const destroyed =
       off(reference, 'click', api.removeFocusing)
     }
 
-    state.poppers.forEach((popper, i) => {
-      typeof popper.$destroy === 'function' && popper.$destroy()
-      state.poppers[i] = null
-    })
-
-    state.poppers.length = 0
+    if (vm.popperVM) {
+      typeof vm.popperVM.$destroy === 'function' && vm.popperVM.$destroy()
+      vm.popperVM = null
+    }
   }
 
-export const debounceClose = ({ api, props }) =>
+export const debounceClose = ({ api, props }: Pick<ITooltipRenderlessParams, 'api' | 'props'>) =>
   debounce(props.closeDelay, () => {
     api.handleClosePopper()
   })
 
 /* istanbul ignore next */
-export const watchFocusing = (state) => (value) => {
+export const watchFocusing = (state: ITooltipState) => (value: boolean) => {
   if (value) {
     addClass(state.referenceElm, 'focusing')
   } else {
@@ -163,7 +167,7 @@ export const watchFocusing = (state) => (value) => {
 }
 
 export const focusHandler =
-  ({ slots, api }) =>
+  ({ slots, api }: Pick<ITooltipRenderlessParams, 'slots' | 'api'>) =>
   () => {
     if (!slots.default || !slots.default().length) {
       api.handleFocus()
@@ -183,8 +187,8 @@ export const focusHandler =
   }
 
 export const bindEvent =
-  ({ api, state, vm }) =>
-  (reference) => {
+  ({ api, state, vm }: Pick<ITooltipRenderlessParams, 'api' | 'state' | 'vm'>) =>
+  (reference: HTMLElement) => {
     let referenceElm: HTMLElement = null as any
 
     if (vm.$el.nodeType === 8) {
@@ -199,7 +203,7 @@ export const bindEvent =
 
     state.referenceElm = referenceElm
     referenceElm.setAttribute('aria-describedby', state.tooltipId)
-    referenceElm.setAttribute('tabindex', state.tabindex)
+    referenceElm.setAttribute('tabindex', state.tabindex.toString())
 
     on(document, 'click', api.handleDocumentClick)
     on(referenceElm, 'mouseenter', api.show)
@@ -210,8 +214,8 @@ export const bindEvent =
   }
 
 export const observeCallback =
-  ({ state, popperVmRef }) =>
-  (mutationsList) => {
+  ({ state, popperVmRef }: Pick<ITooltipRenderlessParams, 'state' | 'popperVmRef'>) =>
+  (mutationsList: any) => {
     for (let mutation of mutationsList) {
       if (mutation.type === 'attributes' && mutation.attributeName === 'x-placement') {
         state.xPlacement = popperVmRef.popper.getAttribute('x-placement') || 'bottom'
@@ -220,8 +224,8 @@ export const observeCallback =
   }
 
 export const bindPopper =
-  ({ vm, refs, nextTick, popperVmRef }) =>
-  (el) => {
+  ({ vm, nextTick, popperVmRef }: Pick<ITooltipRenderlessParams, 'vm' | 'nextTick' | 'popperVmRef'>) =>
+  (el?: Element) => {
     nextTick(() => vm.bindEvent(el))
 
     // vm.popperVM 是一个get 方法，所以必须缓存下来，不能频繁访问
@@ -231,7 +235,9 @@ export const bindPopper =
     } else {
       popperVmRef.popper = vm.$refs.popper
     }
-    refs.popper || (refs.popper = popperVM.$el)
+
+    // vm.$refs是只读的，不允许添加popper。 原来是refs.popper， 为什么要保存这个refs.popper
+    // vm.$refs.popper || (vm.$refs.popper = popperVM.$el)
 
     nextTick(() => {
       if (vm.modelValue) {

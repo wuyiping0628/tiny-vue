@@ -1,42 +1,7 @@
-/**
- * Copyright (c) 2022 - present TinyVue Authors.
- * Copyright (c) 2022 - present Huawei Cloud Computing Technologies Co., Ltd.
- *
- * Use of this source code is governed by an MIT-style license.
- *
- * THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL BE USEFUL,
- * BUT WITHOUT ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS FOR
- * A PARTICULAR PURPOSE. SEE THE APPLICABLE LICENSES FOR MORE DETAILS.
- *
- */
-
 import throttle from '../common/deps/throttle'
+import { getDirection } from '../common/deps/touch'
 import { POSITION } from '../common'
-
-// 暂停计时器
-export const pauseTimer = (state) => () => clearInterval(state.timer)
-
-// 播放幻灯片
-export const playSlides =
-  ({ props, state }) =>
-  () => {
-    if (state.activeIndex < state.items.length - 1) {
-      state.activeIndex++
-    } else if (props.loop) {
-      state.activeIndex = 0
-    }
-  }
-
-// 启动计时器
-export const startTimer =
-  ({ api, props, state }) =>
-  () => {
-    if (props.interval <= 0 || !props.autoplay) {
-      return
-    }
-
-    state.timer = setInterval(api.playSlides, props.interval)
-  }
+import emulate from '../common/deps/touch-emulator'
 
 // 鼠标进入幻灯片事件
 export const handleMouseEnter =
@@ -46,7 +11,6 @@ export const handleMouseEnter =
     api.pauseTimer()
   }
 
-// 鼠标离开幻灯片事件
 export const handleMouseLeave =
   ({ api, state }) =>
   () => {
@@ -99,13 +63,49 @@ export const resetItemPosition = (state) => (oldIndex) => {
   }
 }
 
-// 设置当前展示的幻灯片
+// 播放幻灯片
+export const playSlides =
+  ({ api, props, state }) =>
+  () => {
+    let newIndex
+    let oldIndex = state.activeIndex
+
+    if (state.activeIndex < state.items.length - 1) {
+      newIndex = state.activeIndex + 1
+    } else if (props.loop) {
+      newIndex = 0
+    }
+
+    api.canActive(newIndex, oldIndex).then((result) => {
+      if (result) {
+        state.activeIndex = newIndex
+      }
+    })
+  }
+
+// 暂停计时器
+export const pauseTimer = (state) => () => clearInterval(state.timer)
+
+// 启动计时器
+export const startTimer =
+  ({ api, props, state }) =>
+  () => {
+    if (props.interval <= 0 || !props.autoplay) {
+      return
+    }
+
+    state.timer = setInterval(api.playSlides, props.interval)
+  }
+
 export const setActiveItem =
   ({ api, props, state }) =>
   (index) => {
     if (typeof index === 'string') {
-      const filteredItems = state.items.findIndex((item) => item.name === index)
-      index = filteredItems === -1 ? index : filteredItems
+      const filteredItems = state.items.filter((item) => item.name === index)
+
+      if (filteredItems.length > 0) {
+        index = state.items.indexOf(filteredItems[0])
+      }
     }
 
     index = Number(index)
@@ -116,19 +116,43 @@ export const setActiveItem =
 
     const length = state.items.length
     const oldIndex = state.activeIndex
+    let newIndex
 
     if (index < 0) {
-      state.activeIndex = props.loop ? length - 1 : 0
+      newIndex = props.loop ? length - 1 : 0
     } else if (index >= length) {
-      state.activeIndex = props.loop ? 0 : length - 1
+      newIndex = props.loop ? 0 : length - 1
     } else {
-      state.activeIndex = index
+      newIndex = index
     }
 
-    if (oldIndex === state.activeIndex) {
-      api.resetItemPosition(oldIndex)
+    const nextProcess = () => {
+      state.activeIndex = newIndex
+
+      if (oldIndex === state.activeIndex) {
+        api.resetItemPosition(oldIndex)
+      }
+    }
+
+    if (newIndex === oldIndex) {
+      nextProcess()
+    } else {
+      api.canActive(newIndex, oldIndex).then((result) => {
+        if (result) {
+          nextProcess()
+        }
+      })
     }
   }
+export const canActive = (props) => (newIndex, oldIndex) => {
+  return new Promise((resolve) => {
+    if (typeof props.beforeSwipe === 'function') {
+      resolve(props.beforeSwipe(newIndex, oldIndex))
+    } else {
+      resolve(true)
+    }
+  }).then((result) => result !== false)
+}
 
 export const prev =
   ({ api, state }) =>
@@ -140,15 +164,25 @@ export const next =
   () =>
     api.setActiveItem(state.activeIndex + 1)
 
-export const handleIndicatorClick = (state) => (index) => {
-  state.activeIndex = index
-}
+export const handleIndicatorClick =
+  ({ api, state }) =>
+  (index) => {
+    api.canActive(index, state.activeIndex).then((result) => {
+      if (result) {
+        state.activeIndex = index
+      }
+    })
+  }
 
 export const handleIndicatorHover =
-  ({ props, state }) =>
+  ({ api, props, state }) =>
   (index) => {
     if (props.trigger === 'hover' && index !== state.activeIndex) {
-      state.activeIndex = index
+      api.canActive(index, state.activeIndex).then((result) => {
+        if (result) {
+          state.activeIndex = index
+        }
+      })
     }
   }
 
@@ -181,18 +215,30 @@ export const computedStyle =
     if (props.height) {
       return { 'height': props.height }
     } else {
-      return { 'aspect-ratio': props.aspectRatio.replace(':', ' / ') }
+      // 低版本浏览器兼容（chrome 58 不支持 aspect-ratio属性）
+      if (CSS.supports('aspect-ratio', 'auto')) {
+        return { 'aspect-ratio': props.aspectRatio.replace(':', ' / ') }
+      } else {
+        const ratio = props.aspectRatio.split(':')
+        const paddingTop = ((ratio[1] / ratio[0]) * 100).toFixed(2) + '%'
+
+        return { 'width': '100%', 'height': 0, 'padding-top': paddingTop }
+      }
     }
   }
 
 export const onComplete =
-  ({ count, emit, props, state }) =>
+  ({ api, count, emit, props, state }) =>
   (total) => {
     if (count++ === total) {
       state.completed = true
 
       if (props.initialIndex < state.items.length && props.initialIndex >= 0) {
-        state.activeIndex = props.initialIndex
+        api.canActive(props.initialIndex, state.activeIndex).then((result) => {
+          if (result) {
+            state.activeIndex = props.initialIndex
+          }
+        })
       }
 
       emit('complete')
@@ -200,12 +246,15 @@ export const onComplete =
   }
 
 export const touchstart =
-  ({ state, api }) =>
+  ({ props, state, api }) =>
   (event) => {
     if (state.items.length <= 1 || ~state.noTouchNode.indexOf(event.target.nodeName)) return
 
-    event.preventDefault()
-    event.stopPropagation()
+    if (!props.swipeable) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
     resetTouchStatus(state)
     api.pauseTimer()
     state.itemsTranslate = state.items.map((item) => item.state.translate)
@@ -276,20 +325,6 @@ export const touchend =
     api.startTimer()
   }
 
-function getDirection(x, y) {
-  const MIN_DISTANCE = 10
-
-  if (x > y && x > MIN_DISTANCE) {
-    return 'horizontal'
-  }
-
-  if (y > x && y > MIN_DISTANCE) {
-    return 'vertical'
-  }
-
-  return ''
-}
-
 function resetTouchStatus(state) {
   state.direction = ''
   state.delta = 0
@@ -298,3 +333,36 @@ function resetTouchStatus(state) {
   state.offsetPos.X = 0
   state.offsetPos.Y = 0
 }
+
+export const simulateTouch =
+  ({ props, vm }) =>
+  () => {
+    if (props.swipeable && vm.$refs.carousel) {
+      emulate()
+      vm.$refs.carousel.setAttribute('data-tiny-touch-simulate-container', '')
+    }
+  }
+
+export const computedHasButtons =
+  ({ props, state, mode }) =>
+  () => {
+    if (props.lite) {
+      return false
+    } else if (mode === 'mobile-first') {
+      return props.arrow !== 'never' && state.items.length > 1
+    } else if (mode === 'pc') {
+      return props.arrow !== 'never'
+    }
+  }
+
+export const computedHasIndicators =
+  ({ props, state, mode }) =>
+  () => {
+    if (props.lite) {
+      return false
+    } else if (mode === 'mobile-first') {
+      return props.indicatorPosition !== 'none' && state.items.length > 1
+    } else if (mode === 'pc') {
+      return props.indicatorPosition !== 'none'
+    }
+  }
