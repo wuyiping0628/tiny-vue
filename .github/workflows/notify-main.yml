@@ -16,7 +16,5 @@ jobs:
         curl -X POST \
           -H "Authorization: token $PAT" \
           -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/wuyiping0628/next-docs/actions/workflows/update-submodule.yml/dispatches \
-          -d '{
-            "ref": "dev"
-          }'
+          https://api.github.com/repos/wuyiping0628/next-docs/dispatches \
+          -d '{"event_type":"submodule-updated"}'
