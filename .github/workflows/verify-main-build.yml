@@ -41,7 +41,7 @@ jobs:
         git checkout $BRANCH_NAME
         
         # 回到主仓库根目录
-        cd ../..
+        cd ../
         
         # 更新主仓库中的子模块引用
         git add tiny-vue
