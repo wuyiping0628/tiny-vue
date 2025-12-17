@@ -53,7 +53,13 @@ jobs:
     - name: Install deps
       run: pnpm i
     - name: Build site
-      run: pnpm build
+      run: |
+        echo "当前目录："
+        pwd
+        echo "目录内容："
+        ls -la
+        echo "进入 docs 目录并构建..."
+        cd docs && pnpm build
         
     - name: Update PR status
       if: always()
