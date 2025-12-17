@@ -27,40 +27,33 @@ jobs:
       run: |
         cd ../../
         # 克隆主仓库
-        git clone https://github.com/wuyiping0628/next-docs.git docs
-        cd docs
+        git clone https://github.com/wuyiping0628/next-docs.git next-docs
+        cd next-docs
         
         # 更新子模块到PR分支的版本
         git submodule sync --recursive
         git submodule update --init --recursive
-        cd ./tiny-vue
         
         # 获取PR分支的最新提交
         git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
         git checkout pr-branch
         
         # 回到主仓库根目录
-        cd ../
+        cd ../..
         
         # 更新主仓库中的子模块引用
         git add tiny-vue
         git commit -m "Update submodule to PR version" || echo "No changes"
         
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v3
-      with:
-        version: 9
-
-    - name: Install deps
-      run: pnpm i
-    - name: Build site
+        # 安装依赖并构建
+        pnpm install
+        pnpm build  # 根据你的构建脚本调整
+        
+    - name: Run main repo build
+      working-directory: ./next-docs
       run: |
-        echo "当前目录："
-        pwd
-        echo "目录内容："
-        ls -la
-        echo "进入 docs 目录并构建..."
-        cd docs && pnpm build
+        # 如果使用VitePress
+        pnpm build
         
     - name: Update PR status
       if: always()
