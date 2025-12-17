@@ -42,13 +42,20 @@ jobs:
         git fetch --all --tags --prune
         
         # 切换到当前分支的最新提交
-        git checkout wyp/build-1216
+        git checkout ${{ github.ref_name }}
         
         # 拉取远程分支的最新代码
-        git pull origin wyp/build-1216
+        git pull origin ${{ github.ref_name }}
+        
+        # 或者重置到远程最新
+        git reset --hard origin/${{ github.ref_name }}
+    
+        # 显示信息
+        echo "当前分支: ${{ github.ref_name }}"
+        echo "提交SHA: ${{ github.sha }}"
         
         # 回到主仓库根目录
-        cd ../..
+        cd ../
         
         # 更新主仓库中的子模块引用
         git add tiny-vue
