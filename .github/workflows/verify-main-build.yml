@@ -52,12 +52,10 @@ jobs:
       with:
         version: 9
 
-    - name: Install deps
-      run: pnpm i
-        
     - name: Run main repo build
       working-directory: ./next-docs
       run: |
+        pnpm i
         # 如果使用VitePress
         pnpm build
         
