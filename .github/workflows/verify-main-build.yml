@@ -38,9 +38,14 @@ jobs:
         cd ./tiny-vue
         git remote -v
         git branch -a
-        BRANCH_NAME="pr-${{ github.event.pull_request.number }}"
-        git fetch origin pull/${{ github.event.pull_request.number }}/head:$BRANCH_NAME
-        git checkout $BRANCH_NAME
+        # 获取所有最新远程分支
+        git fetch --all --tags --prune
+        
+        # 切换到当前分支的最新提交
+        git checkout ${{ github.ref_name }}
+        
+        # 拉取远程分支的最新代码
+        git pull origin ${{ github.ref_name }}
         
         # 回到主仓库根目录
         cd ../..
