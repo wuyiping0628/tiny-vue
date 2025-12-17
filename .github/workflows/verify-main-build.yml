@@ -33,8 +33,10 @@ jobs:
         # 更新子模块到PR分支的版本
         git submodule sync --recursive
         git submodule update --init --recursive
+
         
         # 获取PR分支的最新提交
+        cd ./tiny-vue
         git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
         git checkout pr-branch
         
