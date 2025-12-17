@@ -42,10 +42,10 @@ jobs:
         git fetch --all --tags --prune
         
         # 切换到当前分支的最新提交
-        git checkout ${{ github.ref_name }}
+        git checkout wyp/build-1216
         
         # 拉取远程分支的最新代码
-        git pull origin ${{ github.ref_name }}
+        git pull origin wyp/build-1216
         
         # 回到主仓库根目录
         cd ../..
