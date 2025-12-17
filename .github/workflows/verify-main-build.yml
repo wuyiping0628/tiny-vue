@@ -36,8 +36,9 @@ jobs:
         
         # 获取PR分支的最新提交
         cd ./tiny-vue
-        git fetch origin pull/${{ github.event.pull_request.number }}/head:${{ github.ref_name }}
-        git checkout ${{ github.ref_name }}
+        BRANCH_NAME="pr-${{ github.event.pull_request.number }}"
+        git fetch origin pull/${{ github.event.pull_request.number }}/head:$BRANCH_NAME
+        git checkout $BRANCH_NAME
         
         # 回到主仓库根目录
         cd ../..
