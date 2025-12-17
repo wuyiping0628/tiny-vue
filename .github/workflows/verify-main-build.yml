@@ -25,6 +25,7 @@ jobs:
 
     - name: Checkout main repository
       run: |
+        cd work
         # 克隆主仓库
         git clone https://github.com/wuyiping0628/next-docs.git docs
         cd docs
